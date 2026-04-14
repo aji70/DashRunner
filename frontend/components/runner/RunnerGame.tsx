@@ -12,7 +12,10 @@ export function RunnerGame() {
   const [score, setScore] = useState(0);
   const [coinsCollected, setCoinsCollected] = useState(0);
   const [highScore, setHighScore] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
   const canvasRef = useRef<GameCanvasHandle>(null);
+  const coinSoundRef = useRef<HTMLAudioElement | null>(null);
+  const themeSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -20,8 +23,22 @@ export function RunnerGame() {
       if (saved) {
         setHighScore(parseInt(saved, 10));
       }
+      const savedMute = localStorage.getItem("runner_muted");
+      if (savedMute === "true") {
+        setIsMuted(true);
+      }
     }
   }, []);
+
+  useEffect(() => {
+    if (themeSoundRef.current) {
+      if (isMuted) {
+        themeSoundRef.current.pause();
+      } else if (phase === "playing") {
+        themeSoundRef.current.play().catch(() => {});
+      }
+    }
+  }, [isMuted, phase]);
 
   const handleStart = () => {
     canvasRef.current?.reset();
@@ -53,6 +70,15 @@ export function RunnerGame() {
     setCoinsCollected(newCoins);
   };
 
+  const handleCoinCollect = () => {
+    if (coinSoundRef.current) {
+      coinSoundRef.current.currentTime = 0;
+      coinSoundRef.current.play().catch(() => {
+        // Silently ignore play errors (common on mobile with autoplay restrictions)
+      });
+    }
+  };
+
   const handlePhaseChange = (newPhase: GamePhase) => {
     setPhase(newPhase);
   };
@@ -67,17 +93,31 @@ export function RunnerGame() {
     }
   };
 
+  const handleMuteToggle = () => {
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("runner_muted", newMuted.toString());
+    }
+  };
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#010F10]" style={{ maxHeight: "100dvh" }}>
+      <audio ref={coinSoundRef} src="/coins.wav" preload="auto" />
+      <audio ref={themeSoundRef} src="/theme.mp3" preload="auto" loop onLoadedMetadata={(e) => {
+        (e.target as HTMLAudioElement).volume = 0.5;
+      }} />
+
       <GameCanvas
         ref={canvasRef}
         onScoreChange={handleScoreChange}
         onCoinsChange={handleCoinsChange}
+        onCoinCollect={handleCoinCollect}
         onGameOver={handleGameOver}
         onPhaseChange={handlePhaseChange}
       />
 
-      <GameHUD score={score} coinsCollected={coinsCollected} phase={phase} onPauseToggle={handlePauseToggle} />
+      <GameHUD score={score} coinsCollected={coinsCollected} phase={phase} isMuted={isMuted} onPauseToggle={handlePauseToggle} onMuteToggle={handleMuteToggle} />
 
       <GameControls onAction={(dir) => canvasRef.current?.dispatchAction(dir)} />
 

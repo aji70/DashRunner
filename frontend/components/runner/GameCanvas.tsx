@@ -18,6 +18,7 @@ import type {
 interface GameCanvasProps {
   onScoreChange: (score: number) => void;
   onCoinsChange: (coins: number) => void;
+  onCoinCollect: () => void;
   onGameOver: () => void;
   onPhaseChange: (phase: "idle" | "playing" | "paused" | "dead") => void;
 }
@@ -44,13 +45,13 @@ const PLAYER_HEIGHT = 40;
 // Colors
 const COLOR_BG = "#010F10";
 const COLOR_LANE_LINE = "rgba(0,240,255,0.08)";
-const COLOR_COIN = "#00F0FF";
+const COLOR_COIN = "#FFD700";
 const COLOR_OBSTACLE = "#1a3a3c";
 const COLOR_OBSTACLE_STROKE = "rgba(0,240,255,0.4)";
 const COLOR_PLAYER = "#FFFFFF";
 
 const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
-  ({ onScoreChange, onCoinsChange, onGameOver, onPhaseChange }, ref) => {
+  ({ onScoreChange, onCoinsChange, onCoinCollect, onGameOver, onPhaseChange }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gameStateRef = useRef<GameState>({
       phase: "idle",
@@ -260,6 +261,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           coin.collected = true;
           gameState.coinsCollected++;
           onCoinsChange(gameState.coinsCollected);
+          onCoinCollect();
         }
       }
 
@@ -269,7 +271,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       gameState.coins = gameState.coins.filter((coin) => coin.y < height + 100);
 
       renderGame(ctx, gameState, width, height, currentLaneXRef.current);
-    }, [onScoreChange, onCoinsChange, onGameOver]);
+    }, [onScoreChange, onCoinsChange, onCoinCollect, onGameOver]);
 
     useGameLoop(handleTick, gameLoopEnabled);
 
@@ -347,62 +349,76 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       height: number,
       distance: number
     ) => {
-      const groundY = height * 0.75;
-      const skyHeight = groundY;
-
-      // Far background - buildings (slowest)
+      // Far background - buildings (slowest, scrolls down)
       ctx.fillStyle = "#0a0a1a";
-      const buildingSpacing = 150;
-      const buildingOffset = (distance * 0.15) % buildingSpacing;
+      const buildingSpacing = 300;
+      const buildingYOffset = (distance * 0.1) % buildingSpacing;
 
-      for (let i = -2; i < width / buildingSpacing + 2; i++) {
-        const buildingX = i * buildingSpacing - buildingOffset;
-        const buildingHeight = 120 + ((i * 17) % 80);
-        ctx.fillRect(buildingX, skyHeight - buildingHeight, 80, buildingHeight);
+      for (let i = -2; i < height / buildingSpacing + 3; i++) {
+        const buildingY = i * buildingSpacing - buildingYOffset;
+        if (buildingY > height) continue;
 
-        // Building windows
-        ctx.fillStyle = "#00F0FF";
-        for (let row = 0; row < buildingHeight / 15; row++) {
-          for (let col = 0; col < 3; col++) {
-            ctx.fillRect(
-              buildingX + col * 20 + 8,
-              skyHeight - buildingHeight + row * 15 + 5,
-              8,
-              8
-            );
+        // Draw 3 buildings per row across the width
+        for (let col = 0; col < 4; col++) {
+          const buildingX = (col * width) / 3;
+          const buildingHeight = 100 + ((i * col * 13) % 60);
+          ctx.fillRect(buildingX, buildingY, width / 3, buildingHeight);
+
+          // Building windows
+          ctx.fillStyle = "#00F0FF";
+          for (let row = 0; row < buildingHeight / 20; row++) {
+            for (let wcol = 0; wcol < 4; wcol++) {
+              ctx.fillRect(
+                buildingX + wcol * (width / 12) + 5,
+                buildingY + row * 20 + 5,
+                8,
+                8
+              );
+            }
           }
+          ctx.fillStyle = "#0a0a1a";
         }
-        ctx.fillStyle = "#0a0a1a";
       }
 
       // Mid background - trees (medium speed)
       ctx.fillStyle = "#1a3a2a";
-      const treeSpacing = 120;
-      const treeOffset = (distance * 0.25) % treeSpacing;
+      const treeSpacing = 200;
+      const treeYOffset = (distance * 0.25) % treeSpacing;
 
-      for (let i = -2; i < width / treeSpacing + 2; i++) {
-        const treeX = i * treeSpacing - treeOffset;
-        const treeHeight = 80 + ((i * 11) % 40);
+      for (let i = -2; i < height / treeSpacing + 3; i++) {
+        const treeY = i * treeSpacing - treeYOffset;
+        if (treeY > height) continue;
 
-        // Tree trunk
-        ctx.fillStyle = "#1a3a2a";
-        ctx.fillRect(treeX + 15, skyHeight - treeHeight, 10, treeHeight);
+        // Trees spread across width
+        for (let col = 0; col < 5; col++) {
+          const treeX = (col * width) / 5;
+          const treeHeight = 60 + ((i * col * 7) % 30);
 
-        // Tree foliage
-        ctx.fillStyle = "#00FF00";
-        ctx.beginPath();
-        ctx.arc(treeX + 20, skyHeight - treeHeight, 25, 0, Math.PI * 2);
-        ctx.fill();
+          // Tree trunk
+          ctx.fillStyle = "#1a3a2a";
+          ctx.fillRect(treeX + 8, treeY, 8, treeHeight);
+
+          // Tree foliage
+          ctx.fillStyle = "#00FF00";
+          ctx.beginPath();
+          ctx.arc(treeX + 12, treeY, 20, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       // Close background - small details (fastest)
       ctx.fillStyle = "#004d66";
-      const detailSpacing = 80;
-      const detailOffset = (distance * 0.4) % detailSpacing;
+      const detailSpacing = 150;
+      const detailYOffset = (distance * 0.4) % detailSpacing;
 
-      for (let i = -2; i < width / detailSpacing + 2; i++) {
-        const detailX = i * detailSpacing - detailOffset;
-        ctx.fillRect(detailX, skyHeight - 30, 25, 30);
+      for (let i = -2; i < height / detailSpacing + 3; i++) {
+        const detailY = i * detailSpacing - detailYOffset;
+        if (detailY > height) continue;
+
+        for (let col = 0; col < 6; col++) {
+          const detailX = (col * width) / 6;
+          ctx.fillRect(detailX, detailY, 20, 25);
+        }
       }
     };
 
