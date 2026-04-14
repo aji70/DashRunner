@@ -43,7 +43,8 @@ export interface Coin {
 // Complete game state held in refs
 export interface GameState {
   phase: GamePhase;
-  score: number;
+  score: number; // points from distance traveled
+  coinsCollected: number; // number of coins picked up
   speed: number; // pixels per millisecond
   distance: number; // total pixels scrolled (for difficulty scaling)
   player: PlayerEntity;

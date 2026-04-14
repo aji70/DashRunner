@@ -10,6 +10,7 @@ import type { GamePhase } from "@/types/runner";
 export function RunnerGame() {
   const [phase, setPhase] = useState<GamePhase>("idle");
   const [score, setScore] = useState(0);
+  const [coinsCollected, setCoinsCollected] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const canvasRef = useRef<GameCanvasHandle>(null);
 
@@ -25,6 +26,7 @@ export function RunnerGame() {
   const handleStart = () => {
     canvasRef.current?.reset();
     setScore(0);
+    setCoinsCollected(0);
     canvasRef.current?.start();
     setPhase("playing");
   };
@@ -47,6 +49,10 @@ export function RunnerGame() {
     setScore(newScore);
   };
 
+  const handleCoinsChange = (newCoins: number) => {
+    setCoinsCollected(newCoins);
+  };
+
   const handlePhaseChange = (newPhase: GamePhase) => {
     setPhase(newPhase);
   };
@@ -66,11 +72,12 @@ export function RunnerGame() {
       <GameCanvas
         ref={canvasRef}
         onScoreChange={handleScoreChange}
+        onCoinsChange={handleCoinsChange}
         onGameOver={handleGameOver}
         onPhaseChange={handlePhaseChange}
       />
 
-      <GameHUD score={score} phase={phase} onPauseToggle={handlePauseToggle} />
+      <GameHUD score={score} coinsCollected={coinsCollected} phase={phase} onPauseToggle={handlePauseToggle} />
 
       <GameControls onAction={(dir) => canvasRef.current?.dispatchAction(dir)} />
 

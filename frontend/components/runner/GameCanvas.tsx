@@ -17,6 +17,7 @@ import type {
 
 interface GameCanvasProps {
   onScoreChange: (score: number) => void;
+  onCoinsChange: (coins: number) => void;
   onGameOver: () => void;
   onPhaseChange: (phase: "idle" | "playing" | "paused" | "dead") => void;
 }
@@ -49,11 +50,12 @@ const COLOR_OBSTACLE_STROKE = "rgba(0,240,255,0.4)";
 const COLOR_PLAYER = "#FFFFFF";
 
 const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
-  ({ onScoreChange, onGameOver, onPhaseChange }, ref) => {
+  ({ onScoreChange, onCoinsChange, onGameOver, onPhaseChange }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gameStateRef = useRef<GameState>({
       phase: "idle",
       score: 0,
+      coinsCollected: 0,
       speed: BASE_SPEED,
       distance: 0,
       player: {
@@ -152,6 +154,14 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       gameState.speed =
         BASE_SPEED + Math.log(1 + gameState.distance / 1000) * SPEED_SCALE;
 
+      // Update score based on distance traveled (1 point per 10 pixels)
+      const newScore = Math.floor(gameState.distance / 10);
+      if (newScore !== lastScoreSyncRef.current) {
+        lastScoreSyncRef.current = newScore;
+        gameState.score = newScore;
+        onScoreChange(newScore);
+      }
+
       gameState.spawnTimer -= dt;
       if (gameState.spawnTimer <= 0) {
         const randomLane = Math.floor(Math.random() * 3) as Lane;
@@ -248,9 +258,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
 
         if (dist < coin.radius + 20) {
           coin.collected = true;
-          gameState.score++;
-          lastScoreSyncRef.current = gameState.score;
-          onScoreChange(gameState.score);
+          gameState.coinsCollected++;
+          onCoinsChange(gameState.coinsCollected);
         }
       }
 
@@ -260,7 +269,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       gameState.coins = gameState.coins.filter((coin) => coin.y < height + 100);
 
       renderGame(ctx, gameState, width, height, currentLaneXRef.current);
-    }, [onScoreChange, onGameOver]);
+    }, [onScoreChange, onCoinsChange, onGameOver]);
 
     useGameLoop(handleTick, gameLoopEnabled);
 
@@ -300,6 +309,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         gameStateRef.current = {
           phase: "idle",
           score: 0,
+          coinsCollected: 0,
           speed: BASE_SPEED,
           distance: 0,
           player: {
@@ -331,6 +341,71 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       },
     }));
 
+    const drawParallaxBackground = (
+      ctx: CanvasRenderingContext2D,
+      width: number,
+      height: number,
+      distance: number
+    ) => {
+      const groundY = height * 0.75;
+      const skyHeight = groundY;
+
+      // Far background - buildings (slowest)
+      ctx.fillStyle = "#0a0a1a";
+      const buildingSpacing = 150;
+      const buildingOffset = (distance * 0.15) % buildingSpacing;
+
+      for (let i = -2; i < width / buildingSpacing + 2; i++) {
+        const buildingX = i * buildingSpacing - buildingOffset;
+        const buildingHeight = 120 + ((i * 17) % 80);
+        ctx.fillRect(buildingX, skyHeight - buildingHeight, 80, buildingHeight);
+
+        // Building windows
+        ctx.fillStyle = "#00F0FF";
+        for (let row = 0; row < buildingHeight / 15; row++) {
+          for (let col = 0; col < 3; col++) {
+            ctx.fillRect(
+              buildingX + col * 20 + 8,
+              skyHeight - buildingHeight + row * 15 + 5,
+              8,
+              8
+            );
+          }
+        }
+        ctx.fillStyle = "#0a0a1a";
+      }
+
+      // Mid background - trees (medium speed)
+      ctx.fillStyle = "#1a3a2a";
+      const treeSpacing = 120;
+      const treeOffset = (distance * 0.25) % treeSpacing;
+
+      for (let i = -2; i < width / treeSpacing + 2; i++) {
+        const treeX = i * treeSpacing - treeOffset;
+        const treeHeight = 80 + ((i * 11) % 40);
+
+        // Tree trunk
+        ctx.fillStyle = "#1a3a2a";
+        ctx.fillRect(treeX + 15, skyHeight - treeHeight, 10, treeHeight);
+
+        // Tree foliage
+        ctx.fillStyle = "#00FF00";
+        ctx.beginPath();
+        ctx.arc(treeX + 20, skyHeight - treeHeight, 25, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Close background - small details (fastest)
+      ctx.fillStyle = "#004d66";
+      const detailSpacing = 80;
+      const detailOffset = (distance * 0.4) % detailSpacing;
+
+      for (let i = -2; i < width / detailSpacing + 2; i++) {
+        const detailX = i * detailSpacing - detailOffset;
+        ctx.fillRect(detailX, skyHeight - 30, 25, 30);
+      }
+    };
+
     const renderGame = (
       ctx: CanvasRenderingContext2D,
       gameState: GameState,
@@ -340,6 +415,9 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
     ) => {
       ctx.fillStyle = COLOR_BG;
       ctx.fillRect(0, 0, width, height);
+
+      // Draw parallax background
+      drawParallaxBackground(ctx, width, height, gameState.distance);
 
       ctx.strokeStyle = COLOR_LANE_LINE;
       ctx.lineWidth = 2;
