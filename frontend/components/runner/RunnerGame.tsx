@@ -52,7 +52,7 @@ export function RunnerGame() {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-[#010F10]">
+    <div className="relative h-screen w-screen overflow-hidden bg-[#010F10]" style={{ maxHeight: "100dvh" }}>
       <GameCanvas
         ref={canvasRef}
         onScoreChange={handleScoreChange}

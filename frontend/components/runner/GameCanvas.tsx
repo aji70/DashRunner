@@ -81,23 +81,36 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      const dpr = window.devicePixelRatio || 1;
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+      const updateCanvasSize = () => {
+        const dpr = window.devicePixelRatio || 1;
+        const width = window.innerWidth;
+        const height = Math.min(window.innerHeight, window.innerHeight);
 
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
 
-      const ctx = canvas.getContext("2d");
-      if (ctx) ctx.scale(dpr, dpr);
+        const ctx = canvas.getContext("2d");
+        if (ctx) ctx.scale(dpr, dpr);
 
-      dimRef.current = { width, height, dpr };
+        dimRef.current = { width, height, dpr };
 
-      const gameState = gameStateRef.current;
-      gameState.player.y = height * 0.75;
-      currentLaneXRef.current = getLaneX(gameState.player.lane, width);
+        const gameState = gameStateRef.current;
+        gameState.player.y = height * 0.75;
+        currentLaneXRef.current = getLaneX(gameState.player.lane, width);
+      };
+
+      updateCanvasSize();
+
+      // Handle orientation changes and window resizes
+      window.addEventListener("resize", updateCanvasSize);
+      window.addEventListener("orientationchange", updateCanvasSize);
+
+      return () => {
+        window.removeEventListener("resize", updateCanvasSize);
+        window.removeEventListener("orientationchange", updateCanvasSize);
+      };
     }, []);
 
     const handleTick = useCallback((dt: number) => {
@@ -393,7 +406,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       <canvas
         ref={canvasRef}
         tabIndex={0}
-        className="touch-none block w-full cursor-none bg-[#010F10]"
+        className="touch-none block w-full h-screen cursor-none bg-[#010F10]"
+        style={{ display: "block", maxHeight: "100dvh" }}
       />
     );
   }
