@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@layer theme {
+  --color-bg: #010f10;
+  --color-primary: #00f0ff;
+  --color-dark: #0e1415;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  background-color: #010f10;
+  color: #ffffff;
+  font-family: system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+/* Orbitron font fallback */
+@font-face {
+  font-family: "Orbitron Sans";
+  src: local("Courier New"), local("monospace");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Orbitron Sans";
+  src: local("Courier New"), local("monospace");
+  font-weight: 700;
+}
+
+:root {
+  --font-orbitron-sans: "Orbitron Sans", monospace;
+}
