@@ -51,6 +51,16 @@ export function RunnerGame() {
     setPhase(newPhase);
   };
 
+  const handlePauseToggle = () => {
+    if (phase === "playing") {
+      setPhase("paused");
+      canvasRef.current?.pause();
+    } else if (phase === "paused") {
+      setPhase("playing");
+      canvasRef.current?.resume();
+    }
+  };
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#010F10]" style={{ maxHeight: "100dvh" }}>
       <GameCanvas
@@ -60,7 +70,7 @@ export function RunnerGame() {
         onPhaseChange={handlePhaseChange}
       />
 
-      <GameHUD score={score} />
+      <GameHUD score={score} phase={phase} onPauseToggle={handlePauseToggle} />
 
       <GameControls onAction={(dir) => canvasRef.current?.dispatchAction(dir)} />
 
@@ -70,6 +80,7 @@ export function RunnerGame() {
         highScore={highScore}
         onStart={handleStart}
         onRestart={handleRestart}
+        onResume={handlePauseToggle}
       />
     </div>
   );

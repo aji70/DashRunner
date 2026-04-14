@@ -5,7 +5,7 @@ export type Lane = 0 | 1 | 2;
 export type PlayerState = "running" | "jumping" | "sliding";
 
 // Game phase states
-export type GamePhase = "idle" | "playing" | "dead";
+export type GamePhase = "idle" | "playing" | "paused" | "dead";
 
 // Player entity in the game world
 export interface PlayerEntity {

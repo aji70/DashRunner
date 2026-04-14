@@ -18,13 +18,15 @@ import type {
 interface GameCanvasProps {
   onScoreChange: (score: number) => void;
   onGameOver: () => void;
-  onPhaseChange: (phase: "idle" | "playing" | "dead") => void;
+  onPhaseChange: (phase: "idle" | "playing" | "paused" | "dead") => void;
 }
 
 export interface GameCanvasHandle {
   dispatchAction: (dir: SwipeDirection) => void;
   reset: () => void;
   start: () => void;
+  pause: () => void;
+  resume: () => void;
 }
 
 // Game constants
@@ -320,6 +322,12 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         gameStateRef.current.phase = "playing";
         setGameLoopEnabled(true);
         onPhaseChange("playing");
+      },
+      pause: () => {
+        setGameLoopEnabled(false);
+      },
+      resume: () => {
+        setGameLoopEnabled(true);
       },
     }));
 

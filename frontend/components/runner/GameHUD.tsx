@@ -1,12 +1,15 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import type { GamePhase } from "@/types/runner";
 
 interface GameHUDProps {
   score: number;
+  phase: GamePhase;
+  onPauseToggle: () => void;
 }
 
-export function GameHUD({ score }: GameHUDProps) {
+export function GameHUD({ score, phase, onPauseToggle }: GameHUDProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-10">
       {/* Score display - top left */}
@@ -26,9 +29,22 @@ export function GameHUD({ score }: GameHUDProps) {
         </AnimatePresence>
       </div>
 
-      {/* Speed indicator - top right */}
-      <div className="absolute right-2 top-2 sm:right-4 sm:top-4 font-orbitron text-xs sm:text-lg font-semibold text-[#00F0FF]">
-        DASH
+      {/* Pause button and speed indicator - top right */}
+      <div className="absolute right-2 top-2 sm:right-4 sm:top-4 flex items-center gap-2 sm:gap-3">
+        {phase === "playing" && (
+          <motion.button
+            onClick={onPauseToggle}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="pointer-events-auto flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded border border-[rgba(0,240,255,0.3)] bg-[#0E1415] text-sm sm:text-lg text-[#00F0FF] hover:border-[rgba(0,240,255,0.6)] transition-colors"
+            title="Pause"
+          >
+            ⏸
+          </motion.button>
+        )}
+        <div className="font-orbitron text-xs sm:text-lg font-semibold text-[#00F0FF]">
+          DASH
+        </div>
       </div>
     </div>
   );

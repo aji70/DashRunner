@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 const MotionButton = motion.button;
 
 interface GameOverlayProps {
-  phase: "idle" | "playing" | "dead";
+  phase: "idle" | "playing" | "paused" | "dead";
   score: number;
   highScore: number;
   onStart: () => void;
   onRestart: () => void;
+  onResume?: () => void;
 }
 
 export function GameOverlay({
@@ -19,6 +20,7 @@ export function GameOverlay({
   highScore,
   onStart,
   onRestart,
+  onResume,
 }: GameOverlayProps) {
   const router = useRouter();
 
@@ -72,6 +74,58 @@ export function GameOverlay({
               Best: {highScore}
             </motion.p>
           )}
+        </motion.div>
+      )}
+
+      {phase === "paused" && (
+        <motion.div
+          key="pause-screen"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="pointer-events-auto absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#010F10]/90 backdrop-blur-sm px-4"
+        >
+          <motion.h2
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="font-orbitron text-3xl sm:text-4xl md:text-5xl font-bold text-[#00F0FF]"
+          >
+            PAUSED
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="mt-4 sm:mt-6 font-orbitron text-sm sm:text-base text-[#00F0FF]/70 text-center"
+          >
+            Score: {score}
+          </motion.p>
+
+          <MotionButton
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            onClick={onResume}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="mt-8 sm:mt-12 rounded-lg border-2 border-[#00F0FF] bg-[#010F10] px-6 sm:px-8 py-3 sm:py-4 font-orbitron text-base sm:text-lg font-bold text-[#00F0FF] transition hover:bg-[#00F0FF]/10"
+          >
+            RESUME
+          </MotionButton>
+
+          <MotionButton
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            onClick={onRestart}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="mt-3 rounded-lg border-2 border-[#00F0FF]/50 bg-[#010F10] px-6 sm:px-8 py-3 sm:py-4 font-orbitron text-base sm:text-lg font-bold text-[#00F0FF]/50 transition hover:border-[#00F0FF] hover:text-[#00F0FF]"
+          >
+            RESTART
+          </MotionButton>
         </motion.div>
       )}
 
