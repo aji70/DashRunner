@@ -297,7 +297,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       const gameState = gameStateRef.current;
       if (gameState.phase !== "playing") return;
       const groundY = dimRef.current.height * 0.75;
-      const isOnGround = gameState.player.y >= groundY - 1;
+      const isOnGround = gameState.player.y >= groundY - 8;
 
       switch (dir) {
         case "left":

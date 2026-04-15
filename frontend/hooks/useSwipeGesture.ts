@@ -16,6 +16,8 @@ export function useSwipeGesture(
 ): void {
   const startXRef = useRef<number>(0);
   const startYRef = useRef<number>(0);
+  const lockedAxisRef = useRef<"x" | "y" | null>(null);
+  const hasTriggeredRef = useRef(false);
   const onSwipeRef = useRef(onSwipe);
 
   // Keep callback fresh without effect re-runs
@@ -30,27 +32,43 @@ export function useSwipeGesture(
     const handleTouchStart = (e: TouchEvent) => {
       startXRef.current = e.touches[0].clientX;
       startYRef.current = e.touches[0].clientY;
+      lockedAxisRef.current = null;
+      hasTriggeredRef.current = false;
+    };
+
+    const emitSwipe = (dx: number, dy: number) => {
+      if (hasTriggeredRef.current) return;
+      if (Math.abs(dx) < deadZone && Math.abs(dy) < deadZone) return;
+
+      if (lockedAxisRef.current == null) {
+        lockedAxisRef.current =
+          Math.abs(dx) > Math.abs(dy) * 1.1 ? "x" : "y";
+      }
+
+      if (lockedAxisRef.current === "x") {
+        onSwipeRef.current(dx > 0 ? "right" : "left");
+      } else {
+        onSwipeRef.current(dy > 0 ? "down" : "up");
+      }
+
+      hasTriggeredRef.current = true;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const dx = e.touches[0].clientX - startXRef.current;
+      const dy = e.touches[0].clientY - startYRef.current;
+      emitSwipe(dx, dy);
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
       const dx = e.changedTouches[0].clientX - startXRef.current;
       const dy = e.changedTouches[0].clientY - startYRef.current;
-
-      // Ignore swipes below dead zone threshold
-      if (Math.abs(dx) < deadZone && Math.abs(dy) < deadZone) return;
-
-      // Determine direction with a slight bias threshold to avoid accidental diagonals.
-      if (Math.abs(dx) > Math.abs(dy) * 1.15) {
-        // Horizontal swipe
-        onSwipeRef.current(dx > 0 ? "right" : "left");
-      } else {
-        // Vertical swipe
-        onSwipeRef.current(dy > 0 ? "down" : "up");
-      }
+      emitSwipe(dx, dy);
     };
 
     // Attach passive listeners for better scroll performance
     target.addEventListener("touchstart", handleTouchStart, { passive: true });
+    target.addEventListener("touchmove", handleTouchMove, { passive: true });
     target.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     // Keyboard fallback for desktop testing
@@ -79,6 +97,7 @@ export function useSwipeGesture(
     // Cleanup
     return () => {
       target.removeEventListener("touchstart", handleTouchStart);
+      target.removeEventListener("touchmove", handleTouchMove);
       target.removeEventListener("touchend", handleTouchEnd);
       target.removeEventListener("keydown", handleKeyDown);
     };

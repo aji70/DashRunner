@@ -113,13 +113,17 @@ export function RunnerGame() {
     }
   };
 
-  useSwipeGesture(gameSurfaceRef, (dir) => {
-    if (phase === "playing") {
-      const mappedDir =
-        dir === "left" ? "right" : dir === "right" ? "left" : dir;
-      canvasRef.current?.dispatchAction(mappedDir);
-    }
-  });
+  useSwipeGesture(
+    gameSurfaceRef,
+    (dir) => {
+      if (phase === "playing") {
+        const mappedDir =
+          dir === "left" ? "right" : dir === "right" ? "left" : dir;
+        canvasRef.current?.dispatchAction(mappedDir);
+      }
+    },
+    18
+  );
 
   return (
     <div
