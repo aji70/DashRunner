@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
 import { GameHUD } from "./GameHUD";
-import { GameControls } from "./GameControls";
 import { GameOverlay } from "./GameOverlay";
 import { ErrorBoundary } from "./ErrorBoundary";
 import type { GamePhase, GameState } from "@/types/runner";
@@ -149,11 +148,6 @@ export function RunnerGame() {
       )}
 
       <GameHUD score={score} coinsCollected={coinsCollected} phase={phase} isMuted={isMuted} onPauseToggle={handlePauseToggle} onMuteToggle={handleMuteToggle} />
-
-      <GameControls
-        visible={phase === "playing"}
-        onAction={(dir) => canvasRef.current?.dispatchAction(dir)}
-      />
 
       <GameOverlay
         phase={phase}
