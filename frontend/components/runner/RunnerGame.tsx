@@ -135,10 +135,10 @@ export function RunnerGame() {
       </div>
 
       {/* 3D Rendering */}
-      {gameState && (
+      {gameState && phase !== "idle" && (
         <Game3DScene
           gameState={gameState}
-          catPosition={gameState.distance / 50}
+          catPosition={Math.max(0, gameState.distance / 50)}
           playerLane={playerLane}
           jumping={isJumping}
           sliding={isSliding}

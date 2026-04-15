@@ -149,28 +149,40 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
 interface CanvasWrapperProps extends Game3DSceneProps {}
 
 function CanvasRenderer(props: CanvasWrapperProps) {
-  return (
-    <Canvas
-      shadows
-      gl={{ antialias: true, alpha: true }}
-      style={{
-        width: "100%",
-        height: "100%",
-        position: "absolute",
-        top: 0,
-        left: 0,
-      }}
-    >
-      <PerspectiveCamera
-        makeDefault
-        position={[0, 3, 15]}
-        fov={60}
-        near={0.1}
-        far={1000}
-      />
-      <Scene3D {...props} />
-    </Canvas>
-  );
+  try {
+    return (
+      <Canvas
+        shadows
+        gl={{
+          antialias: true,
+          alpha: true,
+          powerPreference: "high-performance"
+        }}
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+        onError={(error: any) => {
+          console.error("Canvas error:", error);
+        }}
+      >
+        <PerspectiveCamera
+          makeDefault
+          position={[0, 3, 15]}
+          fov={60}
+          near={0.1}
+          far={1000}
+        />
+        <Scene3D {...props} />
+      </Canvas>
+    );
+  } catch (error) {
+    console.error("Failed to render 3D scene:", error);
+    return null;
+  }
 }
 
 export const Game3DScene = CanvasRenderer;
