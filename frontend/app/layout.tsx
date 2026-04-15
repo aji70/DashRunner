@@ -21,6 +21,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <script src="/disable-extensions.js" />
+      </head>
       <body className="bg-[#010F10]">{children}</body>
     </html>
   );

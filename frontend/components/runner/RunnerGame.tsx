@@ -23,6 +23,7 @@ export function RunnerGame() {
   const [playerLane, setPlayerLane] = useState<0 | 1 | 2>(1);
   const [isJumping, setIsJumping] = useState(false);
   const [isSliding, setIsSliding] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
   const canvasRef = useRef<GameCanvasHandle>(null);
   const coinSoundRef = useRef<HTMLAudioElement | null>(null);
   const themeSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -37,6 +38,13 @@ export function RunnerGame() {
       if (savedMute === "true") {
         setIsMuted(true);
       }
+
+      // Delay canvas ready to avoid extension interference
+      const timer = setTimeout(() => {
+        setCanvasReady(true);
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -135,7 +143,7 @@ export function RunnerGame() {
       </div>
 
       {/* 3D Rendering */}
-      {gameState && phase !== "idle" && (
+      {canvasReady && gameState && phase !== "idle" && (
         <Game3DScene
           gameState={gameState}
           catPosition={Math.max(0, gameState.distance / 50)}
