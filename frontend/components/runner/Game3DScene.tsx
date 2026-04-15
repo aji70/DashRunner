@@ -24,8 +24,8 @@ function CityBuilder() {
         const height = 3 + Math.random() * 4;
         const x = side * (2 + Math.random() * 0.5);
         const z = i * 4;
-        const hue = 190 + Math.floor(Math.random() * 45);
-        const lightness = 28 + Math.floor(Math.random() * 20);
+        const hue = 250 + Math.floor(Math.random() * 95);
+        const lightness = 35 + Math.floor(Math.random() * 25);
         buildings.push({
           x,
           z,
@@ -43,13 +43,13 @@ function CityBuilder() {
       {/* Ground */}
       <mesh position={[0, -1, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[16, 500]} />
-        <meshStandardMaterial color="#071315" roughness={0.95} metalness={0.05} />
+        <meshStandardMaterial color="#170f2e" roughness={0.95} metalness={0.05} />
       </mesh>
 
       {/* Road */}
       <mesh position={[0, -0.98, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[4.2, 500]} />
-        <meshStandardMaterial color="#111827" roughness={0.7} metalness={0.1} />
+        <meshStandardMaterial color="#312e81" roughness={0.7} metalness={0.1} />
       </mesh>
 
       {/* Lane markers */}
@@ -58,7 +58,7 @@ function CityBuilder() {
           {Array.from({ length: 100 }).map((_, i) => (
             <mesh key={`marker-${i}`} position={[lane, 0.01, i * 4]}>
               <boxGeometry args={[0.15, 0.01, 0.3]} />
-              <meshStandardMaterial color="#00F0FF" emissive="#00F0FF" emissiveIntensity={0.2} />
+              <meshStandardMaterial color="#f472b6" emissive="#f472b6" emissiveIntensity={0.35} />
             </mesh>
           ))}
         </group>
@@ -75,8 +75,8 @@ function CityBuilder() {
           <boxGeometry args={[1.2, building.height, 1.2]} />
           <meshStandardMaterial
             color={building.color}
-            emissive="#0088FF"
-            emissiveIntensity={0.1}
+            emissive="#ec4899"
+            emissiveIntensity={0.18}
           />
         </mesh>
       ))}
@@ -105,10 +105,10 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
 
   return (
     <>
-      <fog attach="fog" args={["#020b12", 25, 85]} />
+      <fog attach="fog" args={["#140a24", 20, 82]} />
 
       {/* Lighting */}
-      <ambientLight intensity={0.45} />
+      <ambientLight intensity={0.55} />
       <directionalLight
         position={[10, 15, 10]}
         intensity={1.1}
@@ -118,7 +118,8 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
         shadow-camera-far={100}
         shadow-camera-near={0.1}
       />
-      <pointLight position={[0, 5, catPosition * 2]} intensity={0.7} color="#00F0FF" />
+      <pointLight position={[0, 5, catPosition * 2]} intensity={1} color="#f472b6" />
+      <pointLight position={[0, 4, catPosition * 2 - 4]} intensity={0.6} color="#22d3ee" />
 
       {/* Background */}
       <CityBuilder />
@@ -191,7 +192,7 @@ function CanvasRenderer(props: CanvasWrapperProps) {
           console.error("Canvas error:", error);
         }}
       >
-        <color attach="background" args={["#010f10"]} />
+        <color attach="background" args={["#12091f"]} />
         <Scene3D {...props} />
       </Canvas>
     );

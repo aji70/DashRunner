@@ -27,7 +27,7 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="min-w-12 sm:min-w-20 font-orbitron text-xl sm:text-3xl font-bold text-[#00F0FF]"
+              className="min-w-12 sm:min-w-20 font-orbitron text-xl sm:text-3xl font-bold text-[#67e8f9]"
             >
               {score}
             </motion.div>
@@ -44,7 +44,7 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
               animate={{ scale: 1 }}
               exit={{ scale: 0.9 }}
               transition={{ duration: 0.15 }}
-              className="min-w-10 sm:min-w-16 font-orbitron text-lg sm:text-2xl font-bold text-[#FFD700]"
+              className="min-w-10 sm:min-w-16 font-orbitron text-lg sm:text-2xl font-bold text-[#fde047]"
             >
               {coinsCollected}
             </motion.div>
@@ -60,7 +60,7 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
               onClick={onPauseToggle}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              className="pointer-events-auto flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded border border-[rgba(0,240,255,0.3)] bg-[#0E1415] text-sm sm:text-lg text-[#00F0FF] hover:border-[rgba(0,240,255,0.6)] transition-colors"
+              className="pointer-events-auto flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded border border-fuchsia-400/40 bg-indigo-950/80 text-sm sm:text-lg text-cyan-200 hover:border-fuchsia-300 transition-colors"
               title="Pause"
             >
               ⏸
@@ -69,15 +69,15 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
               onClick={onMuteToggle}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              className="pointer-events-auto flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded border border-[rgba(0,240,255,0.3)] bg-[#0E1415] text-sm sm:text-lg text-[#00F0FF] hover:border-[rgba(0,240,255,0.6)] transition-colors"
+              className="pointer-events-auto flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded border border-fuchsia-400/40 bg-indigo-950/80 text-sm sm:text-lg text-cyan-200 hover:border-fuchsia-300 transition-colors"
               title={isMuted ? "Unmute" : "Mute"}
             >
               {isMuted ? "🔇" : "🔊"}
             </motion.button>
           </>
         )}
-        <div className="font-orbitron text-xs sm:text-lg font-semibold text-[#00F0FF]">
-          DASH
+        <div className="font-orbitron text-xs sm:text-lg font-semibold text-fuchsia-200">
+          FUN RUN
         </div>
       </div>
     </div>
