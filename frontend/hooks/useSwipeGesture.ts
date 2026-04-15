@@ -39,8 +39,8 @@ export function useSwipeGesture(
       // Ignore swipes below dead zone threshold
       if (Math.abs(dx) < deadZone && Math.abs(dy) < deadZone) return;
 
-      // Determine direction: horizontal or vertical based on larger magnitude
-      if (Math.abs(dx) > Math.abs(dy)) {
+      // Determine direction with a slight bias threshold to avoid accidental diagonals.
+      if (Math.abs(dx) > Math.abs(dy) * 1.15) {
         // Horizontal swipe
         onSwipeRef.current(dx > 0 ? "right" : "left");
       } else {

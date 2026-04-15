@@ -296,6 +296,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
     const handleSwipe = useCallback((dir: SwipeDirection) => {
       const gameState = gameStateRef.current;
       if (gameState.phase !== "playing") return;
+      const groundY = dimRef.current.height * 0.75;
+      const isOnGround = gameState.player.y >= groundY - 1;
 
       switch (dir) {
         case "left":
@@ -309,14 +311,18 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           }
           break;
         case "up":
-          if (gameState.player.y === dimRef.current.height * 0.75) {
+          if (isOnGround && gameState.player.state !== "jumping") {
             gameState.player.state = "jumping";
             gameState.player.vy = JUMP_VELOCITY;
+            gameState.player.slideEndTime = undefined;
           }
           break;
         case "down":
-          gameState.player.state = "sliding";
-          gameState.player.slideEndTime = performance.now() + SLIDE_DURATION;
+          if (isOnGround) {
+            gameState.player.state = "sliding";
+            gameState.player.vy = 0;
+            gameState.player.slideEndTime = performance.now() + SLIDE_DURATION;
+          }
           break;
       }
     }, []);
