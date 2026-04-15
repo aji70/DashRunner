@@ -11,18 +11,18 @@ interface Coin3DProps {
 
 export function Coin3D({ position, collected }: Coin3DProps) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const baseYRef = useRef(position[1]);
 
-  useFrame(() => {
+  useFrame((state) => {
     if (!meshRef.current || collected) return;
-    meshRef.current.rotation.x += 0.05;
-    meshRef.current.rotation.y += 0.08;
-    meshRef.current.position.y += Math.sin(Date.now() * 0.003) * 0.01;
+    meshRef.current.rotation.y += 0.1;
+    meshRef.current.position.y = baseYRef.current + Math.sin(state.clock.elapsedTime * 6) * 0.08;
   });
 
   if (collected) return null;
 
   return (
-    <mesh ref={meshRef} position={position} castShadow>
+    <mesh ref={meshRef} position={position} rotation={[0, 0, Math.PI / 2]} castShadow>
       <cylinderGeometry args={[0.25, 0.25, 0.08, 32]} />
       <meshStandardMaterial
         color="#FFD700"

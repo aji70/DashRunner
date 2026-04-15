@@ -152,6 +152,7 @@ export function RunnerGame() {
         <ErrorBoundary>
           <Game3DScene
             gameState={gameState}
+            catPosition={Math.max(0, gameState.distance / 140)}
             playerLane={playerLane}
             jumping={isJumping}
             sliding={isSliding}

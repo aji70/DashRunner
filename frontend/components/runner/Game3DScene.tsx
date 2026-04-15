@@ -10,12 +10,13 @@ import type { GameState } from "@/types/runner";
 
 interface Game3DSceneProps {
   gameState: GameState;
+  catPosition: number;
   playerLane: 0 | 1 | 2;
   jumping: boolean;
   sliding: boolean;
 }
 
-const WORLD_SCROLL_SCALE = 0.08;
+const WORLD_SCROLL_SCALE = 0.045;
 const TRACK_CENTER_Z = 14;
 
 function CityBuilder() {
@@ -86,7 +87,7 @@ function CityBuilder() {
   );
 }
 
-function Scene3D({ gameState, playerLane, jumping, sliding }: Game3DSceneProps) {
+function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3DSceneProps) {
   const { camera } = useThree();
 
   // Keep a stable chase camera so the runner moves toward screen top.
@@ -94,17 +95,17 @@ function Scene3D({ gameState, playerLane, jumping, sliding }: Game3DSceneProps) 
     if (camera) {
       const targetCamX = playerLane - 1;
       camera.position.lerp(
-        new THREE.Vector3(targetCamX, 4.6, -8),
+        new THREE.Vector3(targetCamX, 4.6, catPosition - 8),
         0.1
       );
-      camera.lookAt(playerLane - 1, 1, 12);
+      camera.lookAt(playerLane - 1, 1, catPosition + 12);
     }
   });
 
   const catX = playerLane - 1;
   const catY = 0;
-  const catZ = 0;
-  const toWorldZ = (y: number) => TRACK_CENTER_Z - y * WORLD_SCROLL_SCALE;
+  const catZ = catPosition;
+  const toWorldZ = (y: number) => catZ + TRACK_CENTER_Z - y * WORLD_SCROLL_SCALE;
 
   return (
     <>
@@ -121,7 +122,7 @@ function Scene3D({ gameState, playerLane, jumping, sliding }: Game3DSceneProps) 
         shadow-camera-far={100}
         shadow-camera-near={0.1}
       />
-      <pointLight position={[0, 5, 6]} intensity={1} color="#f472b6" />
+      <pointLight position={[0, 5, catZ + 6]} intensity={1} color="#f472b6" />
       <pointLight position={[0, 4, catZ - 4]} intensity={0.6} color="#22d3ee" />
 
       {/* Background */}
@@ -138,7 +139,7 @@ function Scene3D({ gameState, playerLane, jumping, sliding }: Game3DSceneProps) 
       {gameState.coins
         .filter((coin) => {
           const coinZ = toWorldZ(coin.y);
-          return !coin.collected && coinZ > -12 && coinZ < 30;
+          return !coin.collected && coinZ > catZ - 12 && coinZ < catZ + 30;
         })
         .map((coin) => {
           const coinLaneX = coin.lane - 1;
@@ -155,7 +156,7 @@ function Scene3D({ gameState, playerLane, jumping, sliding }: Game3DSceneProps) 
       {gameState.obstacles
         .filter((obs) => {
           const obsZ = toWorldZ(obs.y);
-          return obsZ > -12 && obsZ < 30;
+          return obsZ > catZ - 12 && obsZ < catZ + 30;
         })
         .map((obs) => {
           const obsLaneX = obs.lane - 1;
