@@ -114,8 +114,8 @@ export function RunnerGame() {
         (e.target as HTMLAudioElement).volume = 0.5;
       }} />
 
-      {/* Hidden game logic engine */}
-      <div style={{ display: "none" }}>
+      {/* Game logic engine - positioned off-screen but can receive input */}
+      <div style={{ position: "fixed", left: "-9999px", top: "-9999px" }}>
         <GameCanvas
           ref={canvasRef}
           onScoreChange={handleScoreChange}
