@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 import { Cat3D } from "./Cat3D";
 import { Coin3D } from "./Coin3D";
@@ -169,6 +168,12 @@ function CanvasRenderer(props: CanvasWrapperProps) {
     return (
       <Canvas
         shadows
+        camera={{
+          position: [0, 3, 15],
+          fov: 60,
+          near: 0.1,
+          far: 1000,
+        }}
         gl={{
           antialias: true,
           alpha: true,
@@ -187,13 +192,6 @@ function CanvasRenderer(props: CanvasWrapperProps) {
         }}
       >
         <color attach="background" args={["#010f10"]} />
-        <PerspectiveCamera
-          makeDefault
-          position={[0, 3, 15]}
-          fov={60}
-          near={0.1}
-          far={1000}
-        />
         <Scene3D {...props} />
       </Canvas>
     );
