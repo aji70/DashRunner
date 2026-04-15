@@ -207,6 +207,7 @@ export function BabylonScene({
         left: 0,
         display: "block",
         touchAction: "none",
+        pointerEvents: "none",
       } as React.CSSProperties}
     />
   );
