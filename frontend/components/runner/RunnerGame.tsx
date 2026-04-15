@@ -1,19 +1,13 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useState, useRef, useEffect } from "react";
 import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
+import { BabylonScene } from "./BabylonScene";
 import { GameHUD } from "./GameHUD";
 import { GameControls } from "./GameControls";
 import { GameOverlay } from "./GameOverlay";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { canUseWebGL } from "@/lib/webgl-check";
 import type { GamePhase, GameState } from "@/types/runner";
-
-const Game3DScene = dynamic(() => import("./Game3DScene").then(m => ({ default: m.Game3DScene })), {
-  ssr: false,
-  loading: () => null,
-});
 
 export function RunnerGame() {
   const [phase, setPhase] = useState<GamePhase>("idle");
@@ -25,8 +19,6 @@ export function RunnerGame() {
   const [playerLane, setPlayerLane] = useState<0 | 1 | 2>(1);
   const [isJumping, setIsJumping] = useState(false);
   const [isSliding, setIsSliding] = useState(false);
-  const [canvasReady, setCanvasReady] = useState(false);
-  const [webglSupported, setWebglSupported] = useState(true);
   const canvasRef = useRef<GameCanvasHandle>(null);
   const coinSoundRef = useRef<HTMLAudioElement | null>(null);
   const themeSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -41,18 +33,6 @@ export function RunnerGame() {
       if (savedMute === "true") {
         setIsMuted(true);
       }
-
-      // Check WebGL support
-      const hasWebGL = canUseWebGL();
-      setWebglSupported(hasWebGL);
-      console.log('WebGL supported:', hasWebGL);
-
-      // Delay canvas ready to avoid extension interference
-      const timer = setTimeout(() => {
-        setCanvasReady(true);
-      }, 100);
-
-      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -150,18 +130,15 @@ export function RunnerGame() {
         />
       </div>
 
-      {/* 3D Rendering */}
-      {webglSupported && (
+      {/* Babylon.js 3D Rendering */}
+      {gameState && phase !== "idle" && (
         <ErrorBoundary>
-          {canvasReady && gameState && phase !== "idle" && (
-            <Game3DScene
-              gameState={gameState}
-              catPosition={Math.max(0, gameState.distance / 50)}
-              playerLane={playerLane}
-              jumping={isJumping}
-              sliding={isSliding}
-            />
-          )}
+          <BabylonScene
+            catPosition={Math.max(0, gameState.distance / 50)}
+            playerLane={playerLane}
+            jumping={isJumping}
+            sliding={isSliding}
+          />
         </ErrorBoundary>
       )}
 
