@@ -15,44 +15,48 @@ interface GameHUDProps {
 export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, onMuteToggle }: GameHUDProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-10">
-      {/* Score display - top left */}
-      <div className="absolute left-2 top-2 sm:left-4 sm:top-4 flex flex-col gap-3 sm:gap-4">
-        {/* Points */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          <div className="text-xl sm:text-2xl">⬡</div>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={score}
-              initial={{ scale: 1.2, opacity: 1 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="min-w-12 sm:min-w-20 font-orbitron text-xl sm:text-3xl font-bold text-[#67e8f9]"
-            >
-              {score}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+      {/* Top scoreboard */}
+      <div className="absolute left-1/2 top-2 z-20 w-[min(92vw,360px)] -translate-x-1/2 rounded-xl border border-fuchsia-300/35 bg-indigo-950/70 px-3 py-2 backdrop-blur-sm sm:top-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-md bg-black/20 px-2 py-1">
+            <p className="font-orbitron text-[10px] uppercase tracking-wider text-cyan-100/75">
+              Points
+            </p>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={score}
+                initial={{ scale: 1.08, opacity: 0.9 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.92, opacity: 0.7 }}
+                transition={{ duration: 0.15 }}
+                className="font-orbitron text-lg font-bold text-cyan-200 sm:text-2xl"
+              >
+                {score}
+              </motion.p>
+            </AnimatePresence>
+          </div>
 
-        {/* Coins collected */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          <div className="text-xl sm:text-2xl">🪙</div>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={coinsCollected}
-              initial={{ scale: 1.1 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              transition={{ duration: 0.15 }}
-              className="min-w-10 sm:min-w-16 font-orbitron text-lg sm:text-2xl font-bold text-[#fde047]"
-            >
-              {coinsCollected}
-            </motion.div>
-          </AnimatePresence>
+          <div className="rounded-md bg-black/20 px-2 py-1">
+            <p className="font-orbitron text-[10px] uppercase tracking-wider text-yellow-100/80">
+              Coins
+            </p>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={coinsCollected}
+                initial={{ scale: 1.08, opacity: 0.9 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.92, opacity: 0.7 }}
+                transition={{ duration: 0.15 }}
+                className="font-orbitron text-lg font-bold text-yellow-200 sm:text-2xl"
+              >
+                {coinsCollected}
+              </motion.p>
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
-      {/* Pause, Mute button and speed indicator - top right */}
+      {/* Pause + Mute actions */}
       <div className="absolute right-2 top-2 sm:right-4 sm:top-4 flex items-center gap-2 sm:gap-3">
         {phase === "playing" && (
           <>
@@ -76,9 +80,6 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
             </motion.button>
           </>
         )}
-        <div className="font-orbitron text-xs sm:text-lg font-semibold text-fuchsia-200">
-          FUN RUN
-        </div>
       </div>
     </div>
   );

@@ -22,20 +22,44 @@ const TRACK_CENTER_Z = 14;
 
 function CityBuilder() {
   const buildings = useMemo(() => {
-    const buildings: Array<{ x: number; z: number; height: number; id: string; color: string }> = [];
+    const buildings: Array<{
+      x: number;
+      z: number;
+      height: number;
+      id: string;
+      color: string;
+      width: number;
+      depth: number;
+      roofHeight: number;
+      windowRows: number;
+      windowCols: number;
+      setback: number;
+    }> = [];
     for (let i = -20; i < 50; i++) {
       for (let side = -1; side <= 1; side += 2) {
-        const height = 3 + Math.random() * 4;
-        const x = side * (2 + Math.random() * 0.5);
+        const height = 3.2 + Math.random() * 4.8;
+        const width = 0.85 + Math.random() * 0.45;
+        const depth = 0.9 + Math.random() * 0.5;
+        const roofHeight = 0.15 + Math.random() * 0.28;
+        const setback = 0.12 + Math.random() * 0.08;
+        const x = side * (2.4 + Math.random() * 0.7);
         const z = i * 4;
-        const hue = 250 + Math.floor(Math.random() * 95);
-        const lightness = 35 + Math.floor(Math.random() * 25);
+        const hue = 205 + Math.floor(Math.random() * 32);
+        const lightness = 30 + Math.floor(Math.random() * 18);
+        const windowRows = Math.max(3, Math.floor(height * 1.6));
+        const windowCols = 2 + Math.floor(Math.random() * 2);
         buildings.push({
           x,
           z,
           height,
           id: `${i}-${side}`,
-          color: `hsl(${hue} 65% ${lightness}%)`,
+          color: `hsl(${hue} 20% ${lightness}%)`,
+          width,
+          depth,
+          roofHeight,
+          windowRows,
+          windowCols,
+          setback,
         });
       }
     }
@@ -56,6 +80,14 @@ function CityBuilder() {
         <meshStandardMaterial color="#312e81" roughness={0.7} metalness={0.1} />
       </mesh>
 
+      {/* Sidewalks */}
+      {[-1, 1].map((side) => (
+        <mesh key={`sidewalk-${side}`} position={[side * 2.7, -0.97, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[1.1, 500]} />
+          <meshStandardMaterial color="#5b6070" roughness={0.9} metalness={0.05} />
+        </mesh>
+      ))}
+
       {/* Lane markers */}
       {[-1, 0, 1].map((lane) => (
         <group key={`lane-${lane}`}>
@@ -70,19 +102,72 @@ function CityBuilder() {
 
       {/* Buildings */}
       {buildings.map((building) => (
-        <mesh
-          key={building.id}
-          position={[building.x, building.height / 2, building.z]}
-          castShadow
-          receiveShadow
-        >
-          <boxGeometry args={[1.2, building.height, 1.2]} />
-          <meshStandardMaterial
-            color={building.color}
-            emissive="#ec4899"
-            emissiveIntensity={0.18}
-          />
-        </mesh>
+        <group key={building.id}>
+          <mesh
+            position={[building.x, building.height / 2, building.z]}
+            castShadow
+            receiveShadow
+          >
+            <boxGeometry args={[building.width, building.height, building.depth]} />
+            <meshStandardMaterial
+              color={building.color}
+              roughness={0.72}
+              metalness={0.18}
+            />
+          </mesh>
+
+          {/* roof cap */}
+          <mesh
+            position={[building.x, building.height + building.roofHeight / 2, building.z]}
+            castShadow
+            receiveShadow
+          >
+            <boxGeometry args={[building.width * 1.02, building.roofHeight, building.depth * 1.02]} />
+            <meshStandardMaterial color="#8b92a5" roughness={0.6} metalness={0.25} />
+          </mesh>
+
+          {/* upper setback tower for depth */}
+          <mesh
+            position={[building.x, building.height * 0.78, building.z]}
+            castShadow
+            receiveShadow
+          >
+            <boxGeometry
+              args={[
+                Math.max(0.35, building.width - building.setback),
+                building.height * 0.35,
+                Math.max(0.35, building.depth - building.setback),
+              ]}
+            />
+            <meshStandardMaterial color="#4d5566" roughness={0.72} metalness={0.2} />
+          </mesh>
+
+          {/* front facade windows */}
+          {Array.from({ length: building.windowRows }).map((_, row) =>
+            Array.from({ length: building.windowCols }).map((__, col) => {
+              const windowX =
+                building.x -
+                ((building.windowCols - 1) * 0.18) / 2 +
+                col * 0.18;
+              const windowY = 0.35 + row * 0.42;
+              const windowZ = building.z + building.depth / 2 + 0.01;
+              const lit = (row + col + Math.floor(building.x * 10)) % 3 !== 0;
+              return (
+                <mesh
+                  key={`w-${building.id}-${row}-${col}`}
+                  position={[windowX, windowY, windowZ]}
+                >
+                  <planeGeometry args={[0.1, 0.2]} />
+                  <meshStandardMaterial
+                    color={lit ? "#d8ecff" : "#2e3d52"}
+                    emissive={lit ? "#ffe29b" : "#000000"}
+                    emissiveIntensity={lit ? 0.4 : 0}
+                  />
+                </mesh>
+              );
+            })
+          )}
+        </group>
       ))}
     </group>
   );

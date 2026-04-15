@@ -41,10 +41,13 @@ const GRAVITY = 0.0018;
 const JUMP_VELOCITY = -0.7;
 const SLIDE_DURATION = 600;
 const LERP_FACTOR = 0.18;
-const SPAWN_INTERVAL = 1800;
+const SPAWN_INTERVAL = 900;
 const SPEED_SCALE = 0.15;
 const PLAYER_WIDTH = 20;
 const PLAYER_HEIGHT = 40;
+const COIN_RUSH_CHANCE = 0.72;
+const OBSTACLE_CHANCE = 0.28;
+const COIN_RUSH_STREAK_LENGTH = 4;
 
 // Colors
 const COLOR_BG = "#010F10";
@@ -85,6 +88,60 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
     const getLaneX = (lane: Lane, width: number): number => {
       return [width / 6, width / 2, (5 * width) / 6][lane];
     };
+
+    const spawnCoin = useCallback((lane: Lane, y: number) => {
+      const gameState = gameStateRef.current;
+      gameState.coins.push({
+        id: gameState.frameId++,
+        lane,
+        y,
+        radius: 8,
+        collected: false,
+      });
+    }, []);
+
+    const spawnCoinBurst = useCallback((baseLane: Lane) => {
+      const patternRoll = Math.random();
+      const lateralOffset = 22;
+      const forwardGap = 22;
+
+      if (patternRoll < 0.4) {
+        // Straight lane streak
+        for (let i = 0; i < COIN_RUSH_STREAK_LENGTH; i++) {
+          spawnCoin(baseLane, -30 - i * forwardGap);
+        }
+        return;
+      }
+
+      if (patternRoll < 0.75) {
+        // Zig-zag streak
+        for (let i = 0; i < COIN_RUSH_STREAK_LENGTH; i++) {
+          const lane = (Math.max(0, Math.min(2, baseLane + (i % 2 === 0 ? 0 : (baseLane === 2 ? -1 : 1))))) as Lane;
+          spawnCoin(lane, -30 - i * forwardGap);
+        }
+        return;
+      }
+
+      // Wide "splash" pattern across lanes
+      spawnCoin(0, -30);
+      spawnCoin(1, -30 - lateralOffset * 0.3);
+      spawnCoin(2, -30);
+      spawnCoin(1, -30 - forwardGap);
+      spawnCoin(baseLane, -30 - forwardGap * 1.6);
+    }, [spawnCoin]);
+
+    const spawnObstacle = useCallback((lane: Lane) => {
+      const gameState = gameStateRef.current;
+      const isWall = Math.random() < 0.48;
+      gameState.obstacles.push({
+        id: gameState.frameId++,
+        lane,
+        y: -60,
+        type: isWall ? "wall" : "barrier",
+        width: 40,
+        height: isWall ? 60 : 20,
+      });
+    }, []);
 
     useEffect(() => {
       const canvas = canvasRef.current;
@@ -170,26 +227,18 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       gameState.spawnTimer -= dt;
       if (gameState.spawnTimer <= 0) {
         const randomLane = Math.floor(Math.random() * 3) as Lane;
-        const isCoin = Math.random() < 0.7;
+        const isCoin = Math.random() < COIN_RUSH_CHANCE;
 
         if (isCoin) {
-          gameState.coins.push({
-            id: gameState.frameId++,
-            lane: randomLane,
-            y: -30,
-            radius: 8,
-            collected: false,
-          });
+          spawnCoinBurst(randomLane);
         } else {
-          const isWall = Math.random() < 0.5;
-          gameState.obstacles.push({
-            id: gameState.frameId++,
-            lane: randomLane,
-            y: -60,
-            type: isWall ? "wall" : "barrier",
-            width: 40,
-            height: isWall ? 60 : 20,
-          });
+          spawnObstacle(randomLane);
+          // Sometimes add a second obstacle in another lane for pressure.
+          if (Math.random() < OBSTACLE_CHANCE) {
+            const otherLane = ((randomLane + 1 + Math.floor(Math.random() * 2)) % 3) as Lane;
+            spawnObstacle(otherLane);
+            gameState.obstacles[gameState.obstacles.length - 1].y = -100;
+          }
         }
 
         gameState.spawnTimer = SPAWN_INTERVAL / gameState.speed;
@@ -289,7 +338,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       }
 
       renderGame(ctx, gameState, width, height, currentLaneXRef.current);
-    }, [onScoreChange, onCoinsChange, onCoinCollect, onGameOver, onGameStateUpdate, onPlayerLaneChange, onJumpChange, onSlideChange]);
+    }, [onScoreChange, onCoinsChange, onCoinCollect, onGameOver, onGameStateUpdate, onPlayerLaneChange, onJumpChange, onSlideChange, spawnCoinBurst, spawnObstacle]);
 
     useGameLoop(handleTick, gameLoopEnabled);
 
