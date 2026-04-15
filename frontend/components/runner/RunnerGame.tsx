@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
+import { Game3DScene } from "./Game3DScene";
 import { GameHUD } from "./GameHUD";
 import { GameControls } from "./GameControls";
 import { GameOverlay } from "./GameOverlay";
-import type { GamePhase } from "@/types/runner";
+import type { GamePhase, GameState } from "@/types/runner";
 
 export function RunnerGame() {
   const [phase, setPhase] = useState<GamePhase>("idle");
@@ -13,6 +14,10 @@ export function RunnerGame() {
   const [coinsCollected, setCoinsCollected] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [gameState, setGameState] = useState<GameState | null>(null);
+  const [playerLane, setPlayerLane] = useState<0 | 1 | 2>(1);
+  const [isJumping, setIsJumping] = useState(false);
+  const [isSliding, setIsSliding] = useState(false);
   const canvasRef = useRef<GameCanvasHandle>(null);
   const coinSoundRef = useRef<HTMLAudioElement | null>(null);
   const themeSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -108,14 +113,32 @@ export function RunnerGame() {
         (e.target as HTMLAudioElement).volume = 0.5;
       }} />
 
-      <GameCanvas
-        ref={canvasRef}
-        onScoreChange={handleScoreChange}
-        onCoinsChange={handleCoinsChange}
-        onCoinCollect={handleCoinCollect}
-        onGameOver={handleGameOver}
-        onPhaseChange={handlePhaseChange}
-      />
+      {/* Hidden game logic engine */}
+      <div style={{ display: "none" }}>
+        <GameCanvas
+          ref={canvasRef}
+          onScoreChange={handleScoreChange}
+          onCoinsChange={handleCoinsChange}
+          onCoinCollect={handleCoinCollect}
+          onGameOver={handleGameOver}
+          onPhaseChange={handlePhaseChange}
+          onGameStateUpdate={setGameState}
+          onPlayerLaneChange={setPlayerLane}
+          onJumpChange={setIsJumping}
+          onSlideChange={setIsSliding}
+        />
+      </div>
+
+      {/* 3D Rendering */}
+      {gameState && (
+        <Game3DScene
+          gameState={gameState}
+          catPosition={gameState.distance / 50}
+          playerLane={playerLane}
+          jumping={isJumping}
+          sliding={isSliding}
+        />
+      )}
 
       <GameHUD score={score} coinsCollected={coinsCollected} phase={phase} isMuted={isMuted} onPauseToggle={handlePauseToggle} onMuteToggle={handleMuteToggle} />
 

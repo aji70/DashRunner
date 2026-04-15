@@ -21,6 +21,10 @@ interface GameCanvasProps {
   onCoinCollect: () => void;
   onGameOver: () => void;
   onPhaseChange: (phase: "idle" | "playing" | "paused" | "dead") => void;
+  onGameStateUpdate?: (state: GameState) => void;
+  onPlayerLaneChange?: (lane: 0 | 1 | 2) => void;
+  onJumpChange?: (jumping: boolean) => void;
+  onSlideChange?: (sliding: boolean) => void;
 }
 
 export interface GameCanvasHandle {
@@ -51,7 +55,7 @@ const COLOR_OBSTACLE_STROKE = "rgba(0,240,255,0.4)";
 const COLOR_PLAYER = "#FFFFFF";
 
 const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
-  ({ onScoreChange, onCoinsChange, onCoinCollect, onGameOver, onPhaseChange }, ref) => {
+  ({ onScoreChange, onCoinsChange, onCoinCollect, onGameOver, onPhaseChange, onGameStateUpdate, onPlayerLaneChange, onJumpChange, onSlideChange }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gameStateRef = useRef<GameState>({
       phase: "idle",
@@ -270,8 +274,22 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       );
       gameState.coins = gameState.coins.filter((coin) => coin.y < height + 100);
 
+      // Update 3D scene with game state
+      if (onGameStateUpdate) {
+        onGameStateUpdate(gameState);
+      }
+      if (onPlayerLaneChange) {
+        onPlayerLaneChange(gameState.player.lane);
+      }
+      if (onJumpChange) {
+        onJumpChange(gameState.player.state === "jumping");
+      }
+      if (onSlideChange) {
+        onSlideChange(gameState.player.state === "sliding");
+      }
+
       renderGame(ctx, gameState, width, height, currentLaneXRef.current);
-    }, [onScoreChange, onCoinsChange, onCoinCollect, onGameOver]);
+    }, [onScoreChange, onCoinsChange, onCoinCollect, onGameOver, onGameStateUpdate, onPlayerLaneChange, onJumpChange, onSlideChange]);
 
     useGameLoop(handleTick, gameLoopEnabled);
 
