@@ -30,7 +30,7 @@ export function Cat3D({ position, jumping, sliding }: Cat3DProps) {
     );
 
     // Face forward down the lane (away from camera, into the run)
-    groupRef.current.rotation.y = 0;
+    groupRef.current.rotation.y = Math.PI;
 
     // Rotation based on movement state
     if (jumping) {

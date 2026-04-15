@@ -7,6 +7,7 @@ import { GameHUD } from "./GameHUD";
 import { GameOverlay } from "./GameOverlay";
 import { ErrorBoundary } from "./ErrorBoundary";
 import type { GamePhase, GameState } from "@/types/runner";
+import { useSwipeGesture } from "@/hooks/useSwipeGesture";
 
 const Game3DScene = dynamic(
   () => import("./Game3DScene").then((mod) => mod.Game3DScene),
@@ -23,6 +24,7 @@ export function RunnerGame() {
   const [playerLane, setPlayerLane] = useState<0 | 1 | 2>(1);
   const [isJumping, setIsJumping] = useState(false);
   const [isSliding, setIsSliding] = useState(false);
+  const gameSurfaceRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<GameCanvasHandle>(null);
   const coinSoundRef = useRef<HTMLAudioElement | null>(null);
   const themeSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -111,8 +113,19 @@ export function RunnerGame() {
     }
   };
 
+  useSwipeGesture(gameSurfaceRef, (dir) => {
+    if (phase === "playing") {
+      canvasRef.current?.dispatchAction(dir);
+    }
+  });
+
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-[#010F10]" style={{ maxHeight: "100dvh" }}>
+    <div
+      ref={gameSurfaceRef}
+      className="relative h-screen w-screen touch-none overflow-hidden bg-[#010F10]"
+      style={{ maxHeight: "100dvh" }}
+      tabIndex={0}
+    >
       <audio ref={coinSoundRef} src="/coins.wav" preload="auto" />
       <audio ref={themeSoundRef} src="/theme.mp3" preload="auto" loop onLoadedMetadata={(e) => {
         (e.target as HTMLAudioElement).volume = 0.5;
