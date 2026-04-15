@@ -52,6 +52,15 @@ export function GameOverlay({
             Endless Runner
           </motion.p>
 
+          <motion.p
+            initial={{ y: -8, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="mt-2 text-center font-orbitron text-xs text-[#00F0FF]/55"
+          >
+            Move lanes, jump over walls, slide under barriers, collect coins.
+          </motion.p>
+
           <MotionButton
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

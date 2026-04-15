@@ -1,13 +1,18 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
-import { BabylonScene } from "./BabylonScene";
 import { GameHUD } from "./GameHUD";
 import { GameControls } from "./GameControls";
 import { GameOverlay } from "./GameOverlay";
 import { ErrorBoundary } from "./ErrorBoundary";
 import type { GamePhase, GameState } from "@/types/runner";
+
+const Game3DScene = dynamic(
+  () => import("./Game3DScene").then((mod) => mod.Game3DScene),
+  { ssr: false }
+);
 
 export function RunnerGame() {
   const [phase, setPhase] = useState<GamePhase>("idle");
@@ -130,10 +135,11 @@ export function RunnerGame() {
         />
       </div>
 
-      {/* Babylon.js 3D Rendering */}
+      {/* 3D rendering */}
       {gameState && phase !== "idle" && (
         <ErrorBoundary>
-          <BabylonScene
+          <Game3DScene
+            gameState={gameState}
             catPosition={Math.max(0, gameState.distance / 50)}
             playerLane={playerLane}
             jumping={isJumping}
@@ -144,7 +150,10 @@ export function RunnerGame() {
 
       <GameHUD score={score} coinsCollected={coinsCollected} phase={phase} isMuted={isMuted} onPauseToggle={handlePauseToggle} onMuteToggle={handleMuteToggle} />
 
-      <GameControls onAction={(dir) => canvasRef.current?.dispatchAction(dir)} />
+      <GameControls
+        visible={phase === "playing"}
+        onAction={(dir) => canvasRef.current?.dispatchAction(dir)}
+      />
 
       <GameOverlay
         phase={phase}

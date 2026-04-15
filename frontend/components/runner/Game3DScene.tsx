@@ -19,13 +19,21 @@ interface Game3DSceneProps {
 
 function CityBuilder() {
   const buildings = useMemo(() => {
-    const buildings = [];
+    const buildings: Array<{ x: number; z: number; height: number; id: string; color: string }> = [];
     for (let i = -20; i < 50; i++) {
       for (let side = -1; side <= 1; side += 2) {
         const height = 3 + Math.random() * 4;
         const x = side * (2 + Math.random() * 0.5);
         const z = i * 4;
-        buildings.push({ x, z, height, id: `${i}-${side}` });
+        const hue = 190 + Math.floor(Math.random() * 45);
+        const lightness = 28 + Math.floor(Math.random() * 20);
+        buildings.push({
+          x,
+          z,
+          height,
+          id: `${i}-${side}`,
+          color: `hsl(${hue} 65% ${lightness}%)`,
+        });
       }
     }
     return buildings;
@@ -33,10 +41,16 @@ function CityBuilder() {
 
   return (
     <group>
-      {/* Ground/Road */}
-      <mesh position={[0, -1, 0]} receiveShadow>
-        <planeGeometry args={[10, 500]} rotation-x={-Math.PI / 2} />
-        <meshStandardMaterial color="#111122" />
+      {/* Ground */}
+      <mesh position={[0, -1, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[16, 500]} />
+        <meshStandardMaterial color="#071315" roughness={0.95} metalness={0.05} />
+      </mesh>
+
+      {/* Road */}
+      <mesh position={[0, -0.98, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[4.2, 500]} />
+        <meshStandardMaterial color="#111827" roughness={0.7} metalness={0.1} />
       </mesh>
 
       {/* Lane markers */}
@@ -61,7 +75,7 @@ function CityBuilder() {
         >
           <boxGeometry args={[1.2, building.height, 1.2]} />
           <meshStandardMaterial
-            color={`#${Math.floor(Math.random() * 16777215).toString(16)}`}
+            color={building.color}
             emissive="#0088FF"
             emissiveIntensity={0.1}
           />
@@ -92,18 +106,20 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
 
   return (
     <>
+      <fog attach="fog" args={["#020b12", 25, 85]} />
+
       {/* Lighting */}
-      <ambientLight intensity={0.6} />
+      <ambientLight intensity={0.45} />
       <directionalLight
         position={[10, 15, 10]}
-        intensity={1}
+        intensity={1.1}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
         shadow-camera-far={100}
         shadow-camera-near={0.1}
       />
-      <pointLight position={[0, 5, catPosition * 2]} intensity={0.5} />
+      <pointLight position={[0, 5, catPosition * 2]} intensity={0.7} color="#00F0FF" />
 
       {/* Background */}
       <CityBuilder />
@@ -158,6 +174,7 @@ function CanvasRenderer(props: CanvasWrapperProps) {
           alpha: true,
           powerPreference: "high-performance"
         }}
+        dpr={[1, 1.75]}
         style={{
           width: "100%",
           height: "100%",
@@ -169,6 +186,7 @@ function CanvasRenderer(props: CanvasWrapperProps) {
           console.error("Canvas error:", error);
         }}
       >
+        <color attach="background" args={["#010f10"]} />
         <PerspectiveCamera
           makeDefault
           position={[0, 3, 15]}
