@@ -1,12 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useRef, useEffect } from "react";
 import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
-import { Game3DScene } from "./Game3DScene";
 import { GameHUD } from "./GameHUD";
 import { GameControls } from "./GameControls";
 import { GameOverlay } from "./GameOverlay";
 import type { GamePhase, GameState } from "@/types/runner";
+
+const Game3DScene = dynamic(() => import("./Game3DScene").then(m => ({ default: m.Game3DScene })), {
+  ssr: false,
+  loading: () => null,
+});
 
 export function RunnerGame() {
   const [phase, setPhase] = useState<GamePhase>("idle");

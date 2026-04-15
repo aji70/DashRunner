@@ -18,7 +18,6 @@ interface Game3DSceneProps {
 }
 
 function CityBuilder() {
-  const { camera } = useThree();
   const buildings = useMemo(() => {
     const buildings = [];
     for (let i = -20; i < 50; i++) {
@@ -68,15 +67,6 @@ function CityBuilder() {
           />
         </mesh>
       ))}
-
-      {/* Update camera to follow */}
-      {useMemo(() => {
-        if (camera) {
-          camera.position.z = 15;
-          camera.position.y = 3;
-        }
-        return null;
-      }, [camera])}
     </group>
   );
 }
@@ -156,10 +146,13 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
   );
 }
 
-export function Game3DScene({ gameState, catPosition, playerLane, jumping, sliding }: Game3DSceneProps) {
+interface CanvasWrapperProps extends Game3DSceneProps {}
+
+function CanvasRenderer(props: CanvasWrapperProps) {
   return (
     <Canvas
       shadows
+      gl={{ antialias: true, alpha: true }}
       style={{
         width: "100%",
         height: "100%",
@@ -175,13 +168,9 @@ export function Game3DScene({ gameState, catPosition, playerLane, jumping, slidi
         near={0.1}
         far={1000}
       />
-      <Scene3D
-        gameState={gameState}
-        catPosition={catPosition}
-        playerLane={playerLane}
-        jumping={jumping}
-        sliding={sliding}
-      />
+      <Scene3D {...props} />
     </Canvas>
   );
 }
+
+export const Game3DScene = CanvasRenderer;
