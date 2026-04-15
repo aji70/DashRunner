@@ -35,7 +35,7 @@ function CityBuilder() {
       windowCols: number;
       setback: number;
     }> = [];
-    for (let i = -20; i < 50; i++) {
+    for (let i = -10; i < 30; i++) {
       for (let side = -1; side <= 1; side += 2) {
         const height = 3.2 + Math.random() * 4.8;
         const width = 0.85 + Math.random() * 0.45;
@@ -65,6 +65,7 @@ function CityBuilder() {
     }
     return buildings;
   }, []);
+  const simplifiedRows = useMemo(() => new Set<number>([0, 2, 4, 6]), []);
 
   return (
     <group>
@@ -100,7 +101,7 @@ function CityBuilder() {
         </group>
       ))}
 
-      {/* Buildings */}
+      {/* Buildings (reduced visual complexity for mobile performance) */}
       {buildings.map((building) => (
         <group key={building.id}>
           <mesh
@@ -144,6 +145,7 @@ function CityBuilder() {
 
           {/* front facade windows */}
           {Array.from({ length: building.windowRows }).map((_, row) =>
+            simplifiedRows.has(row % 8) &&
             Array.from({ length: building.windowCols }).map((__, col) => {
               const windowX =
                 building.x -
@@ -225,6 +227,7 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
   const catY = 0;
   const catZ = catPosition;
   const toWorldZ = (y: number) => catZ + TRACK_CENTER_Z - y * WORLD_SCROLL_SCALE;
+  const cityOffsetZ = Math.floor(catZ / 4) * 4;
 
   return (
     <>
@@ -245,7 +248,9 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
       <pointLight position={[0, 4, catZ - 4]} intensity={0.6} color="#22d3ee" />
 
       {/* Background */}
-      <CityBuilder />
+      <group position={[0, 0, cityOffsetZ]}>
+        <CityBuilder />
+      </group>
 
       {/* Player character (realistic GLB when present, primitive fallback otherwise) */}
       {hasCharacterAssets ? (

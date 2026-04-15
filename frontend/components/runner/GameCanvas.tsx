@@ -41,13 +41,13 @@ const GRAVITY = 0.0018;
 const JUMP_VELOCITY = -0.7;
 const SLIDE_DURATION = 600;
 const LERP_FACTOR = 0.18;
-const SPAWN_INTERVAL = 900;
+const SPAWN_INTERVAL = 1000;
 const SPEED_SCALE = 0.15;
 const PLAYER_WIDTH = 20;
 const PLAYER_HEIGHT = 40;
 const COIN_RUSH_CHANCE = 0.72;
 const OBSTACLE_CHANCE = 0.28;
-const COIN_RUSH_STREAK_LENGTH = 4;
+const COIN_RUSH_STREAK_LENGTH = 3;
 
 // Colors
 const COLOR_BG = "#010F10";
@@ -310,7 +310,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           (coinX - playerCenterX) ** 2 + (coinY - playerCenterY) ** 2
         );
 
-        if (dist < coin.radius + 20) {
+        if (dist < coin.radius + 32) {
           coin.collected = true;
           gameState.coinsCollected++;
           onCoinsChange(gameState.coinsCollected);
