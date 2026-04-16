@@ -26,6 +26,44 @@ const BUILDING_PALETTES = [
   { body: "#f59e0b", accent: "#fffbeb", secondary: "#fde68a" },
   { body: "#22d3ee", accent: "#ecfeff", secondary: "#a5f3fc" },
 ];
+const SKYLINE_PALETTES = ["#1d4ed8", "#7c3aed", "#db2777", "#0f766e", "#ea580c", "#0891b2"];
+
+function SkylineLayer({ catPosition, mobileMode = false }: { catPosition: number; mobileMode?: boolean }) {
+  const skyline = useMemo(() => {
+    const chunks: Array<{ x: number; z: number; width: number; height: number; color: string }> = [];
+    const count = mobileMode ? 18 : 28;
+    for (let i = -6; i < count; i++) {
+      const side = i % 2 === 0 ? -1 : 1;
+      chunks.push({
+        x: side * (6.2 + (i % 3) * 0.8),
+        z: i * 8,
+        width: 1.2 + (i % 4) * 0.35,
+        height: 5 + (i % 5) * 1.4,
+        color: SKYLINE_PALETTES[i % SKYLINE_PALETTES.length],
+      });
+    }
+    return chunks;
+  }, [mobileMode]);
+
+  const skylineOffsetZ = Math.floor((catPosition * 0.35) / 8) * 8;
+
+  return (
+    <group position={[0, 0, skylineOffsetZ]}>
+      {skyline.map((chunk, idx) => (
+        <group key={`skyline-${idx}`}>
+          <mesh position={[chunk.x, chunk.height / 2 + 0.2, chunk.z]}>
+            <boxGeometry args={[chunk.width, chunk.height, 1.1]} />
+            <meshBasicMaterial color={chunk.color} transparent opacity={0.55} />
+          </mesh>
+          <mesh position={[chunk.x, chunk.height / 2 + 0.2, chunk.z + 0.57]}>
+            <planeGeometry args={[chunk.width * 0.7, chunk.height * 0.7]} />
+            <meshBasicMaterial color="#e0f2fe" transparent opacity={0.18} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
 
 function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
   const buildings = useMemo(() => {
@@ -377,8 +415,8 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           ))}
 
           {/* side window bands */}
-          {Array.from({ length: mobileMode ? 3 : 5 }).map((_, idx) => {
-            const y = 0.85 + idx * 0.72;
+          {Array.from({ length: mobileMode ? 5 : 8 }).map((_, idx) => {
+            const y = 0.75 + idx * (building.height / (mobileMode ? 5.5 : 8.5));
             return (
               <group key={`side-band-${building.id}-${idx}`}>
                 <mesh
@@ -417,7 +455,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
                 building.x -
                 ((building.windowCols - 1) * 0.18) / 2 +
                 col * 0.18;
-              const windowY = 0.35 + row * 0.42;
+              const windowY = 0.55 + row * (building.height / (building.windowRows + 2));
               const windowZ = building.z + building.depth / 2 + 0.02;
               const lit = (row + col + Math.floor(building.x * 10)) % 4 !== 0;
               const windowColor =
@@ -439,13 +477,13 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           )}
 
           {/* rear facade windows */}
-          {Array.from({ length: Math.min(building.windowRows, mobileMode ? 4 : 6) }).map((_, row) =>
+          {Array.from({ length: Math.min(building.windowRows, mobileMode ? 6 : 10) }).map((_, row) =>
             Array.from({ length: building.windowCols }).map((__, col) => {
               const windowX =
                 building.x -
                 ((building.windowCols - 1) * 0.18) / 2 +
                 col * 0.18;
-              const windowY = 0.45 + row * 0.48;
+              const windowY = 0.55 + row * (building.height / (Math.min(building.windowRows, mobileMode ? 6 : 10) + 2));
               const windowZ = building.z - building.depth / 2 - 0.02;
               const lit = (row + col) % 2 === 0;
               return (
@@ -466,13 +504,13 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           )}
 
           {/* left and right face window grids */}
-          {Array.from({ length: Math.min(building.windowRows, mobileMode ? 4 : 6) }).map((_, row) =>
+          {Array.from({ length: Math.min(building.windowRows, mobileMode ? 6 : 10) }).map((_, row) =>
             Array.from({ length: mobileMode ? 2 : 3 }).map((__, col) => {
               const sideZ =
                 building.z -
                 (((mobileMode ? 2 : 3) - 1) * 0.22) / 2 +
                 col * 0.22;
-              const windowY = 0.45 + row * 0.48;
+              const windowY = 0.55 + row * (building.height / (Math.min(building.windowRows, mobileMode ? 6 : 10) + 2));
               const lit = (row + col + 1) % 2 === 0;
               return (
                 <group key={`side-grid-${building.id}-${row}-${col}`}>
@@ -564,6 +602,7 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
       <pointLight position={[0, 4, catZ - 4]} intensity={0.6} color="#22d3ee" />
 
       {/* Background */}
+      <SkylineLayer catPosition={catPosition} mobileMode={mobileMode} />
       <group position={[0, 0, cityOffsetZ]}>
         <CityBuilder mobileMode={mobileMode} />
       </group>
