@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Cat3D } from "./Cat3D";
+import { Character3D } from "./Character3D";
 import { Coin3D } from "./Coin3D";
 import { Obstacle3D } from "./Obstacle3D";
 import type { GameState } from "@/types/runner";
@@ -549,6 +550,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
 function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3DSceneProps) {
   const { camera } = useThree();
   const [mobileMode, setMobileMode] = useState(false);
+  const [hasRunnerAsset, setHasRunnerAsset] = useState(false);
 
   useEffect(() => {
     const updateMobileMode = () => {
@@ -563,6 +565,22 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
     updateMobileMode();
     window.addEventListener("resize", updateMobileMode);
     return () => window.removeEventListener("resize", updateMobileMode);
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    fetch("/motions/running.glb", { method: "HEAD" })
+      .then((res) => {
+        if (isMounted) setHasRunnerAsset(res.ok);
+      })
+      .catch(() => {
+        if (isMounted) setHasRunnerAsset(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Keep a stable chase camera so the runner moves toward screen top.
@@ -607,8 +625,14 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
         <CityBuilder mobileMode={mobileMode} />
       </group>
 
-      {/* Rounded block player */}
-      <Cat3D position={[catX, catY, catZ]} jumping={jumping} sliding={sliding} />
+      {/* Player */}
+      {hasRunnerAsset ? (
+        <Suspense fallback={<Cat3D position={[catX, catY, catZ]} jumping={jumping} sliding={sliding} />}>
+          <Character3D position={[catX, catY, catZ]} jumping={jumping} sliding={sliding} />
+        </Suspense>
+      ) : (
+        <Cat3D position={[catX, catY, catZ]} jumping={jumping} sliding={sliding} />
+      )}
 
       {/* Coins */}
       {gameState.coins
