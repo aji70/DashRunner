@@ -40,7 +40,7 @@ export function GameOverlay({
             transition={{ delay: 0.1 }}
             className="bg-gradient-to-r from-fuchsia-300 via-cyan-200 to-yellow-200 bg-clip-text font-orbitron text-4xl sm:text-5xl md:text-6xl font-bold text-transparent"
           >
-            FUN RUN
+            DASH
           </motion.h1>
 
           <motion.p
