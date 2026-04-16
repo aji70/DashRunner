@@ -18,6 +18,14 @@ interface Game3DSceneProps {
 
 const WORLD_SCROLL_SCALE = 0.045;
 const TRACK_CENTER_Z = 14;
+const BUILDING_PALETTES = [
+  { body: "#60a5fa", accent: "#f8fafc", secondary: "#bfdbfe" },
+  { body: "#a78bfa", accent: "#fdf4ff", secondary: "#ddd6fe" },
+  { body: "#f472b6", accent: "#fff1f2", secondary: "#fbcfe8" },
+  { body: "#34d399", accent: "#ecfdf5", secondary: "#a7f3d0" },
+  { body: "#f59e0b", accent: "#fffbeb", secondary: "#fde68a" },
+  { body: "#22d3ee", accent: "#ecfeff", secondary: "#a5f3fc" },
+];
 
 function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
   const buildings = useMemo(() => {
@@ -48,12 +56,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
         const setback = 0.12 + Math.random() * 0.08;
         const x = side * (2.4 + Math.random() * 0.7);
         const z = i * 4;
-        const hue = Math.floor(Math.random() * 360);
-        const accentHue = (hue + 50 + Math.floor(Math.random() * 120)) % 360;
-        const secondaryHue = (hue + 160 + Math.floor(Math.random() * 90)) % 360;
-        const baseColor = new THREE.Color().setHSL(hue / 360, 0.82, 0.62).getStyle();
-        const accentColor = new THREE.Color().setHSL(accentHue / 360, 0.9, 0.58).getStyle();
-        const secondaryColor = new THREE.Color().setHSL(secondaryHue / 360, 0.85, 0.56).getStyle();
+        const palette = BUILDING_PALETTES[Math.floor(Math.random() * BUILDING_PALETTES.length)];
         const windowRows = Math.max(3, Math.floor(height * 1.6));
         const windowCols = 2 + Math.floor(Math.random() * 2);
         buildings.push({
@@ -61,9 +64,9 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           z,
           height,
           id: `${i}-${side}`,
-          color: baseColor,
-          accentColor,
-          secondaryColor,
+          color: palette.body,
+          accentColor: palette.accent,
+          secondaryColor: palette.secondary,
           width,
           depth,
           roofHeight,
