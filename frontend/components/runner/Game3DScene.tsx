@@ -58,9 +58,9 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           z,
           height,
           id: `${i}-${side}`,
-          color: `hsl(${hue} 72% 68%)`,
-          accentColor: `hsl(${accentHue} 88% 62%)`,
-          secondaryColor: `hsl(${secondaryHue} 78% 60%)`,
+          color: `hsl(${hue} 88% 68%)`,
+          accentColor: `hsl(${accentHue} 95% 62%)`,
+          secondaryColor: `hsl(${secondaryHue} 90% 60%)`,
           width,
           depth,
           roofHeight,
@@ -147,6 +147,8 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             <boxGeometry args={[building.width, building.height, building.depth]} />
             <meshStandardMaterial
               color={building.color}
+              emissive={building.color}
+              emissiveIntensity={0.12}
               roughness={0.5}
               metalness={0.16}
             />
@@ -216,7 +218,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             receiveShadow
           >
             <boxGeometry args={[building.width * 1.02, building.roofHeight, building.depth * 1.02]} />
-            <meshStandardMaterial color={building.accentColor} emissive={building.accentColor} emissiveIntensity={0.2} roughness={0.42} metalness={0.3} />
+            <meshStandardMaterial color={building.accentColor} emissive={building.accentColor} emissiveIntensity={0.28} roughness={0.42} metalness={0.3} />
           </mesh>
 
           {/* upper setback tower for depth */}
@@ -232,7 +234,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
                 Math.max(0.35, building.depth - building.setback),
               ]}
             />
-            <meshStandardMaterial color="#4b5563" roughness={0.72} metalness={0.2} />
+            <meshStandardMaterial color={building.secondaryColor} emissive={building.secondaryColor} emissiveIntensity={0.12} roughness={0.62} metalness={0.2} />
           </mesh>
 
           {/* silhouette variants so buildings don't all read as boxes */}
