@@ -48,10 +48,6 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
         const setback = 0.12 + Math.random() * 0.08;
         const x = side * (2.4 + Math.random() * 0.7);
         const z = i * 4;
-        const hue = 180 + Math.floor(Math.random() * 170);
-        const lightness = 44 + Math.floor(Math.random() * 16);
-        const accentHue = (hue + 70 + Math.floor(Math.random() * 80)) % 360;
-        const secondaryHue = (hue + 150 + Math.floor(Math.random() * 60)) % 360;
         const windowRows = Math.max(3, Math.floor(height * 1.6));
         const windowCols = 2 + Math.floor(Math.random() * 2);
         buildings.push({
@@ -59,9 +55,9 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           z,
           height,
           id: `${i}-${side}`,
-          color: `hsl(${hue} 62% ${lightness}%)`,
-          accentColor: `hsl(${accentHue} 85% 62%)`,
-          secondaryColor: `hsl(${secondaryHue} 78% 58%)`,
+          color: "#f8fafc",
+          accentColor: "#ffffff",
+          secondaryColor: "#e2e8f0",
           width,
           depth,
           roofHeight,
