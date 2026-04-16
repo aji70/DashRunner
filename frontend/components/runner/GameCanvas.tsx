@@ -37,8 +37,8 @@ export interface GameCanvasHandle {
 
 // Game constants
 const BASE_SPEED = 0.3;
-const GRAVITY = 0.0018;
-const JUMP_VELOCITY = -0.7;
+const GRAVITY = 0.00145;
+const JUMP_VELOCITY = -0.92;
 const SLIDE_DURATION = 600;
 const LERP_FACTOR = 0.18;
 const SPAWN_INTERVAL = 1000;
