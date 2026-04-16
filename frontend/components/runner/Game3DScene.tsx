@@ -46,8 +46,8 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
         const setback = 0.12 + Math.random() * 0.08;
         const x = side * (2.4 + Math.random() * 0.7);
         const z = i * 4;
-        const hue = 210 + Math.floor(Math.random() * 120);
-        const lightness = 38 + Math.floor(Math.random() * 18);
+        const hue = 180 + Math.floor(Math.random() * 170);
+        const lightness = 44 + Math.floor(Math.random() * 16);
         const accentHue = (hue + 70 + Math.floor(Math.random() * 80)) % 360;
         const windowRows = Math.max(3, Math.floor(height * 1.6));
         const windowCols = 2 + Math.floor(Math.random() * 2);
@@ -56,7 +56,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           z,
           height,
           id: `${i}-${side}`,
-          color: `hsl(${hue} 38% ${lightness}%)`,
+          color: `hsl(${hue} 62% ${lightness}%)`,
           accentColor: `hsl(${accentHue} 85% 62%)`,
           width,
           depth,
@@ -108,6 +108,18 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
         </mesh>
       ))}
 
+      {/* Sky glow columns */}
+      {[-1, 1].map((side) => (
+        <mesh key={`sky-glow-${side}`} position={[side * 4.8, 4.5, 60]} rotation={[0, 0, 0]}>
+          <planeGeometry args={[10, 20]} />
+          <meshBasicMaterial
+            color={side === -1 ? "#22d3ee" : "#f472b6"}
+            transparent
+            opacity={0.12}
+          />
+        </mesh>
+      ))}
+
       {/* Lane markers */}
       {[-1, 0, 1].map((lane) => (
         <group key={`lane-${lane}`}>
@@ -132,8 +144,8 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             <meshStandardMaterial
               color={building.color}
               emissive={building.accentColor}
-              emissiveIntensity={0.08}
-              roughness={0.66}
+              emissiveIntensity={0.18}
+              roughness={0.58}
               metalness={0.22}
             />
           </mesh>
@@ -145,7 +157,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             receiveShadow
           >
             <boxGeometry args={[building.width * 1.02, building.roofHeight, building.depth * 1.02]} />
-            <meshStandardMaterial color={building.accentColor} emissive={building.accentColor} emissiveIntensity={0.35} roughness={0.45} metalness={0.3} />
+            <meshStandardMaterial color={building.accentColor} emissive={building.accentColor} emissiveIntensity={0.55} roughness={0.42} metalness={0.3} />
           </mesh>
 
           {/* upper setback tower for depth */}
@@ -161,7 +173,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
                 Math.max(0.35, building.depth - building.setback),
               ]}
             />
-            <meshStandardMaterial color="#4b5563" emissive={building.accentColor} emissiveIntensity={0.12} roughness={0.72} metalness={0.2} />
+            <meshStandardMaterial color="#4b5563" emissive={building.accentColor} emissiveIntensity={0.2} roughness={0.72} metalness={0.2} />
           </mesh>
 
           {/* side neon sign */}
@@ -177,7 +189,19 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             <meshStandardMaterial
               color={building.accentColor}
               emissive={building.accentColor}
-              emissiveIntensity={0.9}
+              emissiveIntensity={1.25}
+            />
+          </mesh>
+
+          {/* front billboard strip */}
+          <mesh
+            position={[building.x, Math.max(0.8, building.height * 0.42), building.z + building.depth / 2 + 0.025]}
+          >
+            <planeGeometry args={[building.width * 0.55, 0.14]} />
+            <meshStandardMaterial
+              color={building.accentColor}
+              emissive={building.accentColor}
+              emissiveIntensity={0.95}
             />
           </mesh>
 
