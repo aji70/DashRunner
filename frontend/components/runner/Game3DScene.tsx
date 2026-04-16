@@ -28,12 +28,14 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
       id: string;
       color: string;
       accentColor: string;
+      secondaryColor: string;
       width: number;
       depth: number;
       roofHeight: number;
       windowRows: number;
       windowCols: number;
       setback: number;
+      style: "tower" | "steps" | "slab";
     }> = [];
     const start = mobileMode ? -6 : -10;
     const end = mobileMode ? 20 : 30;
@@ -49,6 +51,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
         const hue = 180 + Math.floor(Math.random() * 170);
         const lightness = 44 + Math.floor(Math.random() * 16);
         const accentHue = (hue + 70 + Math.floor(Math.random() * 80)) % 360;
+        const secondaryHue = (hue + 150 + Math.floor(Math.random() * 60)) % 360;
         const windowRows = Math.max(3, Math.floor(height * 1.6));
         const windowCols = 2 + Math.floor(Math.random() * 2);
         buildings.push({
@@ -58,12 +61,14 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           id: `${i}-${side}`,
           color: `hsl(${hue} 62% ${lightness}%)`,
           accentColor: `hsl(${accentHue} 85% 62%)`,
+          secondaryColor: `hsl(${secondaryHue} 78% 58%)`,
           width,
           depth,
           roofHeight,
           windowRows,
           windowCols,
           setback,
+          style: (["tower", "steps", "slab"] as const)[Math.floor(Math.random() * 3)],
         });
       }
     }
@@ -150,6 +155,22 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             />
           </mesh>
 
+          {/* strong vertical accent panel */}
+          <mesh
+            position={[
+              building.x + (building.x < 0 ? building.width * 0.22 : -building.width * 0.22),
+              building.height * 0.48,
+              building.z + building.depth / 2 + 0.03,
+            ]}
+          >
+            <planeGeometry args={[building.width * 0.2, Math.max(1.2, building.height * 0.72)]} />
+            <meshStandardMaterial
+              color={building.secondaryColor}
+              emissive={building.secondaryColor}
+              emissiveIntensity={1.05}
+            />
+          </mesh>
+
           {/* roof cap */}
           <mesh
             position={[building.x, building.height + building.roofHeight / 2, building.z]}
@@ -176,6 +197,56 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             <meshStandardMaterial color="#4b5563" emissive={building.accentColor} emissiveIntensity={0.2} roughness={0.72} metalness={0.2} />
           </mesh>
 
+          {/* silhouette variants so buildings don't all read as boxes */}
+          {building.style === "tower" && (
+            <mesh
+              position={[building.x, building.height + 0.65, building.z]}
+              castShadow
+              receiveShadow
+            >
+              <cylinderGeometry args={[0.12, 0.18, 1.1, 8]} />
+              <meshStandardMaterial
+                color={building.secondaryColor}
+                emissive={building.secondaryColor}
+                emissiveIntensity={0.7}
+              />
+            </mesh>
+          )}
+
+          {building.style === "steps" && (
+            <>
+              <mesh
+                position={[building.x - 0.12, building.height * 0.52, building.z - 0.16]}
+                castShadow
+                receiveShadow
+              >
+                <boxGeometry args={[building.width * 0.45, building.height * 0.22, building.depth * 0.45]} />
+                <meshStandardMaterial color={building.secondaryColor} emissive={building.secondaryColor} emissiveIntensity={0.22} />
+              </mesh>
+              <mesh
+                position={[building.x + 0.08, building.height * 0.67, building.z + 0.08]}
+                castShadow
+                receiveShadow
+              >
+                <boxGeometry args={[building.width * 0.3, building.height * 0.16, building.depth * 0.3]} />
+                <meshStandardMaterial color={building.accentColor} emissive={building.accentColor} emissiveIntensity={0.22} />
+              </mesh>
+            </>
+          )}
+
+          {building.style === "slab" && (
+            <mesh
+              position={[building.x, building.height * 0.3, building.z - building.depth / 2 - 0.04]}
+            >
+              <planeGeometry args={[building.width * 0.78, building.height * 0.3]} />
+              <meshStandardMaterial
+                color={building.secondaryColor}
+                emissive={building.secondaryColor}
+                emissiveIntensity={0.85}
+              />
+            </mesh>
+          )}
+
           {/* side neon sign */}
           <mesh
             position={[
@@ -201,6 +272,18 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             <meshStandardMaterial
               color={building.accentColor}
               emissive={building.accentColor}
+              emissiveIntensity={0.95}
+            />
+          </mesh>
+
+          {/* street level storefront */}
+          <mesh
+            position={[building.x, 0.38, building.z + building.depth / 2 + 0.028]}
+          >
+            <planeGeometry args={[building.width * 0.72, 0.24]} />
+            <meshStandardMaterial
+              color={building.secondaryColor}
+              emissive={building.secondaryColor}
               emissiveIntensity={0.95}
             />
           </mesh>
