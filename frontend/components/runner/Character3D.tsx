@@ -22,6 +22,7 @@ type GLTFLike = {
 
 export function Character3D({ position, jumping, sliding }: Character3DProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const modelRootRef = useRef<THREE.Group>(null);
   const shadowRef = useRef<THREE.Mesh>(null);
   const activeActionRef = useRef<THREE.AnimationAction | null>(null);
 
@@ -30,6 +31,23 @@ export function Character3D({ position, jumping, sliding }: Character3DProps) {
     () => SkeletonUtils.clone(gltf.scene) as THREE.Object3D,
     [gltf.scene]
   );
+  const normalizedTransform = useMemo(() => {
+    const box = new THREE.Box3().setFromObject(characterScene);
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+
+    const safeHeight = Math.max(size.y || 0, 0.001);
+    const scale = 1.15 / safeHeight;
+
+    return {
+      scale,
+      offsetX: -center.x * scale,
+      offsetY: -box.min.y * scale,
+      offsetZ: -center.z * scale,
+    };
+  }, [characterScene]);
   const { actions, names } = useAnimations(gltf.animations, groupRef);
 
   useEffect(() => {
@@ -38,6 +56,22 @@ export function Character3D({ position, jumping, sliding }: Character3DProps) {
       if (mesh.isMesh) {
         mesh.castShadow = true;
         mesh.receiveShadow = true;
+        mesh.frustumCulled = false;
+
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        materials.forEach((material) => {
+          if (!material) return;
+          material.side = THREE.DoubleSide;
+          material.transparent = false;
+          material.opacity = 1;
+          material.depthWrite = true;
+
+          const standardMaterial = material as THREE.MeshStandardMaterial;
+          if ("roughness" in standardMaterial) standardMaterial.roughness = 0.9;
+          if ("metalness" in standardMaterial) standardMaterial.metalness = 0.05;
+          if ("emissive" in standardMaterial) standardMaterial.emissive = new THREE.Color("#111111");
+          material.needsUpdate = true;
+        });
       }
     });
   }, [characterScene]);
@@ -84,11 +118,21 @@ export function Character3D({ position, jumping, sliding }: Character3DProps) {
       const shadowScale = jumping ? 0.78 : sliding ? 1.12 : 1 - bob * 0.05;
       shadowRef.current.scale.set(shadowScale, shadowScale, 1);
     }
+
+    if (modelRootRef.current && gltf.animations.length === 0) {
+      modelRootRef.current.rotation.y = Math.PI + Math.sin(state.clock.getElapsedTime() * 10) * 0.05;
+    }
   });
 
   return (
     <group ref={groupRef} position={position}>
-      <primitive object={characterScene} scale={0.82} position={[0, -0.48, 0]} />
+      <group
+        ref={modelRootRef}
+        scale={normalizedTransform.scale}
+        position={[normalizedTransform.offsetX, normalizedTransform.offsetY, normalizedTransform.offsetZ]}
+      >
+        <primitive object={characterScene} />
+      </group>
       <mesh ref={shadowRef} position={[0, -0.5, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <circleGeometry args={[0.34, 20]} />
         <meshBasicMaterial color="#000000" transparent opacity={0.22} />
