@@ -438,33 +438,70 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             })
           )}
 
-          {/* rear facade windows so they remain visible after gameplay camera settles */}
-          {!mobileMode &&
-            Array.from({ length: Math.min(building.windowRows, 6) }).map((_, row) =>
-              Array.from({ length: building.windowCols }).map((__, col) => {
-                const windowX =
-                  building.x -
-                  ((building.windowCols - 1) * 0.18) / 2 +
-                  col * 0.18;
-                const windowY = 0.45 + row * 0.48;
-                const windowZ = building.z - building.depth / 2 - 0.02;
-                const lit = (row + col) % 2 === 0;
-                return (
+          {/* rear facade windows */}
+          {Array.from({ length: Math.min(building.windowRows, mobileMode ? 4 : 6) }).map((_, row) =>
+            Array.from({ length: building.windowCols }).map((__, col) => {
+              const windowX =
+                building.x -
+                ((building.windowCols - 1) * 0.18) / 2 +
+                col * 0.18;
+              const windowY = 0.45 + row * 0.48;
+              const windowZ = building.z - building.depth / 2 - 0.02;
+              const lit = (row + col) % 2 === 0;
+              return (
+                <mesh
+                  key={`rear-w-${building.id}-${row}-${col}`}
+                  position={[windowX, windowY, windowZ]}
+                  rotation={[0, Math.PI, 0]}
+                >
+                  <planeGeometry args={[0.18, 0.3]} />
+                  <meshStandardMaterial
+                    color={lit ? "#dbeafe" : "#334155"}
+                    emissive={lit ? "#dbeafe" : "#000000"}
+                    emissiveIntensity={lit ? 0.65 : 0}
+                  />
+                </mesh>
+              );
+            })
+          )}
+
+          {/* left and right face window grids */}
+          {Array.from({ length: Math.min(building.windowRows, mobileMode ? 4 : 6) }).map((_, row) =>
+            Array.from({ length: mobileMode ? 2 : 3 }).map((__, col) => {
+              const sideZ =
+                building.z -
+                (((mobileMode ? 2 : 3) - 1) * 0.22) / 2 +
+                col * 0.22;
+              const windowY = 0.45 + row * 0.48;
+              const lit = (row + col + 1) % 2 === 0;
+              return (
+                <group key={`side-grid-${building.id}-${row}-${col}`}>
                   <mesh
-                    key={`rear-w-${building.id}-${row}-${col}`}
-                    position={[windowX, windowY, windowZ]}
-                    rotation={[0, Math.PI, 0]}
+                    position={[building.x + building.width / 2 + 0.02, windowY, sideZ]}
+                    rotation={[0, Math.PI / 2, 0]}
                   >
                     <planeGeometry args={[0.18, 0.3]} />
                     <meshStandardMaterial
-                      color={lit ? "#dbeafe" : "#334155"}
-                      emissive={lit ? "#dbeafe" : "#000000"}
-                      emissiveIntensity={lit ? 0.65 : 0}
+                      color={lit ? "#e0f2fe" : "#334155"}
+                      emissive={lit ? "#e0f2fe" : "#000000"}
+                      emissiveIntensity={lit ? 0.6 : 0}
                     />
                   </mesh>
-                );
-              })
-            )}
+                  <mesh
+                    position={[building.x - building.width / 2 - 0.02, windowY, sideZ]}
+                    rotation={[0, -Math.PI / 2, 0]}
+                  >
+                    <planeGeometry args={[0.18, 0.3]} />
+                    <meshStandardMaterial
+                      color={lit ? "#e0f2fe" : "#334155"}
+                      emissive={lit ? "#e0f2fe" : "#000000"}
+                      emissiveIntensity={lit ? 0.6 : 0}
+                    />
+                  </mesh>
+                </group>
+              );
+            })
+          )}
         </group>
       ))}
     </group>
