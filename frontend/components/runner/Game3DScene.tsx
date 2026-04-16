@@ -72,7 +72,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
       }
     }
     return buildings;
-  }, []);
+  }, [mobileMode]);
   const simplifiedRows = useMemo(
     () => new Set<number>(mobileMode ? [0, 4] : [0, 2, 4, 6]),
     [mobileMode]
@@ -147,10 +147,8 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             <boxGeometry args={[building.width, building.height, building.depth]} />
             <meshStandardMaterial
               color={building.color}
-              emissive={building.accentColor}
-              emissiveIntensity={0.18}
-              roughness={0.58}
-              metalness={0.22}
+              roughness={0.5}
+              metalness={0.16}
             />
           </mesh>
 
@@ -177,7 +175,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
                     <meshStandardMaterial
                       color={boxColor}
                       emissive={boxColor}
-                      emissiveIntensity={0.45}
+                      emissiveIntensity={0.18}
                     />
                   </mesh>
                   {!mobileMode && (
@@ -186,7 +184,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
                       <meshStandardMaterial
                         color={useAccent ? building.secondaryColor : building.accentColor}
                         emissive={useAccent ? building.secondaryColor : building.accentColor}
-                        emissiveIntensity={0.35}
+                        emissiveIntensity={0.14}
                       />
                     </mesh>
                   )}
@@ -207,7 +205,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             <meshStandardMaterial
               color={building.secondaryColor}
               emissive={building.secondaryColor}
-              emissiveIntensity={1.05}
+              emissiveIntensity={0.35}
             />
           </mesh>
 
@@ -218,7 +216,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             receiveShadow
           >
             <boxGeometry args={[building.width * 1.02, building.roofHeight, building.depth * 1.02]} />
-            <meshStandardMaterial color={building.accentColor} emissive={building.accentColor} emissiveIntensity={0.55} roughness={0.42} metalness={0.3} />
+            <meshStandardMaterial color={building.accentColor} emissive={building.accentColor} emissiveIntensity={0.2} roughness={0.42} metalness={0.3} />
           </mesh>
 
           {/* upper setback tower for depth */}
@@ -234,7 +232,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
                 Math.max(0.35, building.depth - building.setback),
               ]}
             />
-            <meshStandardMaterial color="#4b5563" emissive={building.accentColor} emissiveIntensity={0.2} roughness={0.72} metalness={0.2} />
+            <meshStandardMaterial color="#4b5563" roughness={0.72} metalness={0.2} />
           </mesh>
 
           {/* silhouette variants so buildings don't all read as boxes */}
@@ -248,7 +246,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
               <meshStandardMaterial
                 color={building.secondaryColor}
                 emissive={building.secondaryColor}
-                emissiveIntensity={0.7}
+                emissiveIntensity={0.22}
               />
             </mesh>
           )}
@@ -261,7 +259,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
                 receiveShadow
               >
                 <boxGeometry args={[building.width * 0.45, building.height * 0.22, building.depth * 0.45]} />
-                <meshStandardMaterial color={building.secondaryColor} emissive={building.secondaryColor} emissiveIntensity={0.22} />
+                <meshStandardMaterial color={building.secondaryColor} emissive={building.secondaryColor} emissiveIntensity={0.08} />
               </mesh>
               <mesh
                 position={[building.x + 0.08, building.height * 0.67, building.z + 0.08]}
@@ -269,7 +267,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
                 receiveShadow
               >
                 <boxGeometry args={[building.width * 0.3, building.height * 0.16, building.depth * 0.3]} />
-                <meshStandardMaterial color={building.accentColor} emissive={building.accentColor} emissiveIntensity={0.22} />
+                <meshStandardMaterial color={building.accentColor} emissive={building.accentColor} emissiveIntensity={0.08} />
               </mesh>
             </>
           )}
@@ -282,7 +280,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
               <meshStandardMaterial
                 color={building.secondaryColor}
                 emissive={building.secondaryColor}
-                emissiveIntensity={0.85}
+                emissiveIntensity={0.28}
               />
             </mesh>
           )}
@@ -300,7 +298,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             <meshStandardMaterial
               color={building.accentColor}
               emissive={building.accentColor}
-              emissiveIntensity={1.25}
+              emissiveIntensity={0.42}
             />
           </mesh>
 
@@ -312,7 +310,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             <meshStandardMaterial
               color={building.accentColor}
               emissive={building.accentColor}
-              emissiveIntensity={0.95}
+              emissiveIntensity={0.3}
             />
           </mesh>
 
@@ -324,7 +322,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             <meshStandardMaterial
               color={building.secondaryColor}
               emissive={building.secondaryColor}
-              emissiveIntensity={0.95}
+              emissiveIntensity={0.3}
             />
           </mesh>
 
