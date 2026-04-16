@@ -330,6 +330,82 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             />
           </mesh>
 
+          {/* main entrance door */}
+          <mesh
+            position={[building.x, 0.24, building.z + building.depth / 2 + 0.04]}
+          >
+            <boxGeometry args={[building.width * 0.18, 0.34, 0.05]} />
+            <meshStandardMaterial
+              color="#111827"
+              emissive={building.accentColor}
+              emissiveIntensity={0.08}
+              roughness={0.35}
+              metalness={0.45}
+            />
+          </mesh>
+
+          {/* door frame */}
+          <mesh
+            position={[building.x, 0.24, building.z + building.depth / 2 + 0.032]}
+          >
+            <boxGeometry args={[building.width * 0.24, 0.4, 0.02]} />
+            <meshStandardMaterial color={building.accentColor} emissive={building.accentColor} emissiveIntensity={0.18} />
+          </mesh>
+
+          {/* large lobby windows */}
+          {[-1, 1].map((side) => (
+            <mesh
+              key={`lobby-window-${building.id}-${side}`}
+              position={[
+                building.x + side * building.width * 0.22,
+                0.32,
+                building.z + building.depth / 2 + 0.03,
+              ]}
+            >
+              <boxGeometry args={[building.width * 0.18, 0.24, 0.03]} />
+              <meshStandardMaterial
+                color="#dbeafe"
+                emissive="#dbeafe"
+                emissiveIntensity={0.35}
+                roughness={0.15}
+                metalness={0.55}
+              />
+            </mesh>
+          ))}
+
+          {/* side window bands */}
+          {Array.from({ length: mobileMode ? 2 : 4 }).map((_, idx) => {
+            const y = 0.9 + idx * 0.75;
+            return (
+              <group key={`side-band-${building.id}-${idx}`}>
+                <mesh
+                  position={[building.x + building.width / 2 + 0.02, y, building.z]}
+                  rotation={[0, Math.PI / 2, 0]}
+                >
+                  <planeGeometry args={[building.depth * 0.5, 0.12]} />
+                  <meshStandardMaterial
+                    color="#bfdbfe"
+                    emissive="#bfdbfe"
+                    emissiveIntensity={0.22}
+                  />
+                </mesh>
+                {!mobileMode && (
+                  <mesh
+                    position={[building.x - building.width / 2 - 0.02, y, building.z]}
+                    rotation={[0, Math.PI / 2, 0]}
+                  >
+                    <planeGeometry args={[building.depth * 0.5, 0.12]} />
+                    <meshStandardMaterial
+                      color="#bfdbfe"
+                      emissive="#bfdbfe"
+                      emissiveIntensity={0.18}
+                    />
+                  </mesh>
+                )}
+              </group>
+            );
+          })}
+
           {/* front facade windows */}
           {Array.from({ length: building.windowRows }).map((_, row) =>
             simplifiedRows.has(row % 8) &&
