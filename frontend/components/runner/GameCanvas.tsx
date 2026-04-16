@@ -108,7 +108,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       if (patternRoll < 0.4) {
         // Straight lane streak
         for (let i = 0; i < COIN_RUSH_STREAK_LENGTH; i++) {
-          spawnCoin(baseLane, -30 - i * forwardGap);
+          spawnCoin(baseLane, -90 - i * forwardGap);
         }
         return;
       }
@@ -117,17 +117,17 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         // Zig-zag streak
         for (let i = 0; i < COIN_RUSH_STREAK_LENGTH; i++) {
           const lane = (Math.max(0, Math.min(2, baseLane + (i % 2 === 0 ? 0 : (baseLane === 2 ? -1 : 1))))) as Lane;
-          spawnCoin(lane, -30 - i * forwardGap);
+          spawnCoin(lane, -90 - i * forwardGap);
         }
         return;
       }
 
       // Wide "splash" pattern across lanes
-      spawnCoin(0, -30);
-      spawnCoin(1, -30 - lateralOffset * 0.3);
-      spawnCoin(2, -30);
-      spawnCoin(1, -30 - forwardGap);
-      spawnCoin(baseLane, -30 - forwardGap * 1.6);
+      spawnCoin(0, -90);
+      spawnCoin(1, -90 - lateralOffset * 0.3);
+      spawnCoin(2, -90);
+      spawnCoin(1, -90 - forwardGap);
+      spawnCoin(baseLane, -90 - forwardGap * 1.6);
     }, [spawnCoin]);
 
     const spawnObstacle = useCallback((lane: Lane) => {
@@ -136,7 +136,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       gameState.obstacles.push({
         id: gameState.frameId++,
         lane,
-        y: -60,
+        y: -130,
         type: isWall ? "wall" : "barrier",
         width: 40,
         height: isWall ? 60 : 20,
