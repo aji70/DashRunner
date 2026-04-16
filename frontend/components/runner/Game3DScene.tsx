@@ -377,19 +377,19 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           ))}
 
           {/* side window bands */}
-          {Array.from({ length: mobileMode ? 2 : 4 }).map((_, idx) => {
-            const y = 0.9 + idx * 0.75;
+          {Array.from({ length: mobileMode ? 3 : 5 }).map((_, idx) => {
+            const y = 0.85 + idx * 0.72;
             return (
               <group key={`side-band-${building.id}-${idx}`}>
                 <mesh
                   position={[building.x + building.width / 2 + 0.02, y, building.z]}
                   rotation={[0, Math.PI / 2, 0]}
                 >
-                  <planeGeometry args={[building.depth * 0.5, 0.12]} />
+                  <planeGeometry args={[building.depth * 0.62, 0.18]} />
                   <meshStandardMaterial
                     color="#bfdbfe"
                     emissive="#bfdbfe"
-                    emissiveIntensity={0.22}
+                    emissiveIntensity={0.45}
                   />
                 </mesh>
                 {!mobileMode && (
@@ -397,11 +397,11 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
                     position={[building.x - building.width / 2 - 0.02, y, building.z]}
                     rotation={[0, Math.PI / 2, 0]}
                   >
-                    <planeGeometry args={[building.depth * 0.5, 0.12]} />
+                    <planeGeometry args={[building.depth * 0.62, 0.18]} />
                     <meshStandardMaterial
                       color="#bfdbfe"
                       emissive="#bfdbfe"
-                      emissiveIntensity={0.18}
+                      emissiveIntensity={0.38}
                     />
                   </mesh>
                 )}
@@ -418,7 +418,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
                 ((building.windowCols - 1) * 0.18) / 2 +
                 col * 0.18;
               const windowY = 0.35 + row * 0.42;
-              const windowZ = building.z + building.depth / 2 + 0.01;
+              const windowZ = building.z + building.depth / 2 + 0.02;
               const lit = (row + col + Math.floor(building.x * 10)) % 4 !== 0;
               const windowColor =
                 (row + col) % 3 === 0 ? "#fef3c7" : (row + col) % 3 === 1 ? "#cffafe" : "#f5d0fe";
@@ -427,16 +427,44 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
                   key={`w-${building.id}-${row}-${col}`}
                   position={[windowX, windowY, windowZ]}
                 >
-                  <planeGeometry args={[0.1, 0.2]} />
+                  <planeGeometry args={[0.16, 0.28]} />
                   <meshStandardMaterial
                     color={lit ? windowColor : "#243244"}
                     emissive={lit ? windowColor : "#000000"}
-                    emissiveIntensity={lit ? 0.55 : 0}
+                    emissiveIntensity={lit ? 0.85 : 0}
                   />
                 </mesh>
               );
             })
           )}
+
+          {/* rear facade windows so they remain visible after gameplay camera settles */}
+          {!mobileMode &&
+            Array.from({ length: Math.min(building.windowRows, 6) }).map((_, row) =>
+              Array.from({ length: building.windowCols }).map((__, col) => {
+                const windowX =
+                  building.x -
+                  ((building.windowCols - 1) * 0.18) / 2 +
+                  col * 0.18;
+                const windowY = 0.45 + row * 0.48;
+                const windowZ = building.z - building.depth / 2 - 0.02;
+                const lit = (row + col) % 2 === 0;
+                return (
+                  <mesh
+                    key={`rear-w-${building.id}-${row}-${col}`}
+                    position={[windowX, windowY, windowZ]}
+                    rotation={[0, Math.PI, 0]}
+                  >
+                    <planeGeometry args={[0.18, 0.3]} />
+                    <meshStandardMaterial
+                      color={lit ? "#dbeafe" : "#334155"}
+                      emissive={lit ? "#dbeafe" : "#000000"}
+                      emissiveIntensity={lit ? 0.65 : 0}
+                    />
+                  </mesh>
+                );
+              })
+            )}
         </group>
       ))}
     </group>
