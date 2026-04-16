@@ -51,6 +51,9 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
         const hue = Math.floor(Math.random() * 360);
         const accentHue = (hue + 50 + Math.floor(Math.random() * 120)) % 360;
         const secondaryHue = (hue + 160 + Math.floor(Math.random() * 90)) % 360;
+        const baseColor = new THREE.Color().setHSL(hue / 360, 0.82, 0.62).getStyle();
+        const accentColor = new THREE.Color().setHSL(accentHue / 360, 0.9, 0.58).getStyle();
+        const secondaryColor = new THREE.Color().setHSL(secondaryHue / 360, 0.85, 0.56).getStyle();
         const windowRows = Math.max(3, Math.floor(height * 1.6));
         const windowCols = 2 + Math.floor(Math.random() * 2);
         buildings.push({
@@ -58,9 +61,9 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           z,
           height,
           id: `${i}-${side}`,
-          color: `hsl(${hue} 88% 68%)`,
-          accentColor: `hsl(${accentHue} 95% 62%)`,
-          secondaryColor: `hsl(${secondaryHue} 90% 60%)`,
+          color: baseColor,
+          accentColor,
+          secondaryColor,
           width,
           depth,
           roofHeight,
@@ -145,12 +148,11 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             receiveShadow
           >
             <boxGeometry args={[building.width, building.height, building.depth]} />
-            <meshStandardMaterial
+            <meshPhongMaterial
               color={building.color}
               emissive={building.color}
-              emissiveIntensity={0.12}
-              roughness={0.5}
-              metalness={0.16}
+              emissiveIntensity={0.45}
+              shininess={20}
             />
           </mesh>
 
@@ -218,7 +220,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             receiveShadow
           >
             <boxGeometry args={[building.width * 1.02, building.roofHeight, building.depth * 1.02]} />
-            <meshStandardMaterial color={building.accentColor} emissive={building.accentColor} emissiveIntensity={0.28} roughness={0.42} metalness={0.3} />
+            <meshPhongMaterial color={building.accentColor} emissive={building.accentColor} emissiveIntensity={0.45} shininess={28} />
           </mesh>
 
           {/* upper setback tower for depth */}
@@ -234,7 +236,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
                 Math.max(0.35, building.depth - building.setback),
               ]}
             />
-            <meshStandardMaterial color={building.secondaryColor} emissive={building.secondaryColor} emissiveIntensity={0.12} roughness={0.62} metalness={0.2} />
+            <meshPhongMaterial color={building.secondaryColor} emissive={building.secondaryColor} emissiveIntensity={0.25} shininess={16} />
           </mesh>
 
           {/* silhouette variants so buildings don't all read as boxes */}
