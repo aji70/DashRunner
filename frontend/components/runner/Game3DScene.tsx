@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Cat3D } from "./Cat3D";
@@ -19,7 +19,7 @@ interface Game3DSceneProps {
 const WORLD_SCROLL_SCALE = 0.045;
 const TRACK_CENTER_Z = 14;
 
-function CityBuilder() {
+function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
   const buildings = useMemo(() => {
     const buildings: Array<{
       x: number;
@@ -34,7 +34,9 @@ function CityBuilder() {
       windowCols: number;
       setback: number;
     }> = [];
-    for (let i = -10; i < 30; i++) {
+    const start = mobileMode ? -6 : -10;
+    const end = mobileMode ? 20 : 30;
+    for (let i = start; i < end; i++) {
       for (let side = -1; side <= 1; side += 2) {
         const height = 3.2 + Math.random() * 4.8;
         const width = 0.85 + Math.random() * 0.45;
@@ -64,7 +66,10 @@ function CityBuilder() {
     }
     return buildings;
   }, []);
-  const simplifiedRows = useMemo(() => new Set<number>([0, 2, 4, 6]), []);
+  const simplifiedRows = useMemo(
+    () => new Set<number>(mobileMode ? [0, 4] : [0, 2, 4, 6]),
+    [mobileMode]
+  );
 
   return (
     <group>
@@ -176,16 +181,32 @@ function CityBuilder() {
 
 function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3DSceneProps) {
   const { camera } = useThree();
+  const [mobileMode, setMobileMode] = useState(false);
+
+  useEffect(() => {
+    const updateMobileMode = () => {
+      const coarsePointer =
+        typeof window !== "undefined" &&
+        window.matchMedia &&
+        window.matchMedia("(pointer: coarse)").matches;
+      const smallScreen = typeof window !== "undefined" && window.innerWidth < 768;
+      setMobileMode(Boolean(coarsePointer || smallScreen));
+    };
+
+    updateMobileMode();
+    window.addEventListener("resize", updateMobileMode);
+    return () => window.removeEventListener("resize", updateMobileMode);
+  }, []);
 
   // Keep a stable chase camera so the runner moves toward screen top.
   useFrame(() => {
     if (camera) {
       const targetCamX = playerLane - 1;
       camera.position.lerp(
-        new THREE.Vector3(targetCamX, 4.6, catPosition - 8),
+        new THREE.Vector3(targetCamX, mobileMode ? 4.2 : 4.6, catPosition - 8),
         0.1
       );
-      camera.lookAt(playerLane - 1, 1, catPosition + 12);
+      camera.lookAt(playerLane - 1, 1, catPosition + (mobileMode ? 10 : 12));
     }
   });
 
@@ -204,9 +225,9 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
       <directionalLight
         position={[10, 15, 10]}
         intensity={1.1}
-        castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
+        castShadow={!mobileMode}
+        shadow-mapSize-width={mobileMode ? 512 : 1024}
+        shadow-mapSize-height={mobileMode ? 512 : 1024}
         shadow-camera-far={100}
         shadow-camera-near={0.1}
       />
@@ -215,7 +236,7 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
 
       {/* Background */}
       <group position={[0, 0, cityOffsetZ]}>
-        <CityBuilder />
+        <CityBuilder mobileMode={mobileMode} />
       </group>
 
       {/* Rounded block player */}
@@ -261,10 +282,14 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
 interface CanvasWrapperProps extends Game3DSceneProps {}
 
 function CanvasRenderer(props: CanvasWrapperProps) {
+  const isMobile =
+    typeof window !== "undefined" &&
+    ((window.matchMedia && window.matchMedia("(pointer: coarse)").matches) ||
+      window.innerWidth < 768);
   try {
     return (
       <Canvas
-        shadows
+        shadows={!isMobile}
         camera={{
           position: [0, 3, 15],
           fov: 68,
@@ -272,11 +297,11 @@ function CanvasRenderer(props: CanvasWrapperProps) {
           far: 1000,
         }}
         gl={{
-          antialias: true,
+          antialias: !isMobile,
           alpha: true,
           powerPreference: "high-performance"
         }}
-        dpr={[1, 1.75]}
+        dpr={isMobile ? [1, 1] : [1, 1.5]}
         style={{
           width: "100%",
           height: "100%",
