@@ -155,6 +155,47 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
             />
           </mesh>
 
+          {/* checker-box facade modules */}
+          {Array.from({ length: Math.min(building.windowRows, mobileMode ? 5 : 8) }).map((_, row) =>
+            Array.from({ length: mobileMode ? 2 : 3 }).map((__, col) => {
+              const moduleWidth = building.width * 0.18;
+              const moduleHeight = 0.22;
+              const moduleDepth = 0.08;
+              const offsetX =
+                building.x -
+                ((mobileMode ? 2 : 3) - 1) * 0.16 +
+                col * 0.32;
+              const offsetY = 0.45 + row * 0.42;
+              const frontZ = building.z + building.depth / 2 + moduleDepth / 2;
+              const backZ = building.z - building.depth / 2 - moduleDepth / 2;
+              const useAccent = (row + col) % 2 === 0;
+              const boxColor = useAccent ? building.accentColor : building.secondaryColor;
+
+              return (
+                <group key={`checker-${building.id}-${row}-${col}`}>
+                  <mesh position={[offsetX, offsetY, frontZ]} castShadow receiveShadow>
+                    <boxGeometry args={[moduleWidth, moduleHeight, moduleDepth]} />
+                    <meshStandardMaterial
+                      color={boxColor}
+                      emissive={boxColor}
+                      emissiveIntensity={0.45}
+                    />
+                  </mesh>
+                  {!mobileMode && (
+                    <mesh position={[offsetX, offsetY, backZ]} castShadow receiveShadow>
+                      <boxGeometry args={[moduleWidth, moduleHeight, moduleDepth]} />
+                      <meshStandardMaterial
+                        color={useAccent ? building.secondaryColor : building.accentColor}
+                        emissive={useAccent ? building.secondaryColor : building.accentColor}
+                        emissiveIntensity={0.35}
+                      />
+                    </mesh>
+                  )}
+                </group>
+              );
+            })
+          )}
+
           {/* strong vertical accent panel */}
           <mesh
             position={[
