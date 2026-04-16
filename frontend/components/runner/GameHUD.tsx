@@ -16,7 +16,7 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
   return (
     <div className="pointer-events-none absolute inset-0 z-10">
       {/* Top scoreboard */}
-      <div className="absolute left-1/2 top-2 z-20 w-[min(92vw,360px)] -translate-x-1/2 rounded-xl border border-fuchsia-300/35 bg-indigo-950/70 px-3 py-2 backdrop-blur-sm sm:top-4">
+      <div className="absolute left-2 right-24 top-2 z-20 rounded-xl border border-fuchsia-300/35 bg-indigo-950/70 px-3 py-2 backdrop-blur-sm sm:left-4 sm:right-32 sm:top-4">
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-md bg-black/20 px-2 py-1">
             <p className="font-orbitron text-[10px] uppercase tracking-wider text-cyan-100/75">
