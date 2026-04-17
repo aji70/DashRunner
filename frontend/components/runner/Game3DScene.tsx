@@ -1,10 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { Cat3D } from "./Cat3D";
-import { Character3D } from "./Character3D";
+import { Car3D } from "./Car3D";
 import { Coin3D } from "./Coin3D";
 import { Obstacle3D } from "./Obstacle3D";
 import type { GameState } from "@/types/runner";
@@ -579,7 +578,6 @@ function Scene3D({
 }: Game3DSceneProps) {
   const { camera } = useThree();
   const [mobileMode, setMobileMode] = useState(false);
-  const [hasRunnerAsset, setHasRunnerAsset] = useState(false);
 
   useEffect(() => {
     const updateMobileMode = () => {
@@ -594,22 +592,6 @@ function Scene3D({
     updateMobileMode();
     window.addEventListener("resize", updateMobileMode);
     return () => window.removeEventListener("resize", updateMobileMode);
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    fetch("/motions/running.glb", { method: "HEAD" })
-      .then((res) => {
-        if (isMounted) setHasRunnerAsset(res.ok);
-      })
-      .catch(() => {
-        if (isMounted) setHasRunnerAsset(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   // Keep a stable chase camera so the runner moves toward screen top.
@@ -655,19 +637,8 @@ function Scene3D({
         <CityBuilder mobileMode={mobileMode} />
       </group>
 
-      {/* Player */}
-      {hasRunnerAsset ? (
-        <Suspense fallback={<Cat3D position={[catX, catY, catZ]} jumping={jumping} sliding={sliding} />}>
-          <Character3D
-            position={[catX, catY, catZ]}
-            jumping={jumping}
-            sliding={sliding}
-            accentTint={characterTint}
-          />
-        </Suspense>
-      ) : (
-        <Cat3D position={[catX, catY, catZ]} jumping={jumping} sliding={sliding} />
-      )}
+      {/* Player — procedural car */}
+      <Car3D position={[catX, catY, catZ]} jumping={jumping} sliding={sliding} accentTint={characterTint} />
 
       {/* Coins */}
       {gameState.coins

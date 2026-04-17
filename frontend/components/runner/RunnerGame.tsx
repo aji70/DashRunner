@@ -73,6 +73,25 @@ export function RunnerGame() {
     }
   }, [isMuted, phase]);
 
+  /** Land on `/play` straight into the run (no idle tap-in). */
+  const autoStartedRef = useRef(false);
+  useEffect(() => {
+    const boot = () => {
+      if (autoStartedRef.current) return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      autoStartedRef.current = true;
+      setIsNewPersonalBest(false);
+      canvas.reset();
+      setScore(0);
+      setCoinsCollected(0);
+      canvas.start();
+    };
+    boot();
+    const id = requestAnimationFrame(() => boot());
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   const handleStart = () => {
     setIsNewPersonalBest(false);
     canvasRef.current?.reset();

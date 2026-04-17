@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 
 interface GameOverlayProps {
   phase: "idle" | "playing" | "paused" | "dead";
@@ -63,62 +62,30 @@ export function GameOverlay({
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 24 }}
-            className="relative z-10 w-full max-w-lg"
+            className="relative z-10 w-full max-w-sm"
           >
-            <GlassPanel className="px-7 py-9 shadow-lift sm:px-10 sm:py-11">
-              <p className="text-center font-rajdhani text-[11px] font-semibold uppercase tracking-[0.4em] text-[var(--text-dim)]">
-                Neon arcade
-              </p>
-              <h1
-                className="mt-3 text-center font-orbitron text-4xl font-black uppercase leading-none tracking-tight text-transparent sm:text-5xl md:text-6xl"
-                style={{
-                  backgroundImage: "linear-gradient(105deg, #f0abfc 0%, #67e8f9 45%, #fde68a 100%)",
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  filter: "drop-shadow(0 0 28px rgba(34,211,238,0.25))",
-                }}
-              >
-                Dash
-                <br />
-                <span className="text-[0.72em] font-bold tracking-[0.08em] sm:text-[0.68em]">Runner</span>
+            <GlassPanel className="px-6 py-8 text-center shadow-lift sm:px-8 sm:py-10">
+              <h1 className="font-orbitron text-3xl font-black uppercase tracking-[0.08em] text-slate-100 sm:text-4xl">
+                DashRunner
               </h1>
 
-              <p className="mx-auto mt-5 max-w-sm text-center font-rajdhani text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
-                Lanes · jumps · slides · coin chains. Build streaks and chase your best run.
-              </p>
-
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
-                {["Swipe", "or", "tap pad"].map((t, i) =>
-                  t === "or" ? (
-                    <span key={`${t}-${i}`} className="px-1 font-rajdhani text-[10px] font-semibold uppercase tracking-widest text-[var(--text-dim)]">
-                      {t}
-                    </span>
-                  ) : (
-                    <Badge key={`${t}-${i}`} tone="cyan" className="border-cyan-400/20">
-                      {t}
-                    </Badge>
-                  )
-                )}
-              </div>
-
-              <motion.div className="mt-9" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+              <motion.div className="mt-8" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                 <Button variant="primary" onClick={onStart} className="w-full rounded-2xl py-4 text-sm sm:py-5 sm:text-base">
-                  Deploy run
+                  Play
                 </Button>
               </motion.div>
 
               <button
                 type="button"
                 onClick={() => router.push("/")}
-                className="mt-6 w-full text-center font-rajdhani text-xs font-semibold uppercase tracking-[0.25em] text-[var(--text-dim)] transition hover:text-cyan-200"
+                className="mt-5 w-full text-center font-rajdhani text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)] transition hover:text-cyan-200"
               >
-                ← Hub · shop · rewards
+                Hub
               </button>
 
               {highScore > 0 ? (
-                <p className="mt-8 text-center font-rajdhani text-sm text-[var(--text-dim)]">
-                  Personal best{" "}
-                  <span className="font-orbitron font-bold tabular-nums text-amber-200/90">{highScore.toLocaleString()}</span>
+                <p className="mt-6 text-center font-rajdhani text-xs text-[var(--text-dim)] sm:text-sm">
+                  Best <span className="font-orbitron font-bold tabular-nums text-amber-200/90">{highScore.toLocaleString()}</span>
                 </p>
               ) : null}
             </GlassPanel>
