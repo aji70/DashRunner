@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
 import { GameHUD } from "./GameHUD";
 import { GameOverlay } from "./GameOverlay";
+import { GameControls } from "./GameControls";
 import { ErrorBoundary } from "./ErrorBoundary";
 import type { GamePhase, GameState } from "@/types/runner";
-import { useSwipeGesture } from "@/hooks/useSwipeGesture";
+import { useSwipeGesture, type SwipeDirection } from "@/hooks/useSwipeGesture";
 import { assertValidCityId, characterAccent, loadLocalProfile } from "@/lib/playerProfile";
 
 const Game3DScene = dynamic(
@@ -27,6 +28,7 @@ export function RunnerGame() {
   const [isSliding, setIsSliding] = useState(false);
   const [cityId, setCityId] = useState(0);
   const [characterTint, setCharacterTint] = useState<string | undefined>(undefined);
+  const [isNewPersonalBest, setIsNewPersonalBest] = useState(false);
   const gameSurfaceRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<GameCanvasHandle>(null);
   const coinSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -72,6 +74,7 @@ export function RunnerGame() {
   }, [isMuted, phase]);
 
   const handleStart = () => {
+    setIsNewPersonalBest(false);
     canvasRef.current?.reset();
     setScore(0);
     setCoinsCollected(0);
@@ -80,8 +83,10 @@ export function RunnerGame() {
   };
 
   const handleGameOver = () => {
+    const beat = score > highScore;
+    setIsNewPersonalBest(beat);
     setPhase("dead");
-    if (score > highScore) {
+    if (beat) {
       setHighScore(score);
       if (typeof window !== "undefined") {
         localStorage.setItem("runner_highscore", score.toString());
@@ -132,13 +137,16 @@ export function RunnerGame() {
     }
   };
 
+  const dispatchRunnerAction = useCallback((dir: SwipeDirection) => {
+    const mappedDir = dir === "left" ? "right" : dir === "right" ? "left" : dir;
+    canvasRef.current?.dispatchAction(mappedDir);
+  }, []);
+
   useSwipeGesture(
     gameSurfaceRef,
     (dir) => {
       if (phase === "playing") {
-        const mappedDir =
-          dir === "left" ? "right" : dir === "right" ? "left" : dir;
-        canvasRef.current?.dispatchAction(mappedDir);
+        dispatchRunnerAction(dir);
       }
     },
     18
@@ -147,7 +155,7 @@ export function RunnerGame() {
   return (
     <div
       ref={gameSurfaceRef}
-      className="relative h-screen w-screen touch-none overflow-hidden bg-[#010F10]"
+      className="runner-vignette runner-scanlines relative h-screen w-screen touch-none overflow-hidden bg-[#010F10]"
       style={{ maxHeight: "100dvh" }}
       tabIndex={0}
     >
@@ -189,10 +197,13 @@ export function RunnerGame() {
 
       <GameHUD score={score} coinsCollected={coinsCollected} phase={phase} isMuted={isMuted} onPauseToggle={handlePauseToggle} onMuteToggle={handleMuteToggle} />
 
+      <GameControls visible={phase === "playing"} onAction={dispatchRunnerAction} />
+
       <GameOverlay
         phase={phase}
         score={score}
         highScore={highScore}
+        isNewPersonalBest={isNewPersonalBest}
         onStart={handleStart}
         onRestart={handleRestart}
         onResume={handlePauseToggle}

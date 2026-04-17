@@ -13,29 +13,34 @@ html {
 body {
   background-color: #010f10;
   color: #ffffff;
-  font-family: system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
-  min-height: 100vh;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   width: 100%;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
 }
 
-/* Orbitron font fallback */
-@font-face {
-  font-family: "Orbitron Sans";
-  src: local("Courier New"), local("monospace");
-  font-weight: 400;
+/* Subtle CRT-style scanlines — use on full-screen game shell only */
+.runner-scanlines::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  opacity: 0.035;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.45) 2px,
+    rgba(0, 0, 0, 0.45) 3px
+  );
 }
 
-@font-face {
-  font-family: "Orbitron Sans";
-  src: local("Courier New"), local("monospace");
-  font-weight: 700;
-}
-
-:root {
-  --font-orbitron-sans: "Orbitron Sans", monospace;
-  --color-bg: #010f10;
-  --color-primary: #00f0ff;
-  --color-dark: #0e1415;
+.runner-vignette::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: radial-gradient(ellipse 85% 70% at 50% 45%, transparent 30%, rgba(0, 0, 0, 0.55) 100%);
 }

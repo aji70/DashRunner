@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "@/styles/globals.css";
 import FarcasterReady from "@/components/FarcasterReady";
 import { minikitConfig } from "../minikit.config";
+import { fontOrbitron, fontRajdhani } from "./fonts";
 
 function resolveMetadataBase(): URL {
   const raw = (process.env.NEXT_PUBLIC_URL || process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/$/, "");
@@ -62,11 +63,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${fontOrbitron.variable} ${fontRajdhani.variable}`}>
       <head>
         <script src="/disable-extensions.js" />
       </head>
-      <body className="bg-[#010F10]">
+      <body className="min-h-dvh bg-[#010F10] font-sans antialiased text-cyan-50">
         <FarcasterReady />
         {children}
       </body>
