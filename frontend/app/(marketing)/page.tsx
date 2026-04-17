@@ -28,10 +28,10 @@ export default function LandingPage() {
         Play
       </Link>
 
-      <div className="grid w-full max-w-md grid-cols-2 gap-2 sm:max-w-lg sm:grid-cols-3 sm:gap-3">
+      <div className="flex w-full max-w-md flex-col gap-2 sm:max-w-sm sm:gap-2.5">
         {shortcuts.map((s) => (
-          <Link key={s.href} href={s.href} className="block">
-            <GlassPanel hover className="py-4 text-center sm:py-5">
+          <Link key={s.href} href={s.href} className="block w-full">
+            <GlassPanel hover className="w-full py-3.5 text-center sm:py-4">
               <span className="font-orbitron text-xs font-bold uppercase tracking-widest text-cyan-100/90 sm:text-sm">
                 {s.label}
               </span>
