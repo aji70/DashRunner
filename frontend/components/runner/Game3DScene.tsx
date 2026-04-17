@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Car3D } from "./Car3D";
+import { TrafficCar3D } from "./TrafficCar3D";
 import { Coin3D } from "./Coin3D";
-import { Obstacle3D } from "./Obstacle3D";
 import type { GameState } from "@/types/runner";
 
 interface Game3DSceneProps {
@@ -657,7 +657,7 @@ function Scene3D({
           );
         })}
 
-      {/* Obstacles */}
+      {/* Other traffic (same hitboxes as former obstacles). */}
       {gameState.obstacles
         .filter((obs) => {
           const obsZ = toWorldZ(obs.y);
@@ -666,10 +666,11 @@ function Scene3D({
         .map((obs) => {
           const obsLaneX = obs.lane - 1;
           return (
-            <Obstacle3D
+            <TrafficCar3D
               key={obs.id}
-              position={[obsLaneX, obs.type === "wall" ? 0.75 : 0.15, toWorldZ(obs.y)]}
+              position={[obsLaneX, obs.type === "wall" ? 0.72 : 0.12, toWorldZ(obs.y)]}
               type={obs.type}
+              styleSeed={obs.id}
             />
           );
         })}
