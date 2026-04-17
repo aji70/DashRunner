@@ -61,6 +61,44 @@ contract DashRunnerTest is Test {
         game.submitRun(1, 1, 1, 0, 0, 0, 0);
     }
 
+    function test_buyCharacter_and_setLoadout() public {
+        game.setCharacterPrice(3, 1 ether);
+        vm.deal(PLAYER, 3 ether);
+        vm.prank(PLAYER);
+        game.buyCharacter{ value: 1.5 ether }(3);
+        assertTrue(game.ownsCharacter(PLAYER, 3));
+
+        vm.prank(PLAYER);
+        game.setLoadout(3, 5);
+        assertEq(game.selectedCharacterId(PLAYER), 3);
+        assertEq(game.selectedCityId(PLAYER), 5);
+    }
+
+    function test_claimDailyReward_streak_and_doubleClaimReverts() public {
+        vm.warp(10 days);
+        vm.prank(PLAYER);
+        game.claimDailyReward();
+        assertEq(game.dailyClaimStreak(PLAYER), 1);
+
+        vm.prank(PLAYER);
+        vm.expectRevert();
+        game.claimDailyReward();
+
+        vm.warp(11 days);
+        vm.prank(PLAYER);
+        game.claimDailyReward();
+        assertEq(game.dailyClaimStreak(PLAYER), 2);
+    }
+
+    function test_pause_blocks_buyCharacter() public {
+        game.setCharacterPrice(2, 1 wei);
+        game.pause();
+        vm.deal(PLAYER, 1 ether);
+        vm.prank(PLAYER);
+        vm.expectRevert();
+        game.buyCharacter{ value: 1 wei }(2);
+    }
+
     function test_owner_can_upgrade() public {
         DashRunner nextImplementation = new DashRunner();
         game.upgradeToAndCall(address(nextImplementation), "");

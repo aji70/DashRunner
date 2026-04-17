@@ -32,8 +32,24 @@ contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, U
     event PersonalBestNftMinted(address indexed player, uint256 indexed tokenId, uint256 score);
     event PersonalBestNftMintSkipped(address indexed player, uint256 score);
 
+    event DailyRewardClaimed(address indexed player, uint32 dayIndex, uint16 streak);
+    event CharacterPurchased(address indexed player, uint8 characterId, uint256 priceWei);
+    event LoadoutUpdated(address indexed player, uint8 characterId, uint8 cityId);
+    event CharacterPriceSet(uint8 indexed characterId, uint256 priceWei);
+    event Withdrawal(address indexed to, uint256 amount);
+
     error DashRunner__ZeroPlayer();
     error DashRunner__Uint64Overflow();
+    error DashRunner__InvalidCharacter();
+    error DashRunner__InvalidCity();
+    error DashRunner__NotOwnerOfCharacter();
+    error DashRunner__CharacterNotForSale();
+    error DashRunner__AlreadyOwned();
+    error DashRunner__InsufficientValue();
+    error DashRunner__AlreadyClaimedToday();
+    error DashRunner__WithdrawFailed();
+
+    uint8 public constant MAX_CITY_ID = 31;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -60,12 +76,89 @@ contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, U
         scoreNft = scoreNft_;
     }
 
+    receive() external payable { }
+
+    function withdraw(address payable to, uint256 amount) external onlyOwner {
+        if (to == address(0)) revert DashRunner__ZeroPlayer();
+        (bool ok,) = to.call{ value: amount }("");
+        if (!ok) revert DashRunner__WithdrawFailed();
+        emit Withdrawal(to, amount);
+    }
+
+    function setCharacterPrice(uint8 characterId, uint256 priceWei) external onlyOwner {
+        if (characterId == 0) revert DashRunner__InvalidCharacter();
+        characterPriceWei[characterId] = priceWei;
+        emit CharacterPriceSet(characterId, priceWei);
+    }
+
+    /**
+     * @notice Buy a character slot with native currency. Character `0` is free and cannot be purchased.
+     */
+    function buyCharacter(uint8 characterId) external payable whenNotPaused {
+        if (characterId == 0) revert DashRunner__InvalidCharacter();
+        uint256 price = characterPriceWei[characterId];
+        if (price == 0) revert DashRunner__CharacterNotForSale();
+        if (msg.value < price) revert DashRunner__InsufficientValue();
+        if (_ownsCharacter(msg.sender, characterId)) revert DashRunner__AlreadyOwned();
+
+        characterOwnershipMask[msg.sender] |= (uint256(1) << characterId);
+        emit CharacterPurchased(msg.sender, characterId, price);
+
+        uint256 refund = msg.value - price;
+        if (refund > 0) {
+            (bool okRefund,) = payable(msg.sender).call{ value: refund }("");
+            if (!okRefund) revert DashRunner__WithdrawFailed();
+        }
+    }
+
+    /**
+     * @notice Persist the cosmetic loadout clients should use before starting a run.
+     */
+    function setLoadout(uint8 characterId, uint8 cityId) external whenNotPaused {
+        address player = _msgSender();
+        if (player == address(0)) revert DashRunner__ZeroPlayer();
+        if (cityId > MAX_CITY_ID) revert DashRunner__InvalidCity();
+        if (!_ownsCharacter(player, characterId)) revert DashRunner__NotOwnerOfCharacter();
+
+        selectedCharacterId[player] = characterId;
+        selectedCityId[player] = cityId;
+        emit LoadoutUpdated(player, characterId, cityId);
+    }
+
+    /**
+     * @notice On-chain daily check-in marker (UTC day boundary). Does not transfer tokens; pairs with off-chain rewards.
+     */
+    function claimDailyReward() external whenNotPaused {
+        address player = _msgSender();
+        if (player == address(0)) revert DashRunner__ZeroPlayer();
+
+        uint32 today = uint32(block.timestamp / 1 days);
+        uint32 last = lastDailyClaimDayIndex[player];
+        if (last == today) revert DashRunner__AlreadyClaimedToday();
+
+        uint16 streak = 1;
+        if (last != 0 && today == last + 1) {
+            streak = dailyClaimStreak[player] + 1;
+        }
+
+        lastDailyClaimDayIndex[player] = today;
+        dailyClaimStreak[player] = streak;
+
+        emit DailyRewardClaimed(player, today, streak);
+    }
+
+    function ownsCharacter(address player, uint8 characterId) external view returns (bool) {
+        return _ownsCharacter(player, characterId);
+    }
+
     /**
      * @notice Record a finished run for `msg.sender`. Updates per-player bests and optional global best.
      * @param jumps Lane jumps (or jump actions) in this run.
      * @param leftActions Strafe / lane moves left.
      * @param rightActions Strafe / lane moves right.
      * @param boostCollected Boost pickups collected in this run.
+     * @dev If {scoreNft} is set and this run strictly beats the player's previous best score, the NFT is minted
+     * via try/catch so a failed safe-mint (e.g. non-receiver contract) does not revert the run submission.
      */
     function submitRun(
         uint256 score,
