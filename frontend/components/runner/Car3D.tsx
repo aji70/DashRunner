@@ -171,18 +171,19 @@ export function Car3D({ position, jumping, sliding, accentTint }: Car3DProps) {
         <meshPhysicalMaterial color="#020617" metalness={0.35} roughness={0.4} clearcoat={0.85} clearcoatRoughness={0.2} />
       </mesh>
 
-      {/* Glass canopy */}
+      {/* Glass canopy — high-gloss transparent (no transmission shader). */}
       <mesh position={[0, 0.5, 0.12]} rotation={[0.38, 0, 0]}>
         <boxGeometry args={[0.5, 0.2, 0.38]} />
-        <meshPhysicalMaterial
-          color="#7dd3fc"
-          metalness={0.15}
-          roughness={0.08}
-          transmission={0.65}
-          thickness={0.35}
+        <meshStandardMaterial
+          color="#bae6fd"
+          metalness={0.88}
+          roughness={0.09}
           transparent
-          opacity={0.92}
-          ior={1.45}
+          opacity={0.48}
+          emissive="#0c4a6e"
+          emissiveIntensity={0.12}
+          envMapIntensity={1.1}
+          depthWrite={false}
         />
       </mesh>
 
