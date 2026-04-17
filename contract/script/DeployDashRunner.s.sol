@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import { Script, console2 } from "forge-std/Script.sol";
+import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
+import { DashRunner } from "../src/DashRunner.sol";
+
+contract DeployDashRunner is Script {
+    function run() external {
+        uint256 pk = vm.envUint("PRIVATE_KEY");
+        address owner = vm.addr(pk);
+
+        vm.startBroadcast(pk);
+
+        DashRunner implementation = new DashRunner();
+        bytes memory init = abi.encodeCall(DashRunner.initialize, (owner));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), init);
+
+        vm.stopBroadcast();
+
+        console2.log("DashRunner implementation", address(implementation));
+        console2.log("DashRunner proxy (app address)", address(proxy));
+        console2.log("owner", owner);
+    }
+}
