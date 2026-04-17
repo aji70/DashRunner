@@ -7,6 +7,7 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import { DashRunnerStorage } from "./DashRunnerStorage.sol";
+import { IDashRunnerScoreNFT } from "./interfaces/IDashRunnerScoreNFT.sol";
 
 /**
  * @title DashRunner
@@ -27,6 +28,9 @@ contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, U
         uint256 newBestScore,
         bool isNewGlobalBest
     );
+
+    event PersonalBestNftMinted(address indexed player, uint256 indexed tokenId, uint256 score);
+    event PersonalBestNftMintSkipped(address indexed player, uint256 score);
 
     error DashRunner__ZeroPlayer();
     error DashRunner__Uint64Overflow();
@@ -51,6 +55,11 @@ contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, U
         _unpause();
     }
 
+    /// @notice Wire the achievement collection (only minter is this game contract). Pass `address(0)` to disable mints.
+    function setScoreNft(address scoreNft_) external onlyOwner {
+        scoreNft = scoreNft_;
+    }
+
     /**
      * @notice Record a finished run for `msg.sender`. Updates per-player bests and optional global best.
      * @param jumps Lane jumps (or jump actions) in this run.
@@ -71,6 +80,8 @@ contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, U
         if (player == address(0)) revert DashRunner__ZeroPlayer();
 
         BestRun storage br = bestRun[player];
+        uint256 priorBestScore = br.bestScore;
+        bool newPersonalHighScore = score > priorBestScore;
 
         if (score > br.bestScore) {
             br.bestScore = _toUint64(score);
@@ -114,9 +125,24 @@ contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, U
             br.bestScore,
             isNewGlobalBest
         );
+
+        if (newPersonalHighScore && scoreNft != address(0)) {
+            try IDashRunnerScoreNFT(scoreNft).mintPersonalBest(player, score) returns (uint256 tokenId) {
+                emit PersonalBestNftMinted(player, tokenId, score);
+            } catch {
+                emit PersonalBestNftMintSkipped(player, score);
+            }
+        }
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
+
+    function _ownsCharacter(address player, uint8 characterId) private view returns (bool) {
+        if (characterId == 0) return true;
+        if (characterId >= 256) return false;
+        uint256 mask = characterOwnershipMask[player];
+        return (mask & (uint256(1) << characterId)) != 0;
+    }
 
     function _toUint64(uint256 value) private pure returns (uint64) {
         if (value > type(uint64).max) revert DashRunner__Uint64Overflow();

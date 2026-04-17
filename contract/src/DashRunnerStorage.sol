@@ -24,10 +24,31 @@ abstract contract DashRunnerStorage {
     uint256 public globalBestScore;
     address public globalBestHolder;
 
+    /// @notice ERC-721 collection that receives {IDashRunnerScoreNFT.mintPersonalBest} on new personal bests (optional).
+    address public scoreNft;
+
+    /// @notice Bitmask of owned character IDs (bit `i` => owns character `i`). Character `0` is the free default.
+    mapping(address => uint256) public characterOwnershipMask;
+
+    /// @notice Equipped character ID (must be owned, or `0`).
+    mapping(address => uint8) public selectedCharacterId;
+
+    /// @notice Selected city / route theme ID (opaque to the contract; used by clients).
+    mapping(address => uint8) public selectedCityId;
+
+    /// @notice UTC day index of last successful `claimDailyReward` (`block.timestamp / 1 days`).
+    mapping(address => uint32) public lastDailyClaimDayIndex;
+
+    /// @notice Consecutive UTC-day claim streak after last claim (minimum 1 right after a claim).
+    mapping(address => uint16) public dailyClaimStreak;
+
+    /// @notice Native-token price for `buyCharacter(id)` when `id > 0`. `0` means not sold on-chain.
+    mapping(uint8 => uint256) public characterPriceWei;
+
     /**
      * @dev Reserved storage slots for future upgrades. Do not remove or reorder
      * variables above without a storage migration plan.
      */
     // forge-lint: disable-next-line(mixed-case-variable)
-    uint256[47] private __gap;
+    uint256[40] private __gap;
 }

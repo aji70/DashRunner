@@ -5,6 +5,7 @@ import { Script, console2 } from "forge-std/Script.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import { DashRunner } from "../src/DashRunner.sol";
+import { DashRunnerScoreNFT } from "../src/DashRunnerScoreNFT.sol";
 
 contract DeployDashRunner is Script {
     function run() external {
@@ -17,10 +18,15 @@ contract DeployDashRunner is Script {
         bytes memory init = abi.encodeCall(DashRunner.initialize, (owner));
         ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), init);
 
+        DashRunner game = DashRunner(address(proxy));
+        DashRunnerScoreNFT nft = new DashRunnerScoreNFT(owner, address(proxy), "Dash Runner High Score", "DRUNHS");
+        game.setScoreNft(address(nft));
+
         vm.stopBroadcast();
 
         console2.log("DashRunner implementation", address(implementation));
         console2.log("DashRunner proxy (app address)", address(proxy));
+        console2.log("DashRunnerScoreNFT", address(nft));
         console2.log("owner", owner);
     }
 }
