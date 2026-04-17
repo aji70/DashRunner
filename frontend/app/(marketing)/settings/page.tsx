@@ -8,6 +8,11 @@ import {
   type PlayerProfileV1,
 } from "@/lib/playerProfile";
 import { apiSend } from "@/lib/api";
+import { PageHeader, Kbd } from "@/components/ui/PageHeader";
+import { GlassPanel } from "@/components/ui/GlassPanel";
+import { Button } from "@/components/ui/Button";
+import { TextField } from "@/components/ui/TextField";
+import { InlineNotice } from "@/components/ui/InlineNotice";
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState<PlayerProfileV1 | null>(null);
@@ -76,58 +81,63 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="font-orbitron text-2xl font-bold text-fuchsia-100">Settings</h1>
-        <p className="mt-2 text-sm text-cyan-100/75">
-          Connect a wallet address for API sync (read-only verification — add signatures before production).
-        </p>
-      </div>
+    <div className="space-y-10">
+      <PageHeader eyebrow="Identity" title="Settings">
+        Connect a wallet address for API sync. Treat this as read-only plumbing until you add signature verification for
+        production.
+      </PageHeader>
 
-      <label className="block space-y-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-cyan-200/80">Wallet address</span>
-        <input
-          value={walletInput}
-          onChange={(e) => setWalletInput(e.target.value)}
-          placeholder="0x…"
-          className="w-full rounded-xl border border-white/15 bg-black/40 px-4 py-3 font-mono text-sm text-cyan-50 outline-none ring-cyan-400/40 focus:ring-2"
-        />
-      </label>
+      <GlassPanel className="space-y-8 p-6 sm:p-8">
+        <TextField label="Wallet address" value={walletInput} onChange={(e) => setWalletInput(e.target.value)} placeholder="0x…" />
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={saveWallet}
-          className="rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/20 px-5 py-2 text-sm font-semibold text-fuchsia-50"
-        >
-          Save & sync
-        </button>
-        <button
-          type="button"
-          onClick={pushPrefs}
-          className="rounded-xl border border-cyan-400/40 bg-cyan-500/15 px-5 py-2 text-sm font-semibold text-cyan-50"
-        >
-          Push loadout
-        </button>
-      </div>
-
-      <label className="flex items-center gap-3 text-sm text-cyan-100/90">
-        <input type="checkbox" checked={muted} onChange={(e) => persistMute(e.target.checked)} className="h-4 w-4" />
-        Mute audio in-game (stored in <code className="text-cyan-300/90">localStorage</code>)
-      </label>
-
-      {profile && (
-        <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-cyan-100/80">
-          <p>
-            Soft currency (cached): <span className="font-mono text-cyan-200">{profile.softCurrency}</span>
-          </p>
-          <p className="mt-1">
-            Streak: <span className="font-mono text-cyan-200">{profile.claimStreak}</span>
-          </p>
+        <div className="flex flex-wrap gap-3">
+          <Button variant="primary" onClick={saveWallet}>
+            Save & sync
+          </Button>
+          <Button variant="secondary" onClick={pushPrefs}>
+            Push loadout
+          </Button>
         </div>
-      )}
 
-      {msg && <p className="text-sm text-yellow-200/90">{msg}</p>}
+        <label className="flex cursor-pointer items-start gap-4 rounded-xl border border-white/[0.06] bg-black/30 p-4 transition hover:border-cyan-400/20">
+          <input
+            type="checkbox"
+            checked={muted}
+            onChange={(e) => persistMute(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-white/20 bg-black/50 text-fuchsia-500 focus:ring-cyan-400/40"
+          />
+          <span>
+            <span className="block font-orbitron text-xs font-bold uppercase tracking-wide text-[var(--text-primary)]">
+              Mute in-game audio
+            </span>
+            <span className="mt-1 block font-rajdhani text-sm text-[var(--text-secondary)]">
+              Stored in <Kbd>localStorage</Kbd> as <Kbd>runner_muted</Kbd>.
+            </span>
+          </span>
+        </label>
+      </GlassPanel>
+
+      {profile ? (
+        <GlassPanel className="p-6 sm:p-8">
+          <p className="font-rajdhani text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--text-dim)]">
+            Cached profile
+          </p>
+          <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="font-rajdhani text-xs text-[var(--text-dim)]">Soft currency</dt>
+              <dd className="mt-1 font-orbitron text-xl font-bold tabular-nums text-cyan-100">{profile.softCurrency}</dd>
+            </div>
+            <div>
+              <dt className="font-rajdhani text-xs text-[var(--text-dim)]">Claim streak</dt>
+              <dd className="mt-1 font-orbitron text-xl font-bold tabular-nums text-fuchsia-100">{profile.claimStreak}</dd>
+            </div>
+          </dl>
+        </GlassPanel>
+      ) : null}
+
+      {msg ? (
+        <InlineNotice tone={msg.includes("synced") || msg.includes("pushed") ? "success" : "info"}>{msg}</InlineNotice>
+      ) : null}
     </div>
   );
 }

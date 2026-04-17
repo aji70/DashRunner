@@ -67,7 +67,7 @@ export default function RootLayout({
       <head>
         <script src="/disable-extensions.js" />
       </head>
-      <body className="min-h-dvh bg-[#010F10] font-sans antialiased text-cyan-50">
+      <body className="min-h-dvh bg-void font-sans antialiased text-[var(--text-primary)]">
         <FarcasterReady />
         {children}
       </body>

@@ -155,7 +155,7 @@ export function RunnerGame() {
   return (
     <div
       ref={gameSurfaceRef}
-      className="runner-vignette runner-scanlines relative h-screen w-screen touch-none overflow-hidden bg-[#010F10]"
+      className="runner-vignette runner-scanlines relative h-screen w-screen touch-none overflow-hidden bg-void"
       style={{ maxHeight: "100dvh" }}
       tabIndex={0}
     >

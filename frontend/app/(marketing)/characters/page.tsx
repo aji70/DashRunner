@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { RUNNER_CHARACTERS } from "@/lib/gameCatalog";
 import {
   loadLocalProfile,
@@ -9,6 +10,11 @@ import {
   pushLoadoutToServer,
 } from "@/lib/playerProfile";
 import { apiSend } from "@/lib/api";
+import { PageHeader, Kbd } from "@/components/ui/PageHeader";
+import { GlassPanel } from "@/components/ui/GlassPanel";
+import { Button } from "@/components/ui/Button";
+import { InlineNotice } from "@/components/ui/InlineNotice";
+import { Badge } from "@/components/ui/Badge";
 
 export default function CharactersPage() {
   const [profile, setProfile] = useState(loadLocalProfile());
@@ -70,62 +76,74 @@ export default function CharactersPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="font-orbitron text-2xl font-bold text-fuchsia-100">Runners</h1>
-        <p className="mt-2 text-sm text-cyan-100/75">
-          Cosmetic accents tint the GLB in-game. On-chain purchases use <code className="text-cyan-300/90">buyCharacter</code> with{" "}
-          <code className="text-cyan-300/90">setCharacterPrice</code> configured by the owner.
-        </p>
-      </div>
+    <div className="space-y-10">
+      <PageHeader eyebrow="Loadout" title="Runners">
+        Cosmetic accents tint the in-game GLB. Purchases call <Kbd>buyCharacter</Kbd> with prices set via{" "}
+        <Kbd>setCharacterPrice</Kbd> on the owner account.
+      </PageHeader>
 
-      <div className="grid gap-4">
-        {RUNNER_CHARACTERS.map((c) => {
+      <div className="space-y-4">
+        {RUNNER_CHARACTERS.map((c, i) => {
           const owned = profile.ownedCharacterIds.includes(c.onChainId);
           const selected = profile.selectedCharacterId === c.onChainId;
           return (
-            <div
+            <motion.div
               key={c.id}
-              className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-black/25 p-4 sm:flex-row sm:items-center sm:justify-between"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="flex items-center gap-4">
-                <div
-                  className="h-14 w-14 rounded-2xl border border-white/20 shadow-lg"
-                  style={{ background: `radial-gradient(circle at 30% 20%, ${c.accentHex}, #0f172a)` }}
-                />
-                <div>
-                  <h2 className="font-orbitron text-lg text-fuchsia-100">{c.name}</h2>
-                  <p className="text-sm text-cyan-100/70">{c.role}</p>
+              <GlassPanel active={selected} className="p-5 sm:p-6">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-5">
+                    <div
+                      className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-white/15 shadow-[0_12px_40px_rgba(0,0,0,0.45)] sm:h-[4.5rem] sm:w-[4.5rem]"
+                      style={{
+                        background: `radial-gradient(circle at 28% 22%, ${c.accentHex}, #0b1220 72%)`,
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-shine-sweep opacity-30" />
+                    </div>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="font-orbitron text-xl font-bold text-[var(--text-primary)]">{c.name}</h2>
+                        {owned ? <Badge tone="cyan">Owned</Badge> : <Badge tone="amber">Locked</Badge>}
+                        {selected ? <Badge tone="magenta">Equipped</Badge> : null}
+                      </div>
+                      <p className="mt-1 font-rajdhani text-[15px] text-[var(--text-secondary)]">{c.role}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 sm:justify-end">
+                    {owned ? (
+                      <Button
+                        variant={selected ? "secondary" : "ghost"}
+                        onClick={() => select(c.onChainId)}
+                        className="min-w-[8.5rem]"
+                      >
+                        {selected ? "Equipped" : "Equip"}
+                      </Button>
+                    ) : (
+                      <Button variant="primary" onClick={() => buy(c.onChainId, c.priceCoins)} className="min-w-[10rem]">
+                        Unlock · {c.priceCoins}
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {owned ? (
-                  <button
-                    type="button"
-                    onClick={() => select(c.onChainId)}
-                    className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-                      selected
-                        ? "border border-cyan-300 bg-cyan-400/25 text-cyan-50"
-                        : "border border-white/20 bg-white/5 text-cyan-100"
-                    }`}
-                  >
-                    {selected ? "Equipped" : "Equip"}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => buy(c.onChainId, c.priceCoins)}
-                    className="rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/20 px-4 py-2 text-sm font-semibold text-fuchsia-50"
-                  >
-                    Unlock · {c.priceCoins} coins
-                  </button>
-                )}
-              </div>
-            </div>
+              </GlassPanel>
+            </motion.div>
           );
         })}
       </div>
-      {msg && <p className="text-sm text-yellow-100/90">{msg}</p>}
+
+      {msg ? (
+        <InlineNotice
+          tone={
+            /unlocked|synced/i.test(msg) && !/not enough|first/i.test(msg) ? "success" : "warn"
+          }
+        >
+          {msg}
+        </InlineNotice>
+      ) : null}
     </div>
   );
 }

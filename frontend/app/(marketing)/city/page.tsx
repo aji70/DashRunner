@@ -1,8 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { CITY_ROUTES } from "@/lib/gameCatalog";
 import { loadLocalProfile, saveLocalProfile, pushLoadoutToServer } from "@/lib/playerProfile";
+import { PageHeader, Kbd } from "@/components/ui/PageHeader";
+import { GlassPanel } from "@/components/ui/GlassPanel";
+import { Badge } from "@/components/ui/Badge";
+import { InlineNotice } from "@/components/ui/InlineNotice";
+
+const routeGlow: Record<number, string> = {
+  0: "from-cyan-400/25 to-fuchsia-600/20",
+  1: "from-amber-400/25 to-orange-600/15",
+  2: "from-rose-400/25 to-fuchsia-900/20",
+  3: "from-emerald-400/20 to-cyan-900/15",
+  4: "from-orange-500/25 to-red-950/25",
+  5: "from-sky-400/25 to-indigo-900/20",
+};
 
 export default function CityPage() {
   const [profile, setProfile] = useState(loadLocalProfile());
@@ -13,7 +27,7 @@ export default function CityPage() {
     const next = { ...p, selectedCityId: cityId };
     saveLocalProfile(next);
     setProfile(next);
-    setMsg(`Route set to “${CITY_ROUTES.find((c) => c.id === cityId)?.name}”.`);
+    setMsg(`Route locked to “${CITY_ROUTES.find((c) => c.id === cityId)?.name}”.`);
     if (p.walletAddress) {
       try {
         await pushLoadoutToServer(p.walletAddress, p.selectedCharacterId, cityId);
@@ -24,37 +38,42 @@ export default function CityPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="font-orbitron text-2xl font-bold text-fuchsia-100">City routes</h1>
-        <p className="mt-2 text-sm text-cyan-100/75">
-          Each route shifts skyline hues, fog, and accent lights in the 3D scene. IDs map to contract{" "}
-          <code className="text-cyan-300/90">MAX_CITY_ID</code> (0–31).
-        </p>
-      </div>
+    <div className="space-y-10">
+      <PageHeader eyebrow="World index" title="City routes">
+        Each route rewrites fog, skyline accents, and ambient lights in the WebGL lane. IDs align with contract{" "}
+        <Kbd>MAX_CITY_ID</Kbd> (0–31).
+      </PageHeader>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {CITY_ROUTES.map((city) => {
+        {CITY_ROUTES.map((city, i) => {
           const active = profile.selectedCityId === city.id;
+          const glow = routeGlow[city.id] ?? "from-cyan-400/20 to-violet-950/20";
           return (
-            <button
+            <motion.button
               key={city.id}
               type="button"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04, duration: 0.35 }}
               onClick={() => choose(city.id)}
-              className={`rounded-2xl border p-5 text-left transition ${
-                active
-                  ? "border-cyan-300/60 bg-cyan-500/15 shadow-[0_0_24px_rgba(34,211,238,0.15)]"
-                  : "border-white/10 bg-black/25 hover:border-fuchsia-300/30"
-              }`}
+              className="text-left"
             >
-              <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-fuchsia-200/70">{city.region}</p>
-              <h2 className="mt-2 font-orbitron text-lg text-fuchsia-100">{city.name}</h2>
-              <p className="mt-2 text-sm text-cyan-100/75">{city.tagline}</p>
-            </button>
+              <GlassPanel active={active} hover className={`h-full bg-gradient-to-br ${glow} p-5 sm:p-6`}>
+                <Badge tone="neutral" className="mb-3 border-white/10">
+                  {city.region}
+                </Badge>
+                <h2 className="font-orbitron text-xl font-bold text-[var(--text-primary)]">{city.name}</h2>
+                <p className="mt-2 font-rajdhani text-[15px] leading-relaxed text-[var(--text-secondary)]">{city.tagline}</p>
+                <p className="mt-4 font-rajdhani text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-300/60">
+                  {active ? "● Active route" : "Tap to assign"}
+                </p>
+              </GlassPanel>
+            </motion.button>
           );
         })}
       </div>
-      {msg && <p className="text-sm text-cyan-100/85">{msg}</p>}
+
+      {msg ? <InlineNotice tone="info">{msg}</InlineNotice> : null}
     </div>
   );
 }
