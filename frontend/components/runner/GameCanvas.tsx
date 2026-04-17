@@ -41,12 +41,16 @@ const GRAVITY = 0.00145;
 const JUMP_VELOCITY = -0.92;
 const SLIDE_DURATION = 600;
 const LERP_FACTOR = 0.18;
-const SPAWN_INTERVAL = 1000;
+const SPAWN_INTERVAL = 720;
 const SPEED_SCALE = 0.15;
 const PLAYER_WIDTH = 20;
 const PLAYER_HEIGHT = 40;
-const COIN_RUSH_CHANCE = 0.72;
-const OBSTACLE_CHANCE = 0.28;
+/** Lower = more traffic vs coin streaks. */
+const COIN_RUSH_CHANCE = 0.48;
+/** Chance to spawn a second car in another lane on the same beat. */
+const OBSTACLE_CHANCE = 0.62;
+/** Extra car in a third lane sometimes (staggered up-road). */
+const EXTRA_TRAFFIC_CHANCE = 0.32;
 const COIN_RUSH_STREAK_LENGTH = 3;
 
 // Colors
@@ -233,11 +237,15 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           spawnCoinBurst(randomLane);
         } else {
           spawnObstacle(randomLane);
-          // Sometimes add a second obstacle in another lane for pressure.
           if (Math.random() < OBSTACLE_CHANCE) {
             const otherLane = ((randomLane + 1 + Math.floor(Math.random() * 2)) % 3) as Lane;
             spawnObstacle(otherLane);
-            gameState.obstacles[gameState.obstacles.length - 1].y = -100;
+            gameState.obstacles[gameState.obstacles.length - 1].y = -105;
+          }
+          if (Math.random() < EXTRA_TRAFFIC_CHANCE) {
+            const extraLane = ((randomLane + 2) % 3) as Lane;
+            spawnObstacle(extraLane);
+            gameState.obstacles[gameState.obstacles.length - 1].y = -72;
           }
         }
 

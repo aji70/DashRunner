@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
 import { GameHUD } from "./GameHUD";
 import { GameOverlay } from "./GameOverlay";
-import { GameControls } from "./GameControls";
 import { ErrorBoundary } from "./ErrorBoundary";
 import type { GamePhase, GameState } from "@/types/runner";
 import { useSwipeGesture, type SwipeDirection } from "@/hooks/useSwipeGesture";
@@ -215,8 +214,6 @@ export function RunnerGame() {
       )}
 
       <GameHUD score={score} coinsCollected={coinsCollected} phase={phase} isMuted={isMuted} onPauseToggle={handlePauseToggle} onMuteToggle={handleMuteToggle} />
-
-      <GameControls visible={phase === "playing"} onAction={dispatchRunnerAction} />
 
       <GameOverlay
         phase={phase}
