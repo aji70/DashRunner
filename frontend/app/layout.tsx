@@ -1,10 +1,52 @@
 import type { Metadata, Viewport } from "next";
 import "@/styles/globals.css";
+import FarcasterReady from "@/components/FarcasterReady";
+import { minikitConfig } from "../minikit.config";
 
-export const metadata: Metadata = {
-  title: "DashRunner — neon endless runner",
-  description: "Swipe runner with city routes, shop, daily rewards, and on-chain score sync.",
-};
+function resolveMetadataBase(): URL {
+  const raw = (process.env.NEXT_PUBLIC_URL || process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/$/, "");
+  const vercel = process.env.VERCEL_URL?.trim();
+  const candidate =
+    raw ||
+    (vercel ? `https://${vercel.replace(/^https?:\/\//, "")}` : "") ||
+    "http://localhost:3000";
+  try {
+    if (/^https?:\/\//i.test(candidate)) {
+      return new URL(candidate);
+    }
+    return new URL(`https://${candidate}`);
+  } catch {
+    return new URL("http://localhost:3000");
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    metadataBase: resolveMetadataBase(),
+    title: {
+      default: "DashRunner — neon endless runner",
+      template: "%s | DashRunner",
+    },
+    description: "Swipe runner on Celo for MiniPay: city routes, shop, daily rewards, and on-chain score sync.",
+    other: {
+      "fc:frame": JSON.stringify({
+        version: minikitConfig.miniapp.version,
+        imageUrl: minikitConfig.miniapp.heroImageUrl,
+        images: {
+          url: minikitConfig.miniapp.heroImageUrl,
+          alt: "DashRunner — MiniPay runner on Celo",
+        },
+        button: {
+          title: `Play ${minikitConfig.miniapp.name}`,
+          action: {
+            name: `Launch ${minikitConfig.miniapp.name}`,
+            type: "launch_frame",
+          },
+        },
+      }),
+    },
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -24,7 +66,10 @@ export default function RootLayout({
       <head>
         <script src="/disable-extensions.js" />
       </head>
-      <body className="bg-[#010F10]">{children}</body>
+      <body className="bg-[#010F10]">
+        <FarcasterReady />
+        {children}
+      </body>
     </html>
   );
 }

@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@farcaster/miniapp-sdk": "^0.2.3",
     "@react-three/drei": "^8.17.0",
     "@react-three/fiber": "^8.18.0",
     "babylonjs": "^9.2.1",
