@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import type { SwipeDirection } from "@/hooks/useSwipeGesture";
+import { GlassPanel } from "@/components/ui/GlassPanel";
+import { cn } from "@/lib/cn";
 
 interface GameControlsProps {
   onAction: (dir: SwipeDirection) => void;
@@ -9,7 +11,7 @@ interface GameControlsProps {
 }
 
 const padBase =
-  "pointer-events-auto flex flex-col items-center justify-center gap-0.5 rounded-2xl border bg-[#060d14]/92 px-1 py-2 backdrop-blur-md active:scale-95 transition-transform min-h-[3.25rem] min-w-[3.25rem] sm:min-h-[3.5rem] sm:min-w-[3.5rem]";
+  "pointer-events-auto flex flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.1] bg-[var(--panel)]/95 px-1 py-2 shadow-[var(--shadow-panel)] backdrop-blur-md active:scale-95 transition-transform min-h-[3.25rem] min-w-[3.25rem] sm:min-h-[3.5rem] sm:min-w-[3.5rem] hover:border-[var(--line-bright)]";
 
 function DirGlyph({ dir }: { dir: "up" | "down" | "left" | "right" }) {
   const stroke = "currentColor";
@@ -49,16 +51,8 @@ export function GameControls({ onAction, visible = true }: GameControlsProps) {
 
   return (
     <div className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-20 w-[min(100%,22rem)] -translate-x-1/2 px-3">
-      <div
-        className="pointer-events-auto relative rounded-[1.35rem] border border-cyan-500/20 p-2 shadow-[0_12px_48px_rgba(0,0,0,0.55)] backdrop-blur-lg"
-        style={{
-          background:
-            "linear-gradient(165deg, rgba(12,20,28,0.92) 0%, rgba(4,8,14,0.96) 100%)",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(244,114,182,0.08)",
-        }}
-      >
-        <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/35 to-transparent" />
-        <p className="pointer-events-none mb-1 text-center font-rajdhani text-[9px] font-semibold uppercase tracking-[0.28em] text-cyan-200/45">
+      <GlassPanel hover className="rounded-[1.35rem] p-2 shadow-lift">
+        <p className="pointer-events-none mb-1.5 text-center font-rajdhani text-[9px] font-semibold uppercase tracking-[0.28em] text-[var(--text-dim)]">
           Controls
         </p>
 
@@ -72,7 +66,7 @@ export function GameControls({ onAction, visible = true }: GameControlsProps) {
               fire("up");
             }}
             onClick={() => fire("up")}
-            className={`${padBase} border-cyan-400/35 text-cyan-200 hover:border-fuchsia-400/35 hover:text-fuchsia-100`}
+            className={cn(padBase, "text-cyan-200")}
             aria-label="Jump"
           >
             <DirGlyph dir="up" />
@@ -88,7 +82,7 @@ export function GameControls({ onAction, visible = true }: GameControlsProps) {
               fire("left");
             }}
             onClick={() => fire("left")}
-            className={`${padBase} border-cyan-400/35 text-cyan-200 hover:border-fuchsia-400/35 hover:text-fuchsia-100`}
+            className={cn(padBase, "text-cyan-200")}
             aria-label="Move left"
           >
             <DirGlyph dir="left" />
@@ -103,7 +97,7 @@ export function GameControls({ onAction, visible = true }: GameControlsProps) {
               fire("down");
             }}
             onClick={() => fire("down")}
-            className={`${padBase} border-fuchsia-400/30 text-fuchsia-100/90 hover:border-fuchsia-300/50`}
+            className={cn(padBase, "border-fuchsia-400/25 text-fuchsia-100/95 hover:border-fuchsia-400/45")}
             aria-label="Slide"
           >
             <DirGlyph dir="down" />
@@ -118,14 +112,14 @@ export function GameControls({ onAction, visible = true }: GameControlsProps) {
               fire("right");
             }}
             onClick={() => fire("right")}
-            className={`${padBase} border-cyan-400/35 text-cyan-200 hover:border-fuchsia-400/35 hover:text-fuchsia-100`}
+            className={cn(padBase, "text-cyan-200")}
             aria-label="Move right"
           >
             <DirGlyph dir="right" />
             <span className="font-rajdhani text-[9px] font-bold uppercase tracking-wider text-cyan-100/50">Right</span>
           </motion.button>
         </div>
-      </div>
+      </GlassPanel>
     </div>
   );
 }

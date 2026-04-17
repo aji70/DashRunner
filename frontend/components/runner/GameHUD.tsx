@@ -2,6 +2,8 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import type { GamePhase } from "@/types/runner";
+import { GlassPanel } from "@/components/ui/GlassPanel";
+import { cn } from "@/lib/cn";
 
 function IconPause({ className }: { className?: string }) {
   return (
@@ -31,6 +33,9 @@ function IconVolumeOff({ className }: { className?: string }) {
   );
 }
 
+const iconBtn =
+  "pointer-events-auto flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-[var(--panel)]/95 text-cyan-200 shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:border-[var(--line-bright)] hover:text-fuchsia-100";
+
 interface GameHUDProps {
   score: number;
   coinsCollected: number;
@@ -44,14 +49,10 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
   return (
     <div className="pointer-events-none absolute inset-0 z-10 pt-[max(0.5rem,env(safe-area-inset-top))]">
       <div className="absolute left-3 right-[5.5rem] top-3 z-20 sm:left-4 sm:right-36 sm:top-4">
-        <div className="relative overflow-hidden rounded-2xl border border-cyan-400/25 bg-[#050a12]/80 shadow-[0_0_0_1px_rgba(244,114,182,0.12),0_12px_40px_rgba(0,0,0,0.45)] shadow-panel-inset backdrop-blur-md">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent" />
-          <div className="pointer-events-none absolute -left-8 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-fuchsia-500/15 blur-2xl" />
-          <div className="pointer-events-none absolute -right-6 top-0 h-20 w-20 rounded-full bg-cyan-400/10 blur-2xl" />
-
-          <div className="relative grid grid-cols-2 divide-x divide-cyan-400/15">
+        <GlassPanel className="shadow-lift">
+          <div className="grid grid-cols-2 divide-x divide-cyan-400/15">
             <div className="px-3 py-2.5 sm:px-4 sm:py-3">
-              <p className="font-rajdhani text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-200/60">
+              <p className="font-rajdhani text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)]">
                 Score
               </p>
               <AnimatePresence mode="wait">
@@ -88,7 +89,7 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
               </AnimatePresence>
             </div>
           </div>
-        </div>
+        </GlassPanel>
       </div>
 
       <div className="absolute right-3 top-3 z-20 flex items-center gap-2 sm:right-4 sm:top-4 sm:gap-2.5">
@@ -98,7 +99,7 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
               type="button"
               onClick={onPauseToggle}
               whileTap={{ scale: 0.92 }}
-              className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/30 bg-[#070d14]/90 text-cyan-200 shadow-neon-cyan backdrop-blur-sm transition hover:border-fuchsia-400/40 hover:text-fuchsia-100"
+              className={cn(iconBtn, "shadow-neon-cyan")}
               title="Pause"
             >
               <IconPause className="h-4 w-4" />
@@ -107,7 +108,7 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
               type="button"
               onClick={onMuteToggle}
               whileTap={{ scale: 0.92 }}
-              className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/30 bg-[#070d14]/90 text-cyan-200 shadow-neon-cyan backdrop-blur-sm transition hover:border-fuchsia-400/40 hover:text-fuchsia-100"
+              className={cn(iconBtn, "shadow-neon-cyan")}
               title={isMuted ? "Unmute" : "Mute"}
             >
               {isMuted ? <IconVolumeOff className="h-5 w-5" /> : <IconVolumeOn className="h-5 w-5" />}
