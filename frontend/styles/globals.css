@@ -1,11 +1,5 @@
 @import "tailwindcss";
 
-@layer theme {
-  --color-bg: #010f10;
-  --color-primary: #00f0ff;
-  --color-dark: #0e1415;
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -41,4 +35,7 @@ body {
 
 :root {
   --font-orbitron-sans: "Orbitron Sans", monospace;
+  --color-bg: #010f10;
+  --color-primary: #00f0ff;
+  --color-dark: #0e1415;
 }

@@ -73,6 +73,17 @@ export function GameOverlay({
             TAP TO START
           </MotionButton>
 
+          <motion.button
+            type="button"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+            onClick={() => router.push("/")}
+            className="mt-4 text-xs font-semibold uppercase tracking-widest text-cyan-200/60 underline-offset-4 hover:text-cyan-100 hover:underline"
+          >
+            Hub · shop · rewards
+          </motion.button>
+
           {highScore > 0 && (
             <motion.p
               initial={{ y: 10, opacity: 0 }}

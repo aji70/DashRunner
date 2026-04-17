@@ -8,6 +8,7 @@ import { GameOverlay } from "./GameOverlay";
 import { ErrorBoundary } from "./ErrorBoundary";
 import type { GamePhase, GameState } from "@/types/runner";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
+import { assertValidCityId, characterAccent, loadLocalProfile } from "@/lib/playerProfile";
 
 const Game3DScene = dynamic(
   () => import("./Game3DScene").then((mod) => mod.Game3DScene),
@@ -24,6 +25,8 @@ export function RunnerGame() {
   const [playerLane, setPlayerLane] = useState<0 | 1 | 2>(1);
   const [isJumping, setIsJumping] = useState(false);
   const [isSliding, setIsSliding] = useState(false);
+  const [cityId, setCityId] = useState(0);
+  const [characterTint, setCharacterTint] = useState<string | undefined>(undefined);
   const gameSurfaceRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<GameCanvasHandle>(null);
   const coinSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -39,7 +42,23 @@ export function RunnerGame() {
       if (savedMute === "true") {
         setIsMuted(true);
       }
+      const profile = loadLocalProfile();
+      setCityId(assertValidCityId(profile.selectedCityId));
+      setCharacterTint(characterAccent(profile.selectedCharacterId));
     }
+  }, []);
+
+  useEffect(() => {
+    const onFocus = () => {
+      const profile = loadLocalProfile();
+      setCityId(assertValidCityId(profile.selectedCityId));
+      setCharacterTint(characterAccent(profile.selectedCharacterId));
+    };
+    if (typeof window !== "undefined") {
+      window.addEventListener("focus", onFocus);
+      return () => window.removeEventListener("focus", onFocus);
+    }
+    return undefined;
   }, []);
 
   useEffect(() => {
@@ -162,6 +181,8 @@ export function RunnerGame() {
             playerLane={playerLane}
             jumping={isJumping}
             sliding={isSliding}
+            cityId={cityId}
+            characterTint={characterTint}
           />
         </ErrorBoundary>
       )}

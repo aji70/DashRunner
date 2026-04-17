@@ -18,9 +18,17 @@ export async function dailyClaim(req, res) {
     if (!wallet) return res.status(400).json({ success: false, message: "wallet required" });
     wallet = ethers.getAddress(wallet);
 
-    const row = await db("players").where({ wallet_address: wallet }).first();
+    let row = await db("players").where({ wallet_address: wallet }).first();
     if (!row) {
-      return res.status(404).json({ success: false, message: "Player not found — GET /api/player/:wallet first" });
+      await db("players").insert({
+        wallet_address: wallet,
+        soft_currency: 250,
+        owned_character_ids: JSON.stringify([0]),
+        selected_character_id: 0,
+        selected_city_id: 0,
+        claim_streak: 0,
+      });
+      row = await db("players").where({ wallet_address: wallet }).first();
     }
 
     const today = utcDayString();

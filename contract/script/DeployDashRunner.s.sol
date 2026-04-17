@@ -18,7 +18,7 @@ contract DeployDashRunner is Script {
         bytes memory init = abi.encodeCall(DashRunner.initialize, (owner));
         ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), init);
 
-        DashRunner game = DashRunner(address(proxy));
+        DashRunner game = DashRunner(payable(address(proxy)));
         DashRunnerScoreNFT nft = new DashRunnerScoreNFT(owner, address(proxy), "Dash Runner High Score", "DRUNHS");
         game.setScoreNft(address(nft));
 
