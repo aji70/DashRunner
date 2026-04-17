@@ -15,7 +15,20 @@ interface Game3DSceneProps {
   playerLane: 0 | 1 | 2;
   jumping: boolean;
   sliding: boolean;
+  /** Route / city theme (0–31); shifts skyline palette and lighting. */
+  cityId?: number;
+  /** Per-character accent on the runner model. */
+  characterTint?: string;
 }
+
+const CITY_ROUTE_THEMES = [
+  { fog: "#140a24", bg: "#12091f", accentA: "#f472b6", accentB: "#22d3ee" },
+  { fog: "#0f172a", bg: "#0c1424", accentA: "#38bdf8", accentB: "#a78bfa" },
+  { fog: "#1a0a14", bg: "#160812", accentA: "#fb7185", accentB: "#fbbf24" },
+  { fog: "#052e16", bg: "#041a0d", accentA: "#4ade80", accentB: "#86efac" },
+  { fog: "#2a0f06", bg: "#1a0a04", accentA: "#fb923c", accentB: "#fcd34d" },
+  { fog: "#0b1e2e", bg: "#07121c", accentA: "#7dd3fc", accentB: "#e0f2fe" },
+] as const;
 
 const WORLD_SCROLL_SCALE = 0.045;
 const TRACK_CENTER_Z = 14;
@@ -29,7 +42,15 @@ const BUILDING_PALETTES = [
 ];
 const SKYLINE_PALETTES = ["#1d4ed8", "#7c3aed", "#db2777", "#0f766e", "#ea580c", "#0891b2"];
 
-function SkylineLayer({ catPosition, mobileMode = false }: { catPosition: number; mobileMode?: boolean }) {
+function SkylineLayer({
+  catPosition,
+  mobileMode = false,
+  paletteShift = 0,
+}: {
+  catPosition: number;
+  mobileMode?: boolean;
+  paletteShift?: number;
+}) {
   const skyline = useMemo(() => {
     const chunks: Array<{ x: number; z: number; width: number; height: number; color: string }> = [];
     const count = mobileMode ? 18 : 28;
@@ -40,11 +61,11 @@ function SkylineLayer({ catPosition, mobileMode = false }: { catPosition: number
         z: i * 8,
         width: 1.2 + (i % 4) * 0.35,
         height: 5 + (i % 5) * 1.4,
-        color: SKYLINE_PALETTES[i % SKYLINE_PALETTES.length],
+        color: SKYLINE_PALETTES[(i + paletteShift) % SKYLINE_PALETTES.length],
       });
     }
     return chunks;
-  }, [mobileMode]);
+  }, [mobileMode, paletteShift]);
 
   const skylineOffsetZ = Math.floor((catPosition * 0.35) / 8) * 8;
 
@@ -547,7 +568,15 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
   );
 }
 
-function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3DSceneProps) {
+function Scene3D({
+  gameState,
+  catPosition,
+  playerLane,
+  jumping,
+  sliding,
+  cityId = 0,
+  characterTint,
+}: Game3DSceneProps) {
   const { camera } = useThree();
   const [mobileMode, setMobileMode] = useState(false);
   const [hasRunnerAsset, setHasRunnerAsset] = useState(false);
@@ -600,10 +629,11 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
   const catZ = catPosition;
   const toWorldZ = (y: number) => catZ + TRACK_CENTER_Z - y * WORLD_SCROLL_SCALE;
   const cityOffsetZ = Math.floor(catZ / 4) * 4;
+  const routeTheme = CITY_ROUTE_THEMES[Math.abs(cityId | 0) % CITY_ROUTE_THEMES.length];
 
   return (
     <>
-      <fog attach="fog" args={["#140a24", 20, 82]} />
+      <fog attach="fog" args={[routeTheme.fog, 20, 82]} />
 
       {/* Lighting */}
       <ambientLight intensity={0.55} />
@@ -616,11 +646,11 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
         shadow-camera-far={100}
         shadow-camera-near={0.1}
       />
-      <pointLight position={[0, 5, catZ + 6]} intensity={1} color="#f472b6" />
-      <pointLight position={[0, 4, catZ - 4]} intensity={0.6} color="#22d3ee" />
+      <pointLight position={[0, 5, catZ + 6]} intensity={1} color={routeTheme.accentA} />
+      <pointLight position={[0, 4, catZ - 4]} intensity={0.6} color={routeTheme.accentB} />
 
       {/* Background */}
-      <SkylineLayer catPosition={catPosition} mobileMode={mobileMode} />
+      <SkylineLayer catPosition={catPosition} mobileMode={mobileMode} paletteShift={cityId | 0} />
       <group position={[0, 0, cityOffsetZ]}>
         <CityBuilder mobileMode={mobileMode} />
       </group>
@@ -628,7 +658,12 @@ function Scene3D({ gameState, catPosition, playerLane, jumping, sliding }: Game3
       {/* Player */}
       {hasRunnerAsset ? (
         <Suspense fallback={<Cat3D position={[catX, catY, catZ]} jumping={jumping} sliding={sliding} />}>
-          <Character3D position={[catX, catY, catZ]} jumping={jumping} sliding={sliding} />
+          <Character3D
+            position={[catX, catY, catZ]}
+            jumping={jumping}
+            sliding={sliding}
+            accentTint={characterTint}
+          />
         </Suspense>
       ) : (
         <Cat3D position={[catX, catY, catZ]} jumping={jumping} sliding={sliding} />
@@ -705,7 +740,10 @@ function CanvasRenderer(props: CanvasWrapperProps) {
           console.error("Canvas error:", error);
         }}
       >
-        <color attach="background" args={["#12091f"]} />
+        <color
+          attach="background"
+          args={[CITY_ROUTE_THEMES[Math.abs((props.cityId ?? 0) | 0) % CITY_ROUTE_THEMES.length].bg]}
+        />
         <Scene3D {...props} />
       </Canvas>
     );

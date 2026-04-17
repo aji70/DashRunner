@@ -17,7 +17,7 @@ contract DashRunnerNftTest is Test {
     function setUp() public {
         implementation = new DashRunner();
         bytes memory init = abi.encodeCall(DashRunner.initialize, (address(this)));
-        game = DashRunner(address(new ERC1967Proxy(address(implementation), init)));
+        game = DashRunner(payable(address(new ERC1967Proxy(address(implementation), init))));
         nft = new DashRunnerScoreNFT(address(this), address(game), "Dash Runner PB", "DRPB");
         game.setScoreNft(address(nft));
     }

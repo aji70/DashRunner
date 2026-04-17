@@ -15,7 +15,7 @@ contract DashRunnerTest is Test {
     function setUp() public {
         implementation = new DashRunner();
         bytes memory init = abi.encodeCall(DashRunner.initialize, (address(this)));
-        game = DashRunner(address(new ERC1967Proxy(address(implementation), init)));
+        game = DashRunner(payable(address(new ERC1967Proxy(address(implementation), init))));
     }
 
     function test_submitRun_tracksBests_and_global() public {

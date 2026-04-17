@@ -11,6 +11,8 @@ interface Character3DProps {
   position: [number, number, number];
   jumping: boolean;
   sliding: boolean;
+  /** Optional hex tint applied as emissive highlight for different “skins”. */
+  accentTint?: string;
 }
 
 const RUN_MODEL_PATH = "/motions/running.glb";
@@ -20,7 +22,7 @@ type GLTFLike = {
   animations: THREE.AnimationClip[];
 };
 
-export function Character3D({ position, jumping, sliding }: Character3DProps) {
+export function Character3D({ position, jumping, sliding, accentTint }: Character3DProps) {
   const groupRef = useRef<THREE.Group>(null);
   const modelRootRef = useRef<THREE.Group>(null);
   const shadowRef = useRef<THREE.Mesh>(null);
@@ -75,6 +77,24 @@ export function Character3D({ position, jumping, sliding }: Character3DProps) {
       }
     });
   }, [characterScene]);
+
+  useEffect(() => {
+    if (!accentTint) return;
+    const c = new THREE.Color(accentTint);
+    characterScene.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      materials.forEach((material) => {
+        if (!material) return;
+        const standardMaterial = material as THREE.MeshStandardMaterial;
+        if ("emissive" in standardMaterial) {
+          standardMaterial.emissive = c.clone().multiplyScalar(0.35);
+          standardMaterial.needsUpdate = true;
+        }
+      });
+    });
+  }, [accentTint, characterScene]);
 
   useEffect(() => {
     const runName = names[0];
