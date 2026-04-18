@@ -6,9 +6,10 @@ import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
 import { GameHUD } from "./GameHUD";
 import { GameOverlay } from "./GameOverlay";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { CitySelectorOverlay } from "./CitySelectorOverlay";
 import type { GamePhase, GameState } from "@/types/runner";
 import { useSwipeGesture, type SwipeDirection } from "@/hooks/useSwipeGesture";
-import { assertValidCityId, characterAccent, loadLocalProfile } from "@/lib/playerProfile";
+import { assertValidCityId, characterAccent, loadLocalProfile, saveLocalProfile } from "@/lib/playerProfile";
 
 const Game3DScene = dynamic(
   () => import("./Game3DScene").then((mod) => mod.Game3DScene),
@@ -28,6 +29,7 @@ export function RunnerGame() {
   const [cityId, setCityId] = useState(0);
   const [characterTint, setCharacterTint] = useState<string | undefined>(undefined);
   const [isNewPersonalBest, setIsNewPersonalBest] = useState(false);
+  const [showCitySelector, setShowCitySelector] = useState(true);
   const gameSurfaceRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<GameCanvasHandle>(null);
   const coinSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -72,9 +74,10 @@ export function RunnerGame() {
     }
   }, [isMuted, phase]);
 
-  /** Land on `/play` straight into the run (no idle tap-in). */
+  /** Land on `/play` and show city selector first. */
   const autoStartedRef = useRef(false);
   useEffect(() => {
+    if (showCitySelector) return;
     const boot = () => {
       if (autoStartedRef.current) return;
       const canvas = canvasRef.current;
@@ -89,7 +92,7 @@ export function RunnerGame() {
     boot();
     const id = requestAnimationFrame(() => boot());
     return () => cancelAnimationFrame(id);
-  }, []);
+  }, [showCitySelector]);
 
   const handleStart = () => {
     setIsNewPersonalBest(false);
@@ -155,6 +158,17 @@ export function RunnerGame() {
     }
   };
 
+  const handleSelectCity = (newCityId: number) => {
+    setCityId(newCityId);
+    const profile = loadLocalProfile();
+    saveLocalProfile({ ...profile, selectedCityId: newCityId });
+  };
+
+  const handleStartRaceFromSelector = () => {
+    setShowCitySelector(false);
+    autoStartedRef.current = false;
+  };
+
   const dispatchRunnerAction = useCallback((dir: SwipeDirection) => {
     const mappedDir = dir === "left" ? "right" : dir === "right" ? "left" : dir;
     canvasRef.current?.dispatchAction(mappedDir);
@@ -214,6 +228,14 @@ export function RunnerGame() {
       )}
 
       <GameHUD score={score} coinsCollected={coinsCollected} phase={phase} isMuted={isMuted} onPauseToggle={handlePauseToggle} onMuteToggle={handleMuteToggle} />
+
+      {showCitySelector && (
+        <CitySelectorOverlay
+          selectedCityId={cityId}
+          onSelectCity={handleSelectCity}
+          onStartRace={handleStartRaceFromSelector}
+        />
+      )}
 
       <GameOverlay
         phase={phase}

@@ -11,11 +11,18 @@ import { InlineNotice } from "@/components/ui/InlineNotice";
 
 const routeGlow: Record<number, string> = {
   0: "from-cyan-400/25 to-fuchsia-600/20",
-  1: "from-amber-400/25 to-orange-600/15",
-  2: "from-rose-400/25 to-fuchsia-900/20",
-  3: "from-emerald-400/20 to-cyan-900/15",
-  4: "from-orange-500/25 to-red-950/25",
-  5: "from-sky-400/25 to-indigo-900/20",
+  1: "from-violet-400/25 to-purple-600/20",
+  2: "from-emerald-400/20 to-green-900/15",
+  3: "from-green-400/25 to-emerald-800/20",
+  4: "from-amber-400/25 to-orange-600/15",
+  5: "from-orange-500/25 to-amber-900/20",
+  6: "from-rose-400/25 to-red-900/20",
+  7: "from-cyan-400/25 to-blue-900/20",
+  8: "from-sky-400/25 to-indigo-900/20",
+  9: "from-blue-400/25 to-cyan-900/20",
+  10: "from-red-500/25 to-orange-950/25",
+  11: "from-red-600/25 to-yellow-900/20",
+  12: "from-pink-400/25 to-purple-800/20",
 };
 
 export default function CityPage() {
