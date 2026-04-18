@@ -180,7 +180,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           {Array.from({ length: 25 }).map((_, i) => (
             <mesh key={`marker-${i}`} position={[lane, 0.01, i * 16]}>
               <boxGeometry args={[0.1, 0.01, 1.2]} />
-              <meshBasicMaterial color="#f472b6" emissive="#f472b6" emissiveIntensity={0.4} />
+              <meshStandardMaterial color="#f472b6" emissive="#f472b6" emissiveIntensity={0.4} />
             </mesh>
           ))}
         </group>
