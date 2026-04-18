@@ -23,15 +23,15 @@ function WheelAssembly({
   return (
     <group ref={groupRef} position={position}>
       <mesh castShadow rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.132, 0.132, 0.11, 28]} />
+        <cylinderGeometry args={[0.132, 0.132, 0.11, 14]} />
         <meshStandardMaterial color="#0c0c12" roughness={0.92} metalness={0.08} />
       </mesh>
       <mesh castShadow rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.095, 0.088, 0.07, 28]} />
+        <cylinderGeometry args={[0.095, 0.088, 0.07, 14]} />
         <meshStandardMaterial color="#e2e8f0" metalness={0.92} roughness={0.18} envMapIntensity={1.2} />
       </mesh>
       <mesh rotation={[0, 0, Math.PI / 2]}>
-        <torusGeometry args={[0.072, 0.012, 8, 24]} />
+        <torusGeometry args={[0.072, 0.012, 8, 16]} />
         <meshStandardMaterial color="#94a3b8" metalness={0.75} roughness={0.35} />
       </mesh>
     </group>
@@ -46,6 +46,8 @@ export function Car3D({ position, jumping, sliding, accentTint }: Car3DProps) {
   const bodyMatRef = useRef<THREE.MeshPhysicalMaterial>(null);
   const stripeMatRef = useRef<THREE.MeshStandardMaterial>(null);
   const wheelGroups = useRef<(THREE.Group | null)[]>([]);
+  const targetPosRef = useRef(new THREE.Vector3(...position));
+  const targetScaleRef = useRef(new THREE.Vector3(1, 1, 1));
 
   const accentHex = accentTint || DEFAULT_ACCENT;
   const accentColor = useMemo(() => new THREE.Color(accentHex), [accentHex]);
@@ -68,9 +70,11 @@ export function Car3D({ position, jumping, sliding, accentTint }: Car3DProps) {
     if (!rootRef.current) return;
     const t = state.clock.getElapsedTime();
     const bob = Math.abs(Math.sin(t * 9));
-    const target = new THREE.Vector3(...position);
 
-    rootRef.current.position.lerp(target, 0.16);
+    // Delta-time based lerp for smooth movement regardless of FPS
+    const lerpT = 1 - Math.exp(-12 * state.delta);
+    targetPosRef.current.set(position[0], position[1], position[2]);
+    rootRef.current.position.lerp(targetPosRef.current, lerpT);
     rootRef.current.rotation.y = Math.PI;
 
     if (jumping) {
@@ -84,7 +88,8 @@ export function Car3D({ position, jumping, sliding, accentTint }: Car3DProps) {
     } else {
       rootRef.current.rotation.x *= 0.88;
       rootRef.current.position.y += bob * 0.018;
-      rootRef.current.scale.lerp(new THREE.Vector3(1, 1, 1), 0.18);
+      targetScaleRef.current.set(1, 1, 1);
+      rootRef.current.scale.lerp(targetScaleRef.current, lerpT);
     }
 
     if (shadowRef.current) {

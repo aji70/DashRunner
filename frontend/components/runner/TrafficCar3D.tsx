@@ -39,12 +39,12 @@ function Wheel({
       }}
       position={pos}
     >
-      <mesh castShadow rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.11, 0.11, 0.09, 20]} />
+      <mesh rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.11, 0.11, 0.09, 10]} />
         <meshStandardMaterial color="#0a0a0f" roughness={0.9} metalness={0.06} />
       </mesh>
-      <mesh castShadow rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.078, 0.072, 0.055, 20]} />
+      <mesh rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.078, 0.072, 0.055, 10]} />
         <meshStandardMaterial color={rim} metalness={0.88} roughness={0.2} />
       </mesh>
     </group>

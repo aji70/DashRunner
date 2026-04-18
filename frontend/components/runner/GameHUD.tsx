@@ -63,7 +63,7 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
                   exit={{ y: 4, opacity: 0.4 }}
                   transition={{ type: "spring", stiffness: 480, damping: 28 }}
                   className="font-orbitron text-xl font-bold tabular-nums tracking-tight text-cyan-100 sm:text-2xl"
-                  style={{ textShadow: "0 0 18px rgba(34,211,238,0.35)" }}
+                  style={{ textShadow: "0 0 20px rgba(34,211,238,0.5), 0 0 40px rgba(34,211,238,0.25)" }}
                 >
                   {score.toLocaleString()}
                 </motion.p>
@@ -74,19 +74,22 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
               <p className="font-rajdhani text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/55">
                 Coins
               </p>
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={coinsCollected}
-                  initial={{ y: -6, opacity: 0.5 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 4, opacity: 0.4 }}
-                  transition={{ type: "spring", stiffness: 480, damping: 28 }}
-                  className="font-orbitron text-xl font-bold tabular-nums tracking-tight text-amber-200 sm:text-2xl"
-                  style={{ textShadow: "0 0 14px rgba(251,191,36,0.25)" }}
-                >
-                  {coinsCollected.toLocaleString()}
-                </motion.p>
-              </AnimatePresence>
+              <div className="flex items-center gap-1.5">
+                <span className="text-amber-200">◆</span>
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={coinsCollected}
+                    initial={{ y: -6, opacity: 0.5 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 4, opacity: 0.4 }}
+                    transition={{ type: "spring", stiffness: 480, damping: 28 }}
+                    className="font-orbitron text-xl font-bold tabular-nums tracking-tight text-amber-200 sm:text-2xl"
+                    style={{ textShadow: "0 0 16px rgba(251,191,36,0.35)" }}
+                  >
+                    {coinsCollected.toLocaleString()}
+                  </motion.p>
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </GlassPanel>
@@ -116,6 +119,18 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
           </>
         )}
       </div>
+
+      {/* Control hints (fade out after a few seconds) */}
+      {phase === "playing" && (
+        <motion.div
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 0 }}
+          transition={{ delay: 4, duration: 1 }}
+          className="pointer-events-none absolute bottom-3 left-0 right-0 z-10 text-center text-xs font-rajdhani font-semibold uppercase tracking-widest text-cyan-300/60"
+        >
+          ← SWIPE → SWITCH | ↑ JUMP | ↓ SLIDE
+        </motion.div>
+      )}
     </div>
   );
 }

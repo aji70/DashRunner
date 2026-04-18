@@ -65,15 +65,31 @@ export function GameOverlay({
             className="relative z-10 w-full max-w-sm"
           >
             <GlassPanel className="px-6 py-8 text-center shadow-lift sm:px-8 sm:py-10">
-              <h1 className="font-orbitron text-3xl font-black uppercase tracking-[0.08em] text-slate-100 sm:text-4xl">
+              <h1
+                className="font-orbitron text-3xl font-black uppercase tracking-[0.08em] sm:text-4xl"
+                style={{
+                  backgroundImage: "linear-gradient(90deg, #f0abfc, #67e8f9)",
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
                 DashRunner
               </h1>
 
+              <p className="mt-2 font-rajdhani text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300/70">
+                Endless Neon Chase
+              </p>
+
               <motion.div className="mt-8" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-                <Button variant="primary" onClick={onStart} className="w-full rounded-2xl py-4 text-sm sm:py-5 sm:text-base">
+                <Button variant="primary" onClick={onStart} className="w-full rounded-2xl py-4 text-sm font-bold sm:py-5 sm:text-base">
                   Play
                 </Button>
               </motion.div>
+
+              <p className="mt-4 font-rajdhani text-[10px] uppercase tracking-widest text-cyan-200/50 sm:text-xs">
+                ← Swipe → Switch | ↑ Jump | ↓ Slide
+              </p>
 
               <button
                 type="button"
@@ -157,13 +173,22 @@ export function GameOverlay({
                 Game over
               </h2>
 
-              <div className="mt-8 grid grid-cols-2 gap-3">
-                <div className={statTile}>
+              <div className="my-6 h-px bg-gradient-to-r from-transparent via-cyan-400/25 to-transparent" />
+
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <motion.div
+                  className={statTile}
+                  animate={isNewPersonalBest ? { scale: [1, 1.02, 1] } : {}}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
                   <p className="font-rajdhani text-[10px] font-semibold uppercase tracking-widest text-[var(--text-dim)]">Run score</p>
                   <p className="mt-1 font-orbitron text-2xl font-bold tabular-nums text-cyan-100 sm:text-3xl">{score.toLocaleString()}</p>
-                </div>
+                </motion.div>
                 <div className={statTile}>
-                  <p className="font-rajdhani text-[10px] font-semibold uppercase tracking-widest text-amber-200/55">Best</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-rajdhani text-[10px] font-semibold uppercase tracking-widest text-amber-200/55">Best</p>
+                    <span className="text-amber-200/70 text-lg">◆</span>
+                  </div>
                   <p className="mt-1 font-orbitron text-2xl font-bold tabular-nums text-amber-200 sm:text-3xl">{highScore.toLocaleString()}</p>
                 </div>
               </div>
