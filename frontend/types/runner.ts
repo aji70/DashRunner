@@ -19,7 +19,7 @@ export interface PlayerEntity {
 }
 
 // Obstacle types
-export type ObstacleType = "wall" | "barrier";
+export type ObstacleType = "car" | "wall" | "barrier";
 
 // Obstacle entity (scrolling down the screen)
 export interface Obstacle {

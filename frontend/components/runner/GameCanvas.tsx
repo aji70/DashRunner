@@ -13,6 +13,7 @@ import { useSwipeGesture, type SwipeDirection } from "@/hooks/useSwipeGesture";
 import type {
   GameState,
   Lane,
+  ObstacleType,
 } from "@/types/runner";
 
 interface GameCanvasProps {
@@ -41,17 +42,20 @@ const GRAVITY = 0.00145;
 const JUMP_VELOCITY = -0.92;
 const SLIDE_DURATION = 600;
 const LERP_FACTOR = 0.18;
-const SPAWN_INTERVAL = 720;
-const SPEED_SCALE = 0.15;
+const SPAWN_INTERVAL = 950;
+const MAX_SPEED = 0.7;
+const SPEED_SCALE = 0.12;
 const PLAYER_WIDTH = 20;
 const PLAYER_HEIGHT = 40;
 /** Lower = more traffic vs coin streaks. */
-const COIN_RUSH_CHANCE = 0.48;
+const COIN_RUSH_CHANCE = 0.55;
 /** Chance to spawn a second car in another lane on the same beat. */
-const OBSTACLE_CHANCE = 0.62;
+const OBSTACLE_CHANCE = 0.28;
 /** Extra car in a third lane sometimes (staggered up-road). */
-const EXTRA_TRAFFIC_CHANCE = 0.32;
+const EXTRA_TRAFFIC_CHANCE = 0.12;
 const COIN_RUSH_STREAK_LENGTH = 3;
+/** Ignore ticks until the canvas has real dimensions (avoids lane math at width 0 → false collisions). */
+const MIN_PLAYABLE_SIZE = 48;
 
 // Colors
 const COLOR_BG = "#010F10";
@@ -136,14 +140,28 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
 
     const spawnObstacle = useCallback((lane: Lane) => {
       const gameState = gameStateRef.current;
-      const isWall = Math.random() < 0.48;
+      const roll = Math.random();
+      let type: ObstacleType;
+      let height: number;
+
+      if (roll < 0.7) {
+        type = "car";
+        height = 40;
+      } else if (roll < 0.85) {
+        type = "wall";
+        height = 60;
+      } else {
+        type = "barrier";
+        height = 20;
+      }
+
       gameState.obstacles.push({
         id: gameState.frameId++,
         lane,
         y: -130,
-        type: isWall ? "wall" : "barrier",
+        type,
         width: 40,
-        height: isWall ? 60 : 20,
+        height,
       });
     }, []);
 
@@ -190,6 +208,11 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       const { width, height } = dimRef.current;
       const ctx = canvasRef.current?.getContext("2d");
       if (!ctx) return;
+      // Before resize runs, width/height can be 0; getLaneX(..., 0) collapses every lane to x=0 so all
+      // obstacles overlap the player and trigger instant game-over on the first car spawn.
+      if (width < MIN_PLAYABLE_SIZE || height < MIN_PLAYABLE_SIZE) {
+        return;
+      }
 
       gameState.player.vy += GRAVITY * dt;
       gameState.player.y += gameState.player.vy * dt;
@@ -217,8 +240,10 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         (targetLaneX - currentLaneXRef.current) * LERP_FACTOR;
 
       gameState.distance += gameState.speed * dt;
-      gameState.speed =
-        BASE_SPEED + Math.log(1 + gameState.distance / 1000) * SPEED_SCALE;
+      gameState.speed = Math.min(
+        MAX_SPEED,
+        BASE_SPEED + Math.log(1 + gameState.distance / 1000) * SPEED_SCALE
+      );
 
       // Update score based on distance traveled (1 point per 10 pixels)
       const newScore = Math.floor(gameState.distance / 10);
@@ -240,12 +265,12 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           if (Math.random() < OBSTACLE_CHANCE) {
             const otherLane = ((randomLane + 1 + Math.floor(Math.random() * 2)) % 3) as Lane;
             spawnObstacle(otherLane);
-            gameState.obstacles[gameState.obstacles.length - 1].y = -105;
+            gameState.obstacles[gameState.obstacles.length - 1].y = -185;
           }
           if (Math.random() < EXTRA_TRAFFIC_CHANCE) {
             const extraLane = ((randomLane + 2) % 3) as Lane;
             spawnObstacle(extraLane);
-            gameState.obstacles[gameState.obstacles.length - 1].y = -72;
+            gameState.obstacles[gameState.obstacles.length - 1].y = -265;
           }
         }
 
@@ -273,16 +298,10 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       };
 
       for (const obstacle of gameState.obstacles) {
-        if (
-          obstacle.type === "wall" &&
-          gameState.player.state === "jumping"
-        ) {
+        if (obstacle.type === "wall" && gameState.player.state === "jumping") {
           continue;
         }
-        if (
-          obstacle.type === "barrier" &&
-          gameState.player.state === "sliding"
-        ) {
+        if (obstacle.type === "barrier" && gameState.player.state === "sliding") {
           continue;
         }
 
@@ -299,7 +318,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           playerRect.y < obsRect.y + obsRect.h &&
           playerRect.y + playerRect.h > obsRect.y;
 
-        if (collision) {
+        if (collision && obstacle.type === "car") {
           gameState.phase = "dead";
           onGameOver();
           return;
@@ -389,6 +408,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
     useImperativeHandle(ref, () => ({
       dispatchAction: handleSwipe,
       reset: () => {
+        const { width, height } = dimRef.current;
         gameStateRef.current = {
           phase: "idle",
           score: 0,
@@ -398,7 +418,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           player: {
             lane: 1,
             state: "running",
-            y: dimRef.current.height * 0.75,
+            y: height >= MIN_PLAYABLE_SIZE ? height * 0.75 : 0,
             vy: 0,
             width: PLAYER_WIDTH,
             height: PLAYER_HEIGHT,
@@ -408,6 +428,9 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           spawnTimer: SPAWN_INTERVAL,
           frameId: 0,
         };
+        if (width >= MIN_PLAYABLE_SIZE) {
+          currentLaneXRef.current = getLaneX(gameStateRef.current.player.lane, width);
+        }
         lastScoreSyncRef.current = 0;
         setGameLoopEnabled(false);
       },
@@ -540,13 +563,26 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       gameState.coins.forEach((coin) => {
         if (coin.collected) return;
         const coinX = getLaneX(coin.lane, width);
+        const rx = coin.radius * 1.35;
+        const ry = coin.radius * 0.42;
+        ctx.save();
+        ctx.translate(coinX, coin.y);
+        // Rotate so the “thin” axis aligns with scroll direction — reads as edge-on / sideways coin.
+        ctx.rotate(Math.PI / 4);
         ctx.fillStyle = COLOR_COIN;
         ctx.shadowColor = COLOR_COIN;
         ctx.shadowBlur = 8;
         ctx.beginPath();
-        ctx.arc(coinX, coin.y, coin.radius, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
+        // Rim highlight on the leading edge
+        ctx.strokeStyle = "rgba(255, 248, 220, 0.85)";
+        ctx.lineWidth = 1.25;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, rx * 0.92, ry * 0.88, 0, -0.35 * Math.PI, 0.35 * Math.PI);
+        ctx.stroke();
+        ctx.restore();
       });
 
       gameState.obstacles.forEach((obs) => {
