@@ -30,6 +30,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: "Swipe runner on Celo for MiniPay: city routes, shop, daily rewards, and on-chain score sync.",
     other: {
+      "talentapp:project_verification":
+        "c4e5c61e56fe1ac0b13b4ed9848e47dec37e284d43599876bc8f0785ec581a6e05e13d54f6a8bbf0fbe7f85aa092bee63a04d3f2b6cacddef74063f4dee9ff26",
       "fc:frame": JSON.stringify({
         version: minikitConfig.miniapp.version,
         imageUrl: minikitConfig.miniapp.heroImageUrl,
