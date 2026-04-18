@@ -15,7 +15,8 @@ export function Coin3D({ position, collected }: Coin3DProps) {
 
   useFrame((state) => {
     if (!meshRef.current || collected) return;
-    meshRef.current.rotation.y += 6 * state.delta;
+    const deltaTime = state.clock.getDelta();
+    meshRef.current.rotation.y += 6 * deltaTime;
     meshRef.current.position.y = baseYRef.current + Math.sin(state.clock.elapsedTime * 6) * 0.08;
   });
 

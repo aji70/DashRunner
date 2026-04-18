@@ -72,7 +72,8 @@ export function Car3D({ position, jumping, sliding, accentTint }: Car3DProps) {
     const bob = Math.abs(Math.sin(t * 9));
 
     // Delta-time based lerp for smooth movement regardless of FPS
-    const lerpT = 1 - Math.exp(-12 * state.delta);
+    const deltaTime = state.clock.getDelta();
+    const lerpT = 1 - Math.exp(-12 * deltaTime);
     targetPosRef.current.set(position[0], position[1], position[2]);
     rootRef.current.position.lerp(targetPosRef.current, lerpT);
     rootRef.current.rotation.y = Math.PI;
