@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  transpilePackages: ["@rainbow-me/rainbowkit"],
   reactStrictMode: true,
   typescript: {
     // Allow builds even with TypeScript errors
