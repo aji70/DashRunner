@@ -1,0 +1,21 @@
+{
+  "name": "dashrunner-turbochain-monorepo",
+  "private": true,
+  "description": "TurboChain — Web3 car runner: Foundry contracts, Next.js 14 App Router frontend, Express API.",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w dash-runner",
+    "dev:frontend": "npm run dev -w dash-runner",
+    "dev:backend": "npm run dev -w dashrunner-backend",
+    "build": "npm run build -w dash-runner",
+    "lint": "npm run lint -w dash-runner",
+    "contract:test": "forge test --root contract",
+    "contract:build": "forge build --root contract"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}
