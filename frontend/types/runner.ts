@@ -15,7 +15,9 @@ export interface PlayerEntity {
   vy: number; // vertical velocity for jumping
   width: number;
   height: number;
-  slideEndTime?: number; // ms timestamp when slide ends
+  slideEndTime?: number; // ms timestamp when slide ends (legacy; slide unused — kept for shape compatibility)
+  /** `performance.now()` until which scroll speed is reduced (brake / swipe down). */
+  brakeUntil?: number;
 }
 
 // Obstacle types
@@ -29,6 +31,12 @@ export interface Obstacle {
   type: ObstacleType; // wall = jump over, barrier = slide under
   width: number;
   height: number;
+  /**
+   * Cars only: once this car’s front has dropped below the player’s feet while we were in the
+   * same lane band, it can never register a hit again — prevents “phantom” deaths after passing
+   * or when changing lanes behind it.
+   */
+  passedPlayer?: boolean;
 }
 
 // Collectible coin entity

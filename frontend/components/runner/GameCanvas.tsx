@@ -40,8 +40,17 @@ export interface GameCanvasHandle {
 const BASE_SPEED = 0.3;
 const GRAVITY = 0.00145;
 const JUMP_VELOCITY = -0.92;
-const SLIDE_DURATION = 600;
 const LERP_FACTOR = 0.18;
+/** Swipe down: temporary scroll slowdown (brake), ms. */
+const BRAKE_DURATION_MS = 820;
+const BRAKE_SCROLL_MUL = 0.36;
+/**
+ * Car threat band: player x must be within this fraction of canvas width of the car’s lane
+ * center to count as “in lane” (tighter than lane spacing so adjacent-lane traffic doesn’t read as yours).
+ */
+const CAR_LANE_HIT_FRAC = 0.24;
+/** Ignore a few px at the feet so a car that has mostly cleared below doesn’t snag on the last row of pixels. */
+const CAR_VERTICAL_INSET = 6;
 const SPAWN_INTERVAL = 950;
 const MAX_SPEED = 0.7;
 const SPEED_SCALE = 0.12;
@@ -226,20 +235,17 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         }
       }
 
-      if (
-        gameState.player.state === "sliding" &&
-        gameState.player.slideEndTime &&
-        performance.now() > gameState.player.slideEndTime
-      ) {
-        gameState.player.state = "running";
-        gameState.player.slideEndTime = undefined;
-      }
-
       const targetLaneX = getLaneX(gameState.player.lane, width);
       currentLaneXRef.current +=
         (targetLaneX - currentLaneXRef.current) * LERP_FACTOR;
 
-      gameState.distance += gameState.speed * dt;
+      const braking =
+        typeof gameState.player.brakeUntil === "number" &&
+        performance.now() < gameState.player.brakeUntil;
+      const scrollMul = braking ? BRAKE_SCROLL_MUL : 1;
+      const scrollSpeed = gameState.speed * scrollMul;
+
+      gameState.distance += scrollSpeed * dt;
       gameState.speed = Math.min(
         MAX_SPEED,
         BASE_SPEED + Math.log(1 + gameState.distance / 1000) * SPEED_SCALE
@@ -278,47 +284,54 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       }
 
       gameState.obstacles.forEach((obs) => {
-        obs.y += gameState.speed * dt;
+        obs.y += scrollSpeed * dt;
       });
       gameState.coins.forEach((coin) => {
-        coin.y += gameState.speed * dt;
+        coin.y += scrollSpeed * dt;
       });
 
+      // Hitbox matches the drawn player rect (top = player.y, same as renderGame).
       const playerRect = {
         x: currentLaneXRef.current - PLAYER_WIDTH / 2 + 7,
-        y:
-          gameState.player.state === "sliding"
-            ? groundY - PLAYER_HEIGHT * 0.45 + 5
-            : groundY - PLAYER_HEIGHT + 10,
+        y: gameState.player.y,
         w: PLAYER_WIDTH - 14,
-        h:
-          gameState.player.state === "sliding"
-            ? PLAYER_HEIGHT * 0.45
-            : PLAYER_HEIGHT - 20,
+        h: PLAYER_HEIGHT,
       };
 
+      // Only cars can end the run; use explicit separation + “passed” so nothing behind you can kill you.
       for (const obstacle of gameState.obstacles) {
-        if (obstacle.type === "wall" && gameState.player.state === "jumping") {
-          continue;
-        }
-        if (obstacle.type === "barrier" && gameState.player.state === "sliding") {
+        if (obstacle.type !== "car") continue;
+        if (obstacle.passedPlayer) continue;
+
+        const playerCx = currentLaneXRef.current;
+        const obsCx = getLaneX(obstacle.lane, width);
+        const lateral = Math.abs(playerCx - obsCx);
+        if (lateral > width * CAR_LANE_HIT_FRAC) continue;
+
+        const obsTop = obstacle.y;
+        const obsBottom = obstacle.y + obstacle.height;
+        const playerTop = playerRect.y + CAR_VERTICAL_INSET;
+        const playerBottom = playerRect.y + playerRect.h - CAR_VERTICAL_INSET;
+
+        // Car is entirely below the player’s forgiving hitbox → you’ve passed it; never collide again.
+        if (obsTop >= playerBottom) {
+          obstacle.passedPlayer = true;
           continue;
         }
 
         const obsRect = {
-          x: getLaneX(obstacle.lane, width) - obstacle.width / 2,
+          x: obsCx - obstacle.width / 2,
           y: obstacle.y,
           w: obstacle.width,
           h: obstacle.height,
         };
 
-        const collision =
+        const hitX =
           playerRect.x < obsRect.x + obsRect.w &&
-          playerRect.x + playerRect.w > obsRect.x &&
-          playerRect.y < obsRect.y + obsRect.h &&
-          playerRect.y + playerRect.h > obsRect.y;
+          playerRect.x + playerRect.w > obsRect.x;
+        const hitY = playerTop < obsBottom && obsTop < playerBottom;
 
-        if (collision && obstacle.type === "car") {
+        if (hitX && hitY) {
           gameState.phase = "dead";
           onGameOver();
           return;
@@ -331,7 +344,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         const coinX = getLaneX(coin.lane, width);
         const coinY = coin.y;
         const playerCenterX = currentLaneXRef.current;
-        const playerCenterY = groundY - PLAYER_HEIGHT / 2;
+        const playerCenterY = gameState.player.y + PLAYER_HEIGHT / 2;
 
         const dist = Math.sqrt(
           (coinX - playerCenterX) ** 2 + (coinY - playerCenterY) ** 2
@@ -361,7 +374,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         onJumpChange(gameState.player.state === "jumping");
       }
       if (onSlideChange) {
-        onSlideChange(gameState.player.state === "sliding");
+        onSlideChange(false);
       }
 
       renderGame(ctx, gameState, width, height, currentLaneXRef.current);
@@ -394,10 +407,10 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           }
           break;
         case "down":
+          // Brake: slow traffic scroll briefly (no squat — squat falsely widened overlap with cars).
           if (isOnGround) {
-            gameState.player.state = "sliding";
+            gameState.player.brakeUntil = performance.now() + BRAKE_DURATION_MS;
             gameState.player.vy = 0;
-            gameState.player.slideEndTime = performance.now() + SLIDE_DURATION;
           }
           break;
       }
@@ -563,26 +576,24 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       gameState.coins.forEach((coin) => {
         if (coin.collected) return;
         const coinX = getLaneX(coin.lane, width);
-        const rx = coin.radius * 1.35;
-        const ry = coin.radius * 0.42;
-        ctx.save();
-        ctx.translate(coinX, coin.y);
-        // Rotate so the “thin” axis aligns with scroll direction — reads as edge-on / sideways coin.
-        ctx.rotate(Math.PI / 4);
-        ctx.fillStyle = COLOR_COIN;
+        const r = coin.radius;
+        // Radial fill so it reads as a thick disc, not a flat dot.
+        const g = ctx.createRadialGradient(coinX - r * 0.35, coin.y - r * 0.35, r * 0.15, coinX, coin.y, r);
+        g.addColorStop(0, "#fff9d6");
+        g.addColorStop(0.45, COLOR_COIN);
+        g.addColorStop(1, "#b8860b");
+        ctx.fillStyle = g;
         ctx.shadowColor = COLOR_COIN;
         ctx.shadowBlur = 8;
         ctx.beginPath();
-        ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+        ctx.arc(coinX, coin.y, r, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
-        // Rim highlight on the leading edge
-        ctx.strokeStyle = "rgba(255, 248, 220, 0.85)";
-        ctx.lineWidth = 1.25;
+        ctx.strokeStyle = "rgba(120, 90, 20, 0.55)";
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.ellipse(0, 0, rx * 0.92, ry * 0.88, 0, -0.35 * Math.PI, 0.35 * Math.PI);
+        ctx.arc(coinX, coin.y, r * 0.92, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.restore();
       });
 
       gameState.obstacles.forEach((obs) => {
@@ -594,14 +605,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         ctx.strokeRect(obsX, obs.y, obs.width, obs.height);
       });
 
-      const playerY =
-        gameState.player.state === "sliding"
-          ? groundY - PLAYER_HEIGHT * 0.45
-          : gameState.player.y;
-      const playerH =
-        gameState.player.state === "sliding"
-          ? PLAYER_HEIGHT * 0.45
-          : PLAYER_HEIGHT;
+      const playerY = gameState.player.y;
+      const playerH = PLAYER_HEIGHT;
 
       ctx.fillStyle = COLOR_PLAYER;
       ctx.fillRect(

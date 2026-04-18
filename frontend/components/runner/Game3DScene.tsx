@@ -21,25 +21,73 @@ interface Game3DSceneProps {
 }
 
 const CITY_ROUTE_THEMES = [
+  // Neon City (Original)
   { fog: "#140a24", bg: "#12091f", accentA: "#f472b6", accentB: "#22d3ee" },
   { fog: "#0f172a", bg: "#0c1424", accentA: "#38bdf8", accentB: "#a78bfa" },
   { fog: "#1a0a14", bg: "#160812", accentA: "#fb7185", accentB: "#fbbf24" },
+  // Forest
+  { fog: "#1a3a1a", bg: "#0d2014", accentA: "#4ade80", accentB: "#22c55e" },
   { fog: "#052e16", bg: "#041a0d", accentA: "#4ade80", accentB: "#86efac" },
+  // Desert
+  { fog: "#4a2b0f", bg: "#2a1810", accentA: "#fb923c", accentB: "#fbbf24" },
   { fog: "#2a0f06", bg: "#1a0a04", accentA: "#fb923c", accentB: "#fcd34d" },
+  // Seaside
+  { fog: "#0b2e3a", bg: "#051820", accentA: "#06b6d4", accentB: "#67e8f9" },
   { fog: "#0b1e2e", bg: "#07121c", accentA: "#7dd3fc", accentB: "#e0f2fe" },
+  // Arctic/Snow
+  { fog: "#1a2a3a", bg: "#0f1a2a", accentA: "#cffafe", accentB: "#e0f2fe" },
+  // Volcano/Lava
+  { fog: "#3a1a0a", bg: "#2a0a04", accentA: "#ff6b6b", accentB: "#fca5a5" },
+  // Cyberpunk (Synthwave)
+  { fog: "#2a0a3a", bg: "#1a0524", accentA: "#ff006e", accentB: "#8338ec" },
 ] as const;
 
 const WORLD_SCROLL_SCALE = 0.045;
 const TRACK_CENTER_Z = 14;
 const BUILDING_PALETTES = [
+  // Neon City
   { body: "#60a5fa", accent: "#f8fafc", secondary: "#bfdbfe" },
   { body: "#a78bfa", accent: "#fdf4ff", secondary: "#ddd6fe" },
   { body: "#f472b6", accent: "#fff1f2", secondary: "#fbcfe8" },
+  // Forest
+  { body: "#16a34a", accent: "#dcfce7", secondary: "#86efac" },
+  { body: "#15803d", accent: "#bbf7d0", secondary: "#6ee7b7" },
+  // Desert
+  { body: "#d97706", accent: "#fffbeb", secondary: "#fde68a" },
+  { body: "#b45309", accent: "#fef3c7", secondary: "#fcd34d" },
+  // Seaside
+  { body: "#0891b2", accent: "#ecfeff", secondary: "#a5f3fc" },
+  { body: "#0e7490", accent: "#cffafe", secondary: "#67e8f9" },
+  // Arctic
+  { body: "#e0f2fe", accent: "#f0f9ff", secondary: "#cffafe" },
+  { body: "#bae6fd", accent: "#f0f9ff", secondary: "#e0f2fe" },
+  // Volcano
+  { body: "#dc2626", accent: "#fecaca", secondary: "#fca5a5" },
+  { body: "#991b1b", accent: "#fecaca", secondary: "#f87171" },
+  // Cyberpunk
+  { body: "#ec4899", accent: "#fbcfe8", secondary: "#f472b6" },
+  { body: "#7c3aed", accent: "#ddd6fe", secondary: "#c4b5fd" },
+  // Default
   { body: "#34d399", accent: "#ecfdf5", secondary: "#a7f3d0" },
   { body: "#f59e0b", accent: "#fffbeb", secondary: "#fde68a" },
   { body: "#22d3ee", accent: "#ecfeff", secondary: "#a5f3fc" },
 ];
-const SKYLINE_PALETTES = ["#1d4ed8", "#7c3aed", "#db2777", "#0f766e", "#ea580c", "#0891b2"];
+const SKYLINE_PALETTES = [
+  // City
+  "#1d4ed8", "#7c3aed", "#db2777",
+  // Forest
+  "#16a34a", "#059669", "#047857",
+  // Desert
+  "#d97706", "#b45309", "#92400e",
+  // Seaside
+  "#0891b2", "#0e7490", "#155e75",
+  // Arctic
+  "#06b6d4", "#0891b2", "#0284c7",
+  // Volcano
+  "#dc2626", "#991b1b", "#7f1d1d",
+  // Cyberpunk
+  "#ec4899", "#7c3aed", "#a855f7",
+];
 
 function SkylineLayer({
   catPosition,

@@ -88,7 +88,7 @@ export function GameOverlay({
               </motion.div>
 
               <p className="mt-4 font-rajdhani text-[10px] uppercase tracking-widest text-cyan-200/50 sm:text-xs">
-                ← Swipe → Switch | ↑ Jump | ↓ Slide
+                ← Swipe → Switch | ↑ Jump | ↓ Brake
               </p>
 
               <button
