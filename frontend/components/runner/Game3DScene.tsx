@@ -214,7 +214,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           {/* Front facade window band (simple emissive plane) */}
           <mesh position={[building.x, building.height * 0.55, building.z + building.depth / 2 + 0.02]}>
             <planeGeometry args={[building.width * 0.85, building.height * 0.6]} />
-            <meshBasicMaterial
+            <meshStandardMaterial
               color={building.secondaryColor}
               emissive={building.secondaryColor}
               emissiveIntensity={0.5}
@@ -224,7 +224,7 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
           {/* Side accent strip */}
           <mesh position={[building.x + (building.x < 0 ? building.width * 0.35 : -building.width * 0.35), building.height * 0.5, building.z]}>
             <planeGeometry args={[0.08, building.height * 0.7]} />
-            <meshBasicMaterial
+            <meshStandardMaterial
               color={building.accentColor}
               emissive={building.accentColor}
               emissiveIntensity={0.6}
