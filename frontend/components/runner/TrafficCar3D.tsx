@@ -14,11 +14,11 @@ interface TrafficCar3DProps {
 }
 
 const PALETTES = [
-  { body: "#9f1239", cabin: "#4c0519", glass: "#7dd3fc", rim: "#e2e8f0" },
-  { body: "#a16207", cabin: "#422006", glass: "#bae6fd", rim: "#cbd5e1" },
-  { body: "#6b21a8", cabin: "#2e1065", glass: "#c4b5fd", rim: "#e9d5ff" },
-  { body: "#0f766e", cabin: "#042f2e", glass: "#99f6e4", rim: "#ccfbf1" },
-  { body: "#b45309", cabin: "#431407", glass: "#fed7aa", rim: "#fef3c7" },
+  { body: "#dc2626", cabin: "#7f1d1d", glass: "#93c5fd", rim: "#f3f4f6", accent: "#f87171" },
+  { body: "#d97706", cabin: "#78350f", glass: "#fcd34d", rim: "#f9fafb", accent: "#fb923c" },
+  { body: "#a855f7", cabin: "#581c87", glass: "#d8b4fe", rim: "#fafafa", accent: "#e879f9" },
+  { body: "#0891b2", cabin: "#164e63", glass: "#67e8f9", rim: "#f0f9fa", accent: "#06b6d4" },
+  { body: "#ea580c", cabin: "#7c2d12", glass: "#fed7aa", rim: "#fef2f2", accent: "#fb923c" },
 ] as const;
 
 function Wheel({
@@ -83,6 +83,8 @@ export function TrafficCar3D({ position, type, styleSeed }: TrafficCar3DProps) {
         <boxGeometry args={[0.76, bodyH, len]} />
         <meshPhysicalMaterial
           color={palette.body}
+          emissive={palette.body}
+          emissiveIntensity={0.25}
           metalness={0.45}
           roughness={0.38}
           clearcoat={0.75}
@@ -92,24 +94,33 @@ export function TrafficCar3D({ position, type, styleSeed }: TrafficCar3DProps) {
 
       <mesh castShadow position={[0, cabinY, tall ? -0.06 : 0.02]}>
         <boxGeometry args={[0.62, cabinH, tall ? 0.55 : 0.48]} />
-        <meshStandardMaterial color={palette.cabin} metalness={0.35} roughness={0.45} />
+        <meshStandardMaterial color={palette.cabin} emissive={palette.cabin} emissiveIntensity={0.15} metalness={0.35} roughness={0.45} />
       </mesh>
 
       <mesh position={[0, cabinY + 0.02, tall ? 0.12 : 0.18]} rotation={[0.32, 0, 0]}>
         <boxGeometry args={[0.52, tall ? 0.14 : 0.1, 0.34]} />
         <meshStandardMaterial
           color={palette.glass}
+          emissive={palette.glass}
+          emissiveIntensity={0.25}
           metalness={0.75}
           roughness={0.12}
           transparent
-          opacity={0.42}
+          opacity={0.55}
           depthWrite={false}
         />
       </mesh>
 
+      {/* Front lights - bright and visible */}
       <mesh position={[0, bodyY, len * 0.42]}>
         <boxGeometry args={[0.55, bodyH * 0.7, 0.05]} />
-        <meshStandardMaterial color="#fef9c3" emissive="#fef08a" emissiveIntensity={0.55} />
+        <meshStandardMaterial color="#fef9c3" emissive="#fef08a" emissiveIntensity={0.8} />
+      </mesh>
+
+      {/* Car rim accent - makes car stand out */}
+      <mesh position={[0, bodyY - bodyH * 0.45, 0]}>
+        <boxGeometry args={[0.78, 0.02, len + 0.1]} />
+        <meshStandardMaterial color={palette.accent} emissive={palette.accent} emissiveIntensity={0.7} />
       </mesh>
 
       {tall ? (
@@ -120,7 +131,7 @@ export function TrafficCar3D({ position, type, styleSeed }: TrafficCar3DProps) {
       ) : (
         <mesh position={[0, bodyY - 0.02, -len * 0.42]}>
           <boxGeometry args={[0.62, 0.04, 0.08]} />
-          <meshStandardMaterial color="#7f1d1d" emissive="#f87171" emissiveIntensity={0.45} />
+          <meshStandardMaterial color="#7f1d1d" emissive="#ff6b6b" emissiveIntensity={0.8} />
         </mesh>
       )}
 

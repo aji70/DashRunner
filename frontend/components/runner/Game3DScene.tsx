@@ -153,11 +153,11 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
       {/* Neon curb strips */}
       {[-1, 1].map((side) => (
         <mesh key={`curb-${side}`} position={[side * 2.1, -0.955, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[0.08, 500]} />
+          <planeGeometry args={[0.12, 500]} />
           <meshStandardMaterial
             color={side === -1 ? "#22d3ee" : "#f472b6"}
             emissive={side === -1 ? "#22d3ee" : "#f472b6"}
-            emissiveIntensity={0.85}
+            emissiveIntensity={1}
           />
         </mesh>
       ))}
@@ -174,13 +174,21 @@ function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
         </mesh>
       ))}
 
-      {/* Lane markers */}
+      {/* Lane markers & guides */}
       {[-1, 0, 1].map((lane) => (
         <group key={`lane-${lane}`}>
+          {/* Dashed lane markers */}
           {Array.from({ length: 25 }).map((_, i) => (
             <mesh key={`marker-${i}`} position={[lane, 0.01, i * 16]}>
-              <boxGeometry args={[0.1, 0.01, 1.2]} />
-              <meshStandardMaterial color="#f472b6" emissive="#f472b6" emissiveIntensity={0.4} />
+              <boxGeometry args={[0.12, 0.01, 1.4]} />
+              <meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={0.6} />
+            </mesh>
+          ))}
+          {/* Center lane guides for clarity */}
+          {lane !== 0 && Array.from({ length: 50 }).map((_, i) => (
+            <mesh key={`guide-${i}`} position={[lane, 0.005, i * 8 - 4]}>
+              <boxGeometry args={[0.05, 0.005, 0.6]} />
+              <meshStandardMaterial color={lane === -1 ? "#22d3ee" : "#f472b6"} emissive={lane === -1 ? "#22d3ee" : "#f472b6"} emissiveIntensity={0.3} />
             </mesh>
           ))}
         </group>
