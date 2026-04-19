@@ -26,9 +26,15 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="app-mesh flex min-h-[100dvh] flex-col pb-28 text-[var(--text-primary)] sm:pb-24">
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_55%_35%_at_50%_0%,rgba(232,121,249,0.08),transparent)]" />
+    <div className="relative isolate min-h-[100dvh] text-[var(--text-primary)]">
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-0 bg-[var(--void)] bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url(/background.jpg)" }}
+      />
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-[1] app-shell-photo-mesh" />
 
+      <div className="relative z-10 flex min-h-[100dvh] flex-col pb-28 sm:pb-24">
       <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[var(--abyss)]/80 backdrop-blur-2xl">
         <div className="mx-auto flex h-[3.35rem] max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
           <Link href="/" className="group flex items-center gap-2.5">
@@ -87,6 +93,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           })}
         </div>
       </nav>
+      </div>
     </div>
   );
 }
