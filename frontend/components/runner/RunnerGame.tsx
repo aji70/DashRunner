@@ -7,6 +7,7 @@ import { GameHUD } from "./GameHUD";
 import { GameOverlay } from "./GameOverlay";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { CitySelectorOverlay } from "./CitySelectorOverlay";
+import { RacingRunnerGame } from "./RacingRunnerGame";
 import type { GamePhase, GameState } from "@/types/runner";
 import { useSwipeGesture, type SwipeDirection } from "@/hooks/useSwipeGesture";
 import { assertValidCityId, characterAccent, loadLocalProfile, saveLocalProfile } from "@/lib/playerProfile";
@@ -16,7 +17,13 @@ const Game3DScene = dynamic(
   { ssr: false }
 );
 
-export function RunnerGame() {
+export type RunnerGameMode = "endless" | "racing";
+
+export function RunnerGame({ gameMode = "endless" }: { gameMode?: RunnerGameMode }) {
+  if (gameMode === "racing") {
+    return <RacingRunnerGame />;
+  }
+
   const [phase, setPhase] = useState<GamePhase>("idle");
   const [score, setScore] = useState(0);
   const [coinsCollected, setCoinsCollected] = useState(0);
