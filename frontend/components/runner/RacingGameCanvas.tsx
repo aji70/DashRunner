@@ -35,6 +35,18 @@ const COLOR_OBSTACLE = "#1a3a3c";
 const COLOR_OBSTACLE_STROKE = "rgba(0,240,255,0.4)";
 const COLOR_PLAYER = "#FFFFFF";
 
+/** Effective speed (includes braking) → HUD km/h and gear 1–5 on the same scale. */
+function racingScrollToKmhAndGear(scrollSpeed: number): { kmh: number; gear: number } {
+  const minS = BASE_SPEED * BRAKE_SCROLL_MUL;
+  const maxS = MAX_SPEED;
+  const clamped = Math.max(minS, Math.min(maxS, scrollSpeed));
+  const u = (clamped - minS) / (maxS - minS);
+  return {
+    kmh: Math.round(35 + u * 205),
+    gear: Math.min(5, 1 + Math.min(4, Math.floor(u * 5))),
+  };
+}
+
 export type RacingCanvasPhase = "idle" | "playing" | "dead" | "finished";
 
 export interface RacingGameCanvasProps {
@@ -515,6 +527,7 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
 
         const currentLap = Math.min(laps, Math.floor(gameState.distance / lapLength) + 1);
         const currentLapTimeMs = now - lapStartMsRef.current;
+        const { kmh: speedKmh, gear } = racingScrollToKmhAndGear(scrollSpeed);
         onHudTick?.({
           currentLap,
           laps,
@@ -523,6 +536,8 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
           finishDistance,
           currentLapTimeMs,
           bestLapMs: bestLapRef.current,
+          speedKmh,
+          gear,
         });
 
         if (onGameStateUpdate) onGameStateUpdate(gameState);

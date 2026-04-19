@@ -29,4 +29,8 @@ export type RacingHudSnapshot = {
   finishDistance: number;
   currentLapTimeMs: number;
   bestLapMs: number | null;
+  /** Arcade km/h derived from effective scroll speed (includes braking). */
+  speedKmh: number;
+  /** Gear 1–5 on the same scale as speed (drops while braking). */
+  gear: number;
 };
