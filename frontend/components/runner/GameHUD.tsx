@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { GamePhase } from "@/types/runner";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { cn } from "@/lib/cn";
+import { ArcadeSpeedCluster } from "./ArcadeSpeedCluster";
 
 function IconPause({ className }: { className?: string }) {
   return (
@@ -40,12 +41,23 @@ interface GameHUDProps {
   score: number;
   coinsCollected: number;
   phase: GamePhase;
+  speedKmh: number;
+  gear: number;
   isMuted: boolean;
   onPauseToggle: () => void;
   onMuteToggle: () => void;
 }
 
-export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, onMuteToggle }: GameHUDProps) {
+export function GameHUD({
+  score,
+  coinsCollected,
+  phase,
+  speedKmh,
+  gear,
+  isMuted,
+  onPauseToggle,
+  onMuteToggle,
+}: GameHUDProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-10 pt-[max(0.5rem,env(safe-area-inset-top))]">
       <div className="absolute left-3 right-[5.5rem] top-3 z-20 sm:left-4 sm:right-36 sm:top-4">
@@ -119,6 +131,12 @@ export function GameHUD({ score, coinsCollected, phase, isMuted, onPauseToggle, 
           </>
         )}
       </div>
+
+      {(phase === "playing" || phase === "paused") && (
+        <div className="pointer-events-none absolute bottom-3 right-3 z-20 sm:bottom-4 sm:right-4">
+          <ArcadeSpeedCluster speedKmh={speedKmh} gear={gear} />
+        </div>
+      )}
 
       {/* Control hints (fade out after a few seconds) */}
       {phase === "playing" && (

@@ -12,6 +12,8 @@ import { useGameLoop } from "@/hooks/useGameLoop";
 import { useSwipeGesture, type SwipeDirection } from "@/hooks/useSwipeGesture";
 import type { GameState, Lane, ObstacleType } from "@/types/runner";
 import type { RaceResult, RaceSpawnEvent, RacingHudSnapshot } from "@/types/racing";
+import { arcadeScrollToKmhGear } from "@/lib/racing/arcadeScrollToKmhGear";
+import { drawNitroBottle } from "@/lib/runner/drawNitroBottle";
 
 const BASE_SPEED = 0.3;
 const GRAVITY = 0.00145;
@@ -25,7 +27,10 @@ const MAX_SPEED = 0.72;
 const SPEED_SCALE = 0.11;
 const PLAYER_WIDTH = 20;
 const PLAYER_HEIGHT = 40;
-const COIN_RUSH_STREAK_LENGTH = 3;
+const COIN_RUSH_STREAK_LENGTH = 2;
+const NITRO_SCROLL_MUL = 1.38;
+const NITRO_BOOST_MS = 2400;
+const NITRO_HIT_R = 22;
 const MIN_PLAYABLE_SIZE = 48;
 
 const COLOR_BG = "#010F10";
@@ -34,18 +39,6 @@ const COLOR_COIN = "#FFD700";
 const COLOR_OBSTACLE = "#1a3a3c";
 const COLOR_OBSTACLE_STROKE = "rgba(0,240,255,0.4)";
 const COLOR_PLAYER = "#FFFFFF";
-
-/** Effective speed (includes braking) → HUD km/h and gear 1–5 on the same scale. */
-function racingScrollToKmhAndGear(scrollSpeed: number): { kmh: number; gear: number } {
-  const minS = BASE_SPEED * BRAKE_SCROLL_MUL;
-  const maxS = MAX_SPEED;
-  const clamped = Math.max(minS, Math.min(maxS, scrollSpeed));
-  const u = (clamped - minS) / (maxS - minS);
-  return {
-    kmh: Math.round(35 + u * 205),
-    gear: Math.min(5, 1 + Math.min(4, Math.floor(u * 5))),
-  };
-}
 
 export type RacingCanvasPhase = "idle" | "playing" | "dead" | "finished";
 
@@ -113,6 +106,7 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
       },
       obstacles: [],
       coins: [],
+      nitros: [],
       spawnTimer: 999999,
       frameId: 0,
     });
@@ -164,11 +158,19 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
         spawnCoin(0, -90);
         spawnCoin(1, -90 - lateralOffset * 0.3);
         spawnCoin(2, -90);
-        spawnCoin(1, -90 - forwardGap);
-        spawnCoin(baseLane, -90 - forwardGap * 1.6);
       },
       [spawnCoin]
     );
+
+    const spawnNitro = useCallback((lane: Lane, y: number) => {
+      const gameState = gameStateRef.current;
+      gameState.nitros.push({
+        id: gameState.frameId++,
+        lane,
+        y,
+        collected: false,
+      });
+    }, []);
 
     const spawnObstacle = useCallback((lane: Lane) => {
       const gameState = gameStateRef.current;
@@ -199,11 +201,17 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
       (ev: RaceSpawnEvent) => {
         if (ev.kind === "obstacle") {
           spawnObstacle(ev.lane);
-        } else {
+          return;
+        }
+        if (ev.kind === "coinBurst") {
           spawnCoinBurstPattern(ev.baseLane, ev.pattern);
+          return;
+        }
+        if (!gameStateRef.current.nitros.length) {
+          spawnNitro(ev.lane, -95);
         }
       },
-      [spawnObstacle, spawnCoinBurstPattern]
+      [spawnObstacle, spawnCoinBurstPattern, spawnNitro]
     );
 
     useEffect(() => {
@@ -349,6 +357,11 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
         ctx.stroke();
       });
 
+      gameState.nitros.forEach((nitro) => {
+        if (nitro.collected) return;
+        drawNitroBottle(ctx, getLaneX(nitro.lane, width), nitro.y);
+      });
+
       gameState.obstacles.forEach((obs) => {
         const obsX = getLaneX(obs.lane, width) - obs.width / 2;
         ctx.fillStyle = COLOR_OBSTACLE;
@@ -396,7 +409,10 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
         const braking =
           typeof gameState.player.brakeUntil === "number" && now < gameState.player.brakeUntil;
         const scrollMul = braking ? BRAKE_SCROLL_MUL : 1;
-        const scrollSpeed = gameState.speed * scrollMul;
+        const nitroBoost =
+          typeof gameState.nitroBoostUntil === "number" && now < gameState.nitroBoostUntil;
+        const nitroMul = nitroBoost ? NITRO_SCROLL_MUL : 1;
+        const scrollSpeed = gameState.speed * scrollMul * nitroMul;
 
         const prevD = gameState.distance;
         let nextD = prevD + scrollSpeed * dt;
@@ -444,6 +460,9 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
         });
         gameState.coins.forEach((coin) => {
           coin.y += scrollSpeed * dt;
+        });
+        gameState.nitros.forEach((n) => {
+          n.y += scrollSpeed * dt;
         });
 
         const playerRect = {
@@ -500,8 +519,22 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
           }
         }
 
+        for (const nitro of gameState.nitros) {
+          if (nitro.collected) continue;
+          const nx = getLaneX(nitro.lane, width);
+          const ny = nitro.y;
+          const playerCenterX = currentLaneXRef.current;
+          const playerCenterY = gameState.player.y + PLAYER_HEIGHT / 2;
+          const dist = Math.hypot(nx - playerCenterX, ny - playerCenterY);
+          if (dist < NITRO_HIT_R) {
+            nitro.collected = true;
+            gameState.nitroBoostUntil = now + NITRO_BOOST_MS;
+          }
+        }
+
         gameState.obstacles = gameState.obstacles.filter((obs) => obs.y < height + 100);
         gameState.coins = gameState.coins.filter((coin) => coin.y < height + 100);
+        gameState.nitros = gameState.nitros.filter((n) => n.y < height + 120);
 
         if (gameState.distance >= finishDistance && !raceFinishedRef.current) {
           raceFinishedRef.current = true;
@@ -527,7 +560,7 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
 
         const currentLap = Math.min(laps, Math.floor(gameState.distance / lapLength) + 1);
         const currentLapTimeMs = now - lapStartMsRef.current;
-        const { kmh: speedKmh, gear } = racingScrollToKmhAndGear(scrollSpeed);
+        const { speedKmh, gear } = arcadeScrollToKmhGear(scrollSpeed);
         onHudTick?.({
           currentLap,
           laps,
@@ -628,6 +661,8 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
           },
           obstacles: [],
           coins: [],
+          nitros: [],
+          nitroBoostUntil: undefined,
           spawnTimer: 999999,
           frameId: 0,
         };

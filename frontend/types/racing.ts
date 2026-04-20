@@ -12,7 +12,8 @@ export type RaceConfig = {
 
 export type RaceSpawnEvent =
   | { d: number; kind: "obstacle"; lane: Lane }
-  | { d: number; kind: "coinBurst"; baseLane: Lane; pattern: "line" | "zigzag" | "splash" };
+  | { d: number; kind: "coinBurst"; baseLane: Lane; pattern: "line" | "zigzag" | "splash" }
+  | { d: number; kind: "nitro"; lane: Lane };
 
 export type RaceResult = {
   totalTimeMs: number;

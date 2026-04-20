@@ -48,6 +48,14 @@ export interface Coin {
   collected: boolean;
 }
 
+/** Lane pickup: nitro bottle (one active pickup at a time in endless / spaced in race). */
+export interface NitroPickup {
+  id: number;
+  lane: Lane;
+  y: number;
+  collected: boolean;
+}
+
 // Complete game state held in refs
 export interface GameState {
   phase: GamePhase;
@@ -58,6 +66,9 @@ export interface GameState {
   player: PlayerEntity;
   obstacles: Obstacle[];
   coins: Coin[];
+  nitros: NitroPickup[];
+  /** `performance.now()` until nitro scroll boost applies. */
+  nitroBoostUntil?: number;
   spawnTimer: number; // countdown in ms
   frameId: number; // entity ID counter
 }

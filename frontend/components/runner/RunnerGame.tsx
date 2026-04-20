@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { GameCanvas, type GameCanvasHandle } from "./GameCanvas";
 import { GameHUD } from "./GameHUD";
 import { GameOverlay } from "./GameOverlay";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { CitySelectorOverlay } from "./CitySelectorOverlay";
 import { RacingRunnerGame } from "./RacingRunnerGame";
 import type { GamePhase, GameState } from "@/types/runner";
 import { useSwipeGesture, type SwipeDirection } from "@/hooks/useSwipeGesture";
-import { assertValidCityId, characterAccent, loadLocalProfile, saveLocalProfile } from "@/lib/playerProfile";
+import { assertValidCityId, characterAccent, loadLocalProfile } from "@/lib/playerProfile";
+import { arcadeScrollToKmhGear } from "@/lib/racing/arcadeScrollToKmhGear";
 
 const Game3DScene = dynamic(
   () => import("./Game3DScene").then((mod) => mod.Game3DScene),
@@ -36,7 +36,6 @@ export function RunnerGame({ gameMode = "endless" }: { gameMode?: RunnerGameMode
   const [cityId, setCityId] = useState(0);
   const [characterTint, setCharacterTint] = useState<string | undefined>(undefined);
   const [isNewPersonalBest, setIsNewPersonalBest] = useState(false);
-  const [showCitySelector, setShowCitySelector] = useState(true);
   const gameSurfaceRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<GameCanvasHandle>(null);
   const coinSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -80,26 +79,6 @@ export function RunnerGame({ gameMode = "endless" }: { gameMode?: RunnerGameMode
       }
     }
   }, [isMuted, phase]);
-
-  /** Land on `/play` and show city selector first. */
-  const autoStartedRef = useRef(false);
-  useEffect(() => {
-    if (showCitySelector) return;
-    const boot = () => {
-      if (autoStartedRef.current) return;
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      autoStartedRef.current = true;
-      setIsNewPersonalBest(false);
-      canvas.reset();
-      setScore(0);
-      setCoinsCollected(0);
-      canvas.start();
-    };
-    boot();
-    const id = requestAnimationFrame(() => boot());
-    return () => cancelAnimationFrame(id);
-  }, [showCitySelector]);
 
   const handleStart = () => {
     setIsNewPersonalBest(false);
@@ -165,16 +144,18 @@ export function RunnerGame({ gameMode = "endless" }: { gameMode?: RunnerGameMode
     }
   };
 
-  const handleSelectCity = (newCityId: number) => {
-    setCityId(newCityId);
-    const profile = loadLocalProfile();
-    saveLocalProfile({ ...profile, selectedCityId: newCityId });
-  };
-
-  const handleStartRaceFromSelector = () => {
-    setShowCitySelector(false);
-    autoStartedRef.current = false;
-  };
+  const { speedKmh, gear } = useMemo(() => {
+    if (!gameState || (phase !== "playing" && phase !== "paused")) {
+      return { speedKmh: 35, gear: 1 };
+    }
+    const now = typeof performance !== "undefined" ? performance.now() : 0;
+    const braking =
+      typeof gameState.player.brakeUntil === "number" && now < gameState.player.brakeUntil;
+    const nitroBoost =
+      typeof gameState.nitroBoostUntil === "number" && now < gameState.nitroBoostUntil;
+    const scroll = gameState.speed * (braking ? 0.36 : 1) * (nitroBoost ? 1.38 : 1);
+    return arcadeScrollToKmhGear(scroll);
+  }, [gameState, phase]);
 
   const dispatchRunnerAction = useCallback((dir: SwipeDirection) => {
     const mappedDir = dir === "left" ? "right" : dir === "right" ? "left" : dir;
@@ -234,15 +215,16 @@ export function RunnerGame({ gameMode = "endless" }: { gameMode?: RunnerGameMode
         </ErrorBoundary>
       )}
 
-      <GameHUD score={score} coinsCollected={coinsCollected} phase={phase} isMuted={isMuted} onPauseToggle={handlePauseToggle} onMuteToggle={handleMuteToggle} />
-
-      {showCitySelector && (
-        <CitySelectorOverlay
-          selectedCityId={cityId}
-          onSelectCity={handleSelectCity}
-          onStartRace={handleStartRaceFromSelector}
-        />
-      )}
+      <GameHUD
+        score={score}
+        coinsCollected={coinsCollected}
+        phase={phase}
+        speedKmh={speedKmh}
+        gear={gear}
+        isMuted={isMuted}
+        onPauseToggle={handlePauseToggle}
+        onMuteToggle={handleMuteToggle}
+      />
 
       <GameOverlay
         phase={phase}

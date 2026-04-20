@@ -16,7 +16,7 @@ export function buildRaceSpawnSchedule(totalRaceDistance: number, seed: number):
     const lane = Math.floor(rand() * 3) as Lane;
     const roll = rand();
 
-    if (roll < 0.52) {
+    if (roll < 0.28) {
       const pattern = PATTERNS[Math.floor(rand() * PATTERNS.length)]!;
       events.push({ d: nextD, kind: "coinBurst", baseLane: lane, pattern });
     } else {
@@ -27,7 +27,13 @@ export function buildRaceSpawnSchedule(totalRaceDistance: number, seed: number):
       }
     }
 
-    nextD += 320 + Math.floor(rand() * 520);
+    nextD += 380 + Math.floor(rand() * 560);
+  }
+
+  let nitroD = 520 + Math.floor(rand() * 240);
+  while (nitroD < totalRaceDistance - 160) {
+    events.push({ d: nitroD, kind: "nitro", lane: Math.floor(rand() * 3) as Lane });
+    nitroD += 980 + Math.floor(rand() * 720);
   }
 
   events.sort((a, b) => a.d - b.d);

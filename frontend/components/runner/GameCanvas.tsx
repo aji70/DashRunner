@@ -10,11 +10,8 @@ import {
 } from "react";
 import { useGameLoop } from "@/hooks/useGameLoop";
 import { useSwipeGesture, type SwipeDirection } from "@/hooks/useSwipeGesture";
-import type {
-  GameState,
-  Lane,
-  ObstacleType,
-} from "@/types/runner";
+import type { GameState, Lane, ObstacleType } from "@/types/runner";
+import { drawNitroBottle } from "@/lib/runner/drawNitroBottle";
 
 interface GameCanvasProps {
   onScoreChange: (score: number) => void;
@@ -57,12 +54,15 @@ const SPEED_SCALE = 0.12;
 const PLAYER_WIDTH = 20;
 const PLAYER_HEIGHT = 40;
 /** Lower = more traffic vs coin streaks. */
-const COIN_RUSH_CHANCE = 0.55;
+const COIN_RUSH_CHANCE = 0.3;
 /** Chance to spawn a second car in another lane on the same beat. */
 const OBSTACLE_CHANCE = 0.28;
 /** Extra car in a third lane sometimes (staggered up-road). */
 const EXTRA_TRAFFIC_CHANCE = 0.12;
-const COIN_RUSH_STREAK_LENGTH = 3;
+const COIN_RUSH_STREAK_LENGTH = 2;
+const NITRO_SCROLL_MUL = 1.38;
+const NITRO_BOOST_MS = 2400;
+const NITRO_HIT_R = 22;
 /** Ignore ticks until the canvas has real dimensions (avoids lane math at width 0 → false collisions). */
 const MIN_PLAYABLE_SIZE = 48;
 
@@ -93,11 +93,13 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       },
       obstacles: [],
       coins: [],
+      nitros: [],
       spawnTimer: SPAWN_INTERVAL,
       frameId: 0,
     });
 
     const dimRef = useRef({ width: 0, height: 0, dpr: 1 });
+    const nitroSpawnTimerRef = useRef(3800);
     const currentLaneXRef = useRef(0);
     const lastScoreSyncRef = useRef(0);
     const [gameLoopEnabled, setGameLoopEnabled] = useState(false);
@@ -139,13 +141,21 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         return;
       }
 
-      // Wide "splash" pattern across lanes
+      // Wide "splash" pattern (lighter than before)
       spawnCoin(0, -90);
       spawnCoin(1, -90 - lateralOffset * 0.3);
       spawnCoin(2, -90);
-      spawnCoin(1, -90 - forwardGap);
-      spawnCoin(baseLane, -90 - forwardGap * 1.6);
     }, [spawnCoin]);
+
+    const spawnNitro = useCallback((lane: Lane, y: number) => {
+      const gameState = gameStateRef.current;
+      gameState.nitros.push({
+        id: gameState.frameId++,
+        lane,
+        y,
+        collected: false,
+      });
+    }, []);
 
     const spawnObstacle = useCallback((lane: Lane) => {
       const gameState = gameStateRef.current;
@@ -239,11 +249,14 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       currentLaneXRef.current +=
         (targetLaneX - currentLaneXRef.current) * LERP_FACTOR;
 
+      const now = performance.now();
       const braking =
-        typeof gameState.player.brakeUntil === "number" &&
-        performance.now() < gameState.player.brakeUntil;
+        typeof gameState.player.brakeUntil === "number" && now < gameState.player.brakeUntil;
       const scrollMul = braking ? BRAKE_SCROLL_MUL : 1;
-      const scrollSpeed = gameState.speed * scrollMul;
+      const nitroBoost =
+        typeof gameState.nitroBoostUntil === "number" && now < gameState.nitroBoostUntil;
+      const nitroMul = nitroBoost ? NITRO_SCROLL_MUL : 1;
+      const scrollSpeed = gameState.speed * scrollMul * nitroMul;
 
       gameState.distance += scrollSpeed * dt;
       gameState.speed = Math.min(
@@ -283,11 +296,23 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         gameState.spawnTimer = SPAWN_INTERVAL / gameState.speed;
       }
 
+      const nitroBlocksSpawn = gameState.nitros.length > 0;
+      if (!nitroBlocksSpawn) {
+        nitroSpawnTimerRef.current -= dt;
+        if (nitroSpawnTimerRef.current <= 0) {
+          spawnNitro(Math.floor(Math.random() * 3) as Lane, -95);
+          nitroSpawnTimerRef.current = 9200 + Math.random() * 5200;
+        }
+      }
+
       gameState.obstacles.forEach((obs) => {
         obs.y += scrollSpeed * dt;
       });
       gameState.coins.forEach((coin) => {
         coin.y += scrollSpeed * dt;
+      });
+      gameState.nitros.forEach((n) => {
+        n.y += scrollSpeed * dt;
       });
 
       // Hitbox matches the drawn player rect (top = player.y, same as renderGame).
@@ -358,10 +383,24 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         }
       }
 
+      for (const nitro of gameState.nitros) {
+        if (nitro.collected) continue;
+        const nx = getLaneX(nitro.lane, width);
+        const ny = nitro.y;
+        const playerCenterX = currentLaneXRef.current;
+        const playerCenterY = gameState.player.y + PLAYER_HEIGHT / 2;
+        const dist = Math.hypot(nx - playerCenterX, ny - playerCenterY);
+        if (dist < NITRO_HIT_R) {
+          nitro.collected = true;
+          gameState.nitroBoostUntil = now + NITRO_BOOST_MS;
+        }
+      }
+
       gameState.obstacles = gameState.obstacles.filter(
         (obs) => obs.y < height + 100
       );
       gameState.coins = gameState.coins.filter((coin) => coin.y < height + 100);
+      gameState.nitros = gameState.nitros.filter((n) => n.y < height + 120);
 
       // Update 3D scene with game state
       if (onGameStateUpdate) {
@@ -378,7 +417,19 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       }
 
       renderGame(ctx, gameState, width, height, currentLaneXRef.current);
-    }, [onScoreChange, onCoinsChange, onCoinCollect, onGameOver, onGameStateUpdate, onPlayerLaneChange, onJumpChange, onSlideChange, spawnCoinBurst, spawnObstacle]);
+    }, [
+      onScoreChange,
+      onCoinsChange,
+      onCoinCollect,
+      onGameOver,
+      onGameStateUpdate,
+      onPlayerLaneChange,
+      onJumpChange,
+      onSlideChange,
+      spawnCoinBurst,
+      spawnObstacle,
+      spawnNitro,
+    ]);
 
     useGameLoop(handleTick, gameLoopEnabled);
 
@@ -438,6 +489,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           },
           obstacles: [],
           coins: [],
+          nitros: [],
+          nitroBoostUntil: undefined,
           spawnTimer: SPAWN_INTERVAL,
           frameId: 0,
         };
@@ -445,6 +498,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           currentLaneXRef.current = getLaneX(gameStateRef.current.player.lane, width);
         }
         lastScoreSyncRef.current = 0;
+        nitroSpawnTimerRef.current = 3800;
         setGameLoopEnabled(false);
       },
       start: () => {
@@ -594,6 +648,11 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         ctx.beginPath();
         ctx.arc(coinX, coin.y, r * 0.92, 0, Math.PI * 2);
         ctx.stroke();
+      });
+
+      gameState.nitros.forEach((nitro) => {
+        if (nitro.collected) return;
+        drawNitroBottle(ctx, getLaneX(nitro.lane, width), nitro.y);
       });
 
       gameState.obstacles.forEach((obs) => {

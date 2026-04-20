@@ -2,17 +2,17 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { RacingGameCanvas, type RacingGameCanvasHandle } from "./RacingGameCanvas";
 import { RaceHUD } from "./RaceHUD";
 import { RaceCountdownOverlay } from "./RaceCountdownOverlay";
 import { RaceResultsOverlay } from "./RaceResultsOverlay";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { CitySelectorOverlay } from "./CitySelectorOverlay";
 import type { GameState } from "@/types/runner";
 import type { RaceResult, RacingHudSnapshot } from "@/types/racing";
 import { buildRaceSpawnSchedule } from "@/lib/racing/buildRaceSpawnSchedule";
 import { useSwipeGesture, type SwipeDirection } from "@/hooks/useSwipeGesture";
-import { assertValidCityId, characterAccent, loadLocalProfile, saveLocalProfile } from "@/lib/playerProfile";
+import { assertValidCityId, characterAccent, loadLocalProfile } from "@/lib/playerProfile";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { motion } from "framer-motion";
 
@@ -24,12 +24,13 @@ const Game3DScene = dynamic(
 const LAP_LENGTH = 2800;
 const LAPS = 3;
 
-type RaceUi = "city" | "countdown" | "running" | "paused" | "dead" | "results";
+type RaceUi = "idle" | "countdown" | "running" | "paused" | "dead" | "results";
 
 export function RacingRunnerGame() {
+  const router = useRouter();
   const [cityId, setCityId] = useState(0);
   const [characterTint, setCharacterTint] = useState<string | undefined>(undefined);
-  const [raceUi, setRaceUi] = useState<RaceUi>("city");
+  const [raceUi, setRaceUi] = useState<RaceUi>("idle");
   const [countdownStep, setCountdownStep] = useState(-1);
   const [hudSnap, setHudSnap] = useState<RacingHudSnapshot | null>(null);
   const [coins, setCoins] = useState(0);
@@ -48,19 +49,11 @@ export function RacingRunnerGame() {
   const countdownAbortRef = useRef(false);
   const countdownTimersRef = useRef<number[]>([]);
   const countdownGenRef = useRef(0);
+  const autoCountdownStartedRef = useRef(false);
 
   const seed = cityId * 10007 + 4242;
   const finishDistance = LAP_LENGTH * LAPS;
   const spawnEvents = useMemo(() => buildRaceSpawnSchedule(finishDistance, seed), [finishDistance, seed]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const savedMute = localStorage.getItem("runner_muted");
-    if (savedMute === "true") setIsMuted(true);
-    const profile = loadLocalProfile();
-    setCityId(assertValidCityId(profile.selectedCityId));
-    setCharacterTint(characterAccent(profile.selectedCharacterId));
-  }, []);
 
   useEffect(() => {
     if (themeSoundRef.current) {
@@ -71,12 +64,6 @@ export function RacingRunnerGame() {
       }
     }
   }, [isMuted, raceUi]);
-
-  const handleSelectCity = (newCityId: number) => {
-    setCityId(newCityId);
-    const profile = loadLocalProfile();
-    saveLocalProfile({ ...profile, selectedCityId: newCityId });
-  };
 
   const clearCountdownTimers = useCallback(() => {
     countdownTimersRef.current.forEach((id) => clearTimeout(id));
@@ -117,9 +104,17 @@ export function RacingRunnerGame() {
     schedule(tick, 650);
   }, [clearCountdownTimers]);
 
-  const handleStartFromCity = () => {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const savedMute = localStorage.getItem("runner_muted");
+    if (savedMute === "true") setIsMuted(true);
+    const profile = loadLocalProfile();
+    setCityId(assertValidCityId(profile.selectedCityId));
+    setCharacterTint(characterAccent(profile.selectedCharacterId));
+    if (autoCountdownStartedRef.current) return;
+    autoCountdownStartedRef.current = true;
     beginCountdown();
-  };
+  }, [beginCountdown]);
 
   const handleRaceFinish = useCallback(
     (r: RaceResult) => {
@@ -143,15 +138,16 @@ export function RacingRunnerGame() {
     beginCountdown();
   };
 
-  const handleBackToCity = () => {
+  const handleExitRace = () => {
     countdownAbortRef.current = true;
     countdownGenRef.current++;
     clearCountdownTimers();
     canvasRef.current?.reset();
-    setRaceUi("city");
+    setRaceUi("idle");
     setCountdownStep(-1);
     setResult(null);
     setGameState(null);
+    router.push("/play");
   };
 
   const handlePauseToggle = () => {
@@ -209,7 +205,10 @@ export function RacingRunnerGame() {
         }}
       />
 
-      <div className={raceUi === "city" ? "fixed inset-0 z-0 opacity-0" : "fixed inset-0 z-0"} style={{ left: raceUi === "city" ? "-9999px" : 0 }}>
+      <div
+        className={raceUi === "idle" ? "fixed inset-0 z-0 opacity-0" : "fixed inset-0 z-0"}
+        style={{ left: raceUi === "idle" ? "-9999px" : 0 }}
+      >
         <RacingGameCanvas
           key={seed}
           ref={canvasRef}
@@ -261,10 +260,6 @@ export function RacingRunnerGame() {
         />
       )}
 
-      {raceUi === "city" && (
-        <CitySelectorOverlay selectedCityId={cityId} onSelectCity={handleSelectCity} onStartRace={handleStartFromCity} />
-      )}
-
       {raceUi === "countdown" && countdownStep >= 0 && <RaceCountdownOverlay step={countdownStep} />}
 
       {result && raceUi === "results" && <RaceResultsOverlay result={result} onRestart={handleRestartRace} />}
@@ -287,8 +282,8 @@ export function RacingRunnerGame() {
               >
                 Retry race
               </button>
-              <button type="button" onClick={handleBackToCity} className="font-rajdhani text-xs uppercase text-[var(--text-dim)] hover:text-cyan-200">
-                Change city
+              <button type="button" onClick={handleExitRace} className="font-rajdhani text-xs uppercase text-[var(--text-dim)] hover:text-cyan-200">
+                Exit to menu
               </button>
             </div>
           </GlassPanel>
