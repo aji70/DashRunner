@@ -5,6 +5,7 @@ import Fastify from 'fastify';
 import type { Env } from './config/env.js';
 import dbPlugin from './plugins/db.js';
 import routes from './routes/index.js';
+import crypto from 'node:crypto';
 
 function corsOrigin(env: Env): boolean | string | string[] {
   const raw = env.CORS_ORIGIN?.trim();
