@@ -78,8 +78,9 @@ export default function CharactersPage() {
   return (
     <div className="space-y-10">
       <PageHeader eyebrow="Loadout" title="Runners">
-        Cosmetic accents tint the in-game GLB. Purchases call <Kbd>buyCharacter</Kbd> with prices set via{" "}
-        <Kbd>setCharacterPrice</Kbd> on the owner account.
+        Cosmetic accents tint the in-game GLB. On-chain purchases use USDC: <Kbd>buyCharacter</Kbd> after{" "}
+        <Kbd>approve</Kbd> on USDC, with prices set via <Kbd>setCharacterPriceUsdc</Kbd> (smallest units, 6 decimals on
+        Celo USDC).
       </PageHeader>
 
       <div className="space-y-4">

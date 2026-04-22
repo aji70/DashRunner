@@ -12,7 +12,7 @@ export type RunnerCharacter = {
   accentHex: string;
   /** Soft currency price when buying off-chain (backend). */
   priceCoins: number;
-  /** On-chain character id for `buyCharacter` / bitmask (must match contract). */
+  /** On-chain character id for `buyCharacter` (USDC) / bitmask (must match contract). */
   onChainId: number;
 };
 

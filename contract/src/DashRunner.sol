@@ -14,8 +14,9 @@ import { IDashRunnerScoreNFT } from "./interfaces/IDashRunnerScoreNFT.sol";
 /**
  * @title DashRunner
  * @notice UUPS upgradeable registry for Dash endless-runner session results.
- * @dev Deploy behind an {ERC1967Proxy}. Call `initialize` once on the proxy. On-chain
- * data is best-effort integrity (clients can lie); pair with signatures or a prover later.
+ * @dev Deploy behind an {ERC1967Proxy}. Call `initialize` once on the proxy, then `setUsdc` with canonical USDC.
+ * Character purchases use USDC via `approve` + `buyCharacter`. On-chain data is best-effort integrity; pair with
+ * signatures or a prover later.
  */
 contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable, DashRunnerStorage {
     using SafeERC20 for IERC20;
@@ -188,11 +189,11 @@ contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, U
     }
 
     /**
-     * @notice Minimal state write for campaigns / analytics (increments per-wallet counter). Ignores pause.
+     * @notice Record a lightweight on-chain step (runner-themed counter per wallet). Ignores pause.
      */
-    function bumpNonce() external {
+    function dashStep() external {
         unchecked {
-            activityNonce[msg.sender]++;
+            dashSteps[msg.sender]++;
         }
     }
 

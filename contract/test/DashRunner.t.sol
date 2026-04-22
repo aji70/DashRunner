@@ -107,12 +107,12 @@ contract DashRunnerTest is Test {
     function test_pause_blocks_buyCharacter() public {
         game.setCharacterPriceUsdc(2, 1);
         usdc.mint(PLAYER, 100);
-        vm.startPrank(PLAYER);
+        vm.prank(PLAYER);
         usdc.approve(address(game), type(uint256).max);
         game.pause();
+        vm.prank(PLAYER);
         vm.expectRevert();
         game.buyCharacter(2);
-        vm.stopPrank();
     }
 
     function test_signal_emits_and_works_when_paused() public {
@@ -135,14 +135,14 @@ contract DashRunnerTest is Test {
         game.signal(42);
     }
 
-    function test_bumpNonce_increments() public {
-        assertEq(game.activityNonce(PLAYER), 0);
+    function test_dashStep_increments() public {
+        assertEq(game.dashSteps(PLAYER), 0);
         vm.prank(PLAYER);
-        game.bumpNonce();
-        assertEq(game.activityNonce(PLAYER), 1);
+        game.dashStep();
+        assertEq(game.dashSteps(PLAYER), 1);
         vm.prank(PLAYER);
-        game.bumpNonce();
-        assertEq(game.activityNonce(PLAYER), 2);
+        game.dashStep();
+        assertEq(game.dashSteps(PLAYER), 2);
     }
 
     function test_owner_can_upgrade() public {
