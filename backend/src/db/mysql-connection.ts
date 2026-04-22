@@ -10,7 +10,7 @@ export function mysqlConnection(opts: {
   ssl: boolean;
 }): Knex.MySql2ConnectionConfig {
   const host = opts.host === 'localhost' ? '127.0.0.1' : opts.host;
-  const base: Knex.MySql2ConnectionConfig = {
+  return {
     host,
     port: opts.port,
     user: opts.user,
@@ -18,10 +18,6 @@ export function mysqlConnection(opts: {
     database: opts.database,
     ssl: opts.ssl ? {} : undefined,
   };
-  if (host === '127.0.0.1') {
-    Object.assign(base, { family: 4 as const });
-  }
-  return base;
 }
 
 /** Used by knexfile (production only). Lazily validated so loading the file with NODE_ENV=development does not require DB_*. */
