@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as catalogController from "../controllers/catalogController.js";
 import * as playerController from "../controllers/playerController.js";
 import * as rewardsController from "../controllers/rewardsController.js";
+import chainRoutes from "./chain.js";
 
 const router = Router();
 
@@ -17,5 +18,7 @@ router.post("/player/:wallet/buy-character", playerController.purchaseCharacter)
 router.post("/player/:wallet/shop-buy", playerController.purchaseShopItem);
 
 router.post("/rewards/daily-claim", rewardsController.dailyClaim);
+
+router.use("/chain", chainRoutes);
 
 export default router;
