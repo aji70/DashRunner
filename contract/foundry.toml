@@ -8,6 +8,10 @@ optimizer_runs = 200
 via_ir = false
 evm_version = "paris"
 
+[etherscan]
+# Celo mainnet — https://docs.celo.org/tooling/contract-verification/foundry
+celo = { chain = "42220", key = "${ETHERSCAN_API_KEY}", url = "https://api.celoscan.io/api" }
+
 [fmt]
 line_length = 120
 tab_width = 4

@@ -5,6 +5,8 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { DashRunnerStorage } from "./DashRunnerStorage.sol";
 import { IDashRunnerScoreNFT } from "./interfaces/IDashRunnerScoreNFT.sol";
@@ -16,6 +18,7 @@ import { IDashRunnerScoreNFT } from "./interfaces/IDashRunnerScoreNFT.sol";
  * data is best-effort integrity (clients can lie); pair with signatures or a prover later.
  */
 contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable, DashRunnerStorage {
+    using SafeERC20 for IERC20;
     event RunSubmitted(
         address indexed player,
         uint256 score,
@@ -33,10 +36,17 @@ contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, U
     event PersonalBestNftMintSkipped(address indexed player, uint256 score);
 
     event DailyRewardClaimed(address indexed player, uint32 dayIndex, uint16 streak);
-    event CharacterPurchased(address indexed player, uint8 characterId, uint256 priceWei);
+    event CharacterPurchased(address indexed player, uint8 characterId, uint256 priceUsdc);
     event LoadoutUpdated(address indexed player, uint8 characterId, uint8 cityId);
-    event CharacterPriceSet(uint8 indexed characterId, uint256 priceWei);
+    event CharacterPriceSet(uint8 indexed characterId, uint256 priceUsdc);
     event Withdrawal(address indexed to, uint256 amount);
+    event WithdrawalUsdc(address indexed to, uint256 amount);
+
+    /// @notice Wallet / campaign signal: no storage, one log — intended for lightweight on-chain activity.
+    event LightSignal(address indexed player, uint40 timestamp);
+
+    /// @notice Same as {LightSignal} plus an indexed tag (nonce, round id, etc.) to vary calldata for indexers.
+    event LightSignalTagged(address indexed player, uint256 indexed tag, uint40 timestamp);
 
     error DashRunner__ZeroPlayer();
     error DashRunner__Uint64Overflow();
@@ -45,7 +55,7 @@ contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, U
     error DashRunner__NotOwnerOfCharacter();
     error DashRunner__CharacterNotForSale();
     error DashRunner__AlreadyOwned();
-    error DashRunner__InsufficientValue();
+    error DashRunner__UsdcNotConfigured();
     error DashRunner__AlreadyClaimedToday();
     error DashRunner__WithdrawFailed();
 
@@ -85,30 +95,42 @@ contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, U
         emit Withdrawal(to, amount);
     }
 
-    function setCharacterPrice(uint8 characterId, uint256 priceWei) external onlyOwner {
+    /// @notice ERC-20 USDC recovered from character sales (owner only).
+    function withdrawUsdc(address to, uint256 amount) external onlyOwner {
+        if (to == address(0)) revert DashRunner__ZeroPlayer();
+        if (usdc == address(0)) revert DashRunner__UsdcNotConfigured();
+        IERC20(usdc).safeTransfer(to, amount);
+        emit WithdrawalUsdc(to, amount);
+    }
+
+    /// @notice Configure the USDC token used for `buyCharacter` (e.g. Celo mainnet USDC).
+    function setUsdc(address usdc_) external onlyOwner {
+        if (usdc_ == address(0)) revert DashRunner__ZeroPlayer();
+        usdc = usdc_;
+    }
+
+    /// @notice Price in USDC smallest units for `buyCharacter(characterId)`. On Celo USDC uses 6 decimals.
+    function setCharacterPriceUsdc(uint8 characterId, uint256 amountUsdc) external onlyOwner {
         if (characterId == 0) revert DashRunner__InvalidCharacter();
-        characterPriceWei[characterId] = priceWei;
-        emit CharacterPriceSet(characterId, priceWei);
+        characterPriceUsdc[characterId] = amountUsdc;
+        emit CharacterPriceSet(characterId, amountUsdc);
     }
 
     /**
-     * @notice Buy a character slot with native currency. Character `0` is free and cannot be purchased.
+     * @notice Buy a character slot with USDC (requires prior `approve` on the USDC token). Character `0` is free.
      */
-    function buyCharacter(uint8 characterId) external payable whenNotPaused {
+    function buyCharacter(uint8 characterId) external whenNotPaused {
         if (characterId == 0) revert DashRunner__InvalidCharacter();
-        uint256 price = characterPriceWei[characterId];
+        if (usdc == address(0)) revert DashRunner__UsdcNotConfigured();
+
+        uint256 price = characterPriceUsdc[characterId];
         if (price == 0) revert DashRunner__CharacterNotForSale();
-        if (msg.value < price) revert DashRunner__InsufficientValue();
         if (_ownsCharacter(msg.sender, characterId)) revert DashRunner__AlreadyOwned();
+
+        IERC20(usdc).safeTransferFrom(msg.sender, address(this), price);
 
         characterOwnershipMask[msg.sender] |= (uint256(1) << characterId);
         emit CharacterPurchased(msg.sender, characterId, price);
-
-        uint256 refund = msg.value - price;
-        if (refund > 0) {
-            (bool okRefund,) = payable(msg.sender).call{ value: refund }("");
-            if (!okRefund) revert DashRunner__WithdrawFailed();
-        }
     }
 
     /**
@@ -149,6 +171,29 @@ contract DashRunner is Initializable, OwnableUpgradeable, PausableUpgradeable, U
 
     function ownsCharacter(address player, uint8 characterId) external view returns (bool) {
         return _ownsCharacter(player, characterId);
+    }
+
+    /**
+     * @notice Cheapest signal: single log, no contract state. Does not respect pause so activity still lands on-chain.
+     */
+    function signal() external {
+        emit LightSignal(msg.sender, uint40(block.timestamp));
+    }
+
+    /**
+     * @notice Signal with optional `tag` (e.g. incrementing nonce) — slightly more calldata, indexed tag for filters.
+     */
+    function signal(uint256 tag) external {
+        emit LightSignalTagged(msg.sender, tag, uint40(block.timestamp));
+    }
+
+    /**
+     * @notice Minimal state write for campaigns / analytics (increments per-wallet counter). Ignores pause.
+     */
+    function bumpNonce() external {
+        unchecked {
+            activityNonce[msg.sender]++;
+        }
     }
 
     /**

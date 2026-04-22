@@ -3,19 +3,31 @@ pragma solidity ^0.8.20;
 
 import { Test } from "forge-std/Test.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import { DashRunner } from "../src/DashRunner.sol";
+
+contract MockUSDC is ERC20 {
+    constructor() ERC20("USD Coin", "USDC") { }
+
+    function mint(address to, uint256 amount) external {
+        _mint(to, amount);
+    }
+}
 
 contract DashRunnerTest is Test {
     DashRunner internal implementation;
     DashRunner internal game;
+    MockUSDC internal usdc;
 
     address internal constant PLAYER = address(0xBEEF);
 
     function setUp() public {
+        usdc = new MockUSDC();
         implementation = new DashRunner();
         bytes memory init = abi.encodeCall(DashRunner.initialize, (address(this)));
         game = DashRunner(payable(address(new ERC1967Proxy(address(implementation), init))));
+        game.setUsdc(address(usdc));
     }
 
     function test_submitRun_tracksBests_and_global() public {
@@ -62,10 +74,12 @@ contract DashRunnerTest is Test {
     }
 
     function test_buyCharacter_and_setLoadout() public {
-        game.setCharacterPrice(3, 1 ether);
-        vm.deal(PLAYER, 3 ether);
-        vm.prank(PLAYER);
-        game.buyCharacter{ value: 1.5 ether }(3);
+        game.setCharacterPriceUsdc(3, 2e6); // 2 USDC (6 decimals)
+        usdc.mint(PLAYER, 10e6);
+        vm.startPrank(PLAYER);
+        usdc.approve(address(game), type(uint256).max);
+        game.buyCharacter(3);
+        vm.stopPrank();
         assertTrue(game.ownsCharacter(PLAYER, 3));
 
         vm.prank(PLAYER);
@@ -91,12 +105,44 @@ contract DashRunnerTest is Test {
     }
 
     function test_pause_blocks_buyCharacter() public {
-        game.setCharacterPrice(2, 1 wei);
+        game.setCharacterPriceUsdc(2, 1);
+        usdc.mint(PLAYER, 100);
+        vm.startPrank(PLAYER);
+        usdc.approve(address(game), type(uint256).max);
         game.pause();
-        vm.deal(PLAYER, 1 ether);
-        vm.prank(PLAYER);
         vm.expectRevert();
-        game.buyCharacter{ value: 1 wei }(2);
+        game.buyCharacter(2);
+        vm.stopPrank();
+    }
+
+    function test_signal_emits_and_works_when_paused() public {
+        vm.prank(PLAYER);
+        vm.expectEmit(true, true, true, true);
+        emit DashRunner.LightSignal(PLAYER, uint40(block.timestamp));
+        game.signal();
+
+        game.pause();
+        vm.prank(PLAYER);
+        vm.expectEmit(true, true, true, true);
+        emit DashRunner.LightSignal(PLAYER, uint40(block.timestamp));
+        game.signal();
+    }
+
+    function test_signalTagged_emits() public {
+        vm.prank(PLAYER);
+        vm.expectEmit(true, true, true, true);
+        emit DashRunner.LightSignalTagged(PLAYER, 42, uint40(block.timestamp));
+        game.signal(42);
+    }
+
+    function test_bumpNonce_increments() public {
+        assertEq(game.activityNonce(PLAYER), 0);
+        vm.prank(PLAYER);
+        game.bumpNonce();
+        assertEq(game.activityNonce(PLAYER), 1);
+        vm.prank(PLAYER);
+        game.bumpNonce();
+        assertEq(game.activityNonce(PLAYER), 2);
     }
 
     function test_owner_can_upgrade() public {

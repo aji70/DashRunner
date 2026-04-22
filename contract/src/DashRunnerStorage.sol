@@ -42,13 +42,19 @@ abstract contract DashRunnerStorage {
     /// @notice Consecutive UTC-day claim streak after last claim (minimum 1 right after a claim).
     mapping(address => uint16) public dailyClaimStreak;
 
-    /// @notice Native-token price for `buyCharacter(id)` when `id > 0`. `0` means not sold on-chain.
-    mapping(uint8 => uint256) public characterPriceWei;
+    /// @notice USDC amount in token smallest units (e.g. 6 decimals on Celo USDC) for `buyCharacter(id)` when `id > 0`. `0` means not sold on-chain.
+    mapping(uint8 => uint256) public characterPriceUsdc;
+
+    /// @notice USDC token (`IERC20`) used for character purchases and withdrawals.
+    address public usdc;
+
+    /// @notice Optional counter bumped by `bumpNonce` for lightweight on-chain activity.
+    mapping(address => uint64) public activityNonce;
 
     /**
      * @dev Reserved storage slots for future upgrades. Do not remove or reorder
      * variables above without a storage migration plan.
      */
     // forge-lint: disable-next-line(mixed-case-variable)
-    uint256[40] private __gap;
+    uint256[38] private __gap;
 }
