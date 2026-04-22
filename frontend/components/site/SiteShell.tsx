@@ -24,15 +24,22 @@ function PlayIcon({ className }: { className?: string }) {
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isHome = pathname === "/";
 
   return (
     <div className="relative isolate min-h-[100dvh] text-[var(--text-primary)]">
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 z-0 bg-[var(--void)] bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url(/background.jpg)" }}
+        style={isHome ? undefined : { backgroundImage: "url(/background.jpg)" }}
       />
-      <div aria-hidden className="pointer-events-none fixed inset-0 z-[1] app-shell-photo-mesh" />
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none fixed inset-0 z-[1] app-shell-photo-mesh",
+          isHome && "opacity-40"
+        )}
+      />
 
       <div className="relative z-10 flex min-h-[100dvh] flex-col pb-28 sm:pb-24">
         <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[var(--abyss)]/85 backdrop-blur-2xl">
