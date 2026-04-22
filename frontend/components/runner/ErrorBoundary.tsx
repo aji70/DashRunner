@@ -35,8 +35,8 @@ export class ErrorBoundary extends React.Component<Props, State> {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#010F10',
-          color: '#00F0FF',
+          backgroundColor: '#12100e',
+          color: '#FFB347',
           fontSize: '16px'
         }}>
           <div style={{ textAlign: 'center' }}>

@@ -59,7 +59,7 @@ export default function ShopPage() {
           <p className="font-rajdhani text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--text-dim)]">
             Soft balance
           </p>
-          <p className="mt-2 font-orbitron text-3xl font-black tabular-nums text-cyan-100" style={{ textShadow: "0 0 20px rgba(34,211,238,0.25)" }}>
+          <p className="mt-2 font-orbitron text-3xl font-black tabular-nums text-orange-100" style={{ textShadow: "0 0 20px rgba(251,146,60,0.28)" }}>
             {coins.toLocaleString()}
           </p>
           <p className="mt-2 font-rajdhani text-sm text-[var(--text-dim)]">Coins available for boosts & cosmetics.</p>

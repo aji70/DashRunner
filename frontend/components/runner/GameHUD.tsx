@@ -35,7 +35,7 @@ function IconVolumeOff({ className }: { className?: string }) {
 }
 
 const iconBtn =
-  "pointer-events-auto flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-[var(--panel)]/95 text-cyan-200 shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:border-[var(--line-bright)] hover:text-fuchsia-100";
+  "pointer-events-auto flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-[var(--panel)]/95 text-orange-200 shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:border-[var(--line-bright)] hover:text-rose-100";
 
 interface GameHUDProps {
   score: number;
@@ -62,7 +62,7 @@ export function GameHUD({
     <div className="pointer-events-none absolute inset-0 z-10 pt-[max(0.5rem,env(safe-area-inset-top))]">
       <div className="absolute left-3 right-[5.5rem] top-3 z-20 sm:left-4 sm:right-36 sm:top-4">
         <GlassPanel className="shadow-lift">
-          <div className="grid grid-cols-2 divide-x divide-cyan-400/15">
+          <div className="grid grid-cols-2 divide-x divide-orange-400/15">
             <div className="px-3 py-2.5 sm:px-4 sm:py-3">
               <p className="font-rajdhani text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)]">
                 Score
@@ -74,7 +74,7 @@ export function GameHUD({
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 4, opacity: 0.4 }}
                   transition={{ type: "spring", stiffness: 480, damping: 28 }}
-                  className="font-orbitron text-xl font-bold tabular-nums tracking-tight text-cyan-100 sm:text-2xl"
+                  className="font-orbitron text-xl font-bold tabular-nums tracking-tight text-orange-100 sm:text-2xl"
                   style={{ textShadow: "0 0 20px rgba(34,211,238,0.5), 0 0 40px rgba(34,211,238,0.25)" }}
                 >
                   {score.toLocaleString()}
@@ -144,7 +144,7 @@ export function GameHUD({
           initial={{ opacity: 1 }}
           animate={{ opacity: 0 }}
           transition={{ delay: 4, duration: 1 }}
-          className="pointer-events-none absolute bottom-3 left-0 right-0 z-10 text-center text-xs font-rajdhani font-semibold uppercase tracking-widest text-cyan-300/60"
+          className="pointer-events-none absolute bottom-3 left-0 right-0 z-10 text-center text-xs font-rajdhani font-semibold uppercase tracking-widest text-orange-300/60"
         >
           ← SWIPE → SWITCH | ↑ JUMP | ↓ SLIDE
         </motion.div>

@@ -2,9 +2,9 @@ import { cn } from "@/lib/cn";
 
 const variants = {
   primary:
-    "border border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-600/80 via-fuchsia-700/60 to-violet-950/90 text-white shadow-[0_0_24px_rgba(232,121,249,0.2)] hover:from-fuchsia-500/90 hover:border-fuchsia-300/55",
+    "border border-rose-400/40 bg-gradient-to-br from-rose-600/80 via-rose-700/60 to-violet-950/90 text-white shadow-[0_0_24px_rgba(232,121,249,0.2)] hover:from-rose-500/90 hover:border-rose-300/55",
   secondary:
-    "border border-cyan-400/35 bg-gradient-to-br from-cyan-500/25 to-cyan-950/40 text-cyan-50 shadow-[0_0_20px_rgba(34,211,238,0.12)] hover:border-cyan-300/50 hover:from-cyan-400/35",
+    "border border-orange-400/35 bg-gradient-to-br from-orange-500/25 to-orange-950/40 text-orange-50 shadow-[0_0_20px_rgba(34,211,238,0.12)] hover:border-orange-300/50 hover:from-orange-400/35",
   ghost:
     "border border-white/[0.08] bg-white/[0.03] text-[var(--text-secondary)] hover:border-white/15 hover:bg-white/[0.06] hover:text-[var(--text-primary)]",
   danger: "border border-rose-400/35 bg-rose-950/50 text-rose-100 hover:border-rose-300/50",

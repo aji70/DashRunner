@@ -278,11 +278,11 @@ export function RacingRunnerGame() {
               <button
                 type="button"
                 onClick={handleRestartRace}
-                className="rounded-2xl border border-cyan-400/40 bg-cyan-500/20 py-3 font-orbitron text-sm font-bold uppercase tracking-[0.12em] text-cyan-50"
+                className="rounded-2xl border border-orange-400/40 bg-orange-500/20 py-3 font-orbitron text-sm font-bold uppercase tracking-[0.12em] text-orange-50"
               >
                 Retry race
               </button>
-              <button type="button" onClick={handleExitRace} className="font-rajdhani text-xs uppercase text-[var(--text-dim)] hover:text-cyan-200">
+              <button type="button" onClick={handleExitRace} className="font-rajdhani text-xs uppercase text-[var(--text-dim)] hover:text-orange-200">
                 Exit to menu
               </button>
             </div>

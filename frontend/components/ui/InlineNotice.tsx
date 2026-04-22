@@ -10,7 +10,7 @@ export function InlineNotice({
   className?: string;
 }) {
   const tones = {
-    info: "border-cyan-400/20 bg-cyan-500/[0.07] text-cyan-100/85",
+    info: "border-orange-400/20 bg-orange-500/[0.07] text-orange-100/85",
     success: "border-emerald-400/20 bg-emerald-500/[0.08] text-emerald-100/90",
     warn: "border-amber-300/25 bg-amber-400/[0.08] text-amber-50/90",
   } as const;

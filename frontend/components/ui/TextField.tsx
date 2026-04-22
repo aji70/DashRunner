@@ -13,7 +13,7 @@ export function TextField({
       </span>
       <input
         className={cn(
-          "w-full rounded-xl border border-white/[0.1] bg-black/50 px-4 py-3.5 font-mono text-sm text-[var(--text-primary)] shadow-panel-inset outline-none transition placeholder:text-[var(--text-dim)] focus:border-cyan-400/40 focus:ring-2 focus:ring-cyan-400/20",
+          "w-full rounded-xl border border-white/[0.1] bg-black/50 px-4 py-3.5 font-mono text-sm text-[var(--text-primary)] shadow-panel-inset outline-none transition placeholder:text-[var(--text-dim)] focus:border-orange-400/40 focus:ring-2 focus:ring-orange-400/20",
           inputClassName
         )}
         {...props}

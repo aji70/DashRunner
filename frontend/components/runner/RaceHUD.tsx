@@ -35,7 +35,7 @@ function IconVolumeOff({ className }: { className?: string }) {
 }
 
 const iconBtn =
-  "pointer-events-auto flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-[var(--panel)]/95 text-cyan-200 shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:border-[var(--line-bright)] hover:text-fuchsia-100";
+  "pointer-events-auto flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-[var(--panel)]/95 text-orange-200 shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:border-[var(--line-bright)] hover:text-rose-100";
 
 const SPEEDO_FALLBACK_KMH = 35;
 
@@ -55,16 +55,16 @@ export function RaceHUD({ snap, coinsCollected, phase, isMuted, onPauseToggle, o
     <div className="pointer-events-none absolute inset-0 z-10 pt-[max(0.5rem,env(safe-area-inset-top))]">
       <div className="absolute left-3 right-[5.5rem] top-3 z-20 sm:left-4 sm:right-36 sm:top-4">
         <GlassPanel className="shadow-lift">
-          <div className="grid grid-cols-2 divide-x divide-cyan-400/15 sm:grid-cols-4">
+          <div className="grid grid-cols-2 divide-x divide-orange-400/15 sm:grid-cols-4">
             <div className="px-2 py-2 sm:px-3 sm:py-2.5">
               <p className="font-rajdhani text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--text-dim)]">Lap</p>
-              <p className="font-orbitron text-lg font-bold tabular-nums text-fuchsia-100 sm:text-xl">
+              <p className="font-orbitron text-lg font-bold tabular-nums text-rose-100 sm:text-xl">
                 {snap ? `${Math.min(snap.currentLap, snap.laps)}/${snap.laps}` : "—"}
               </p>
             </div>
             <div className="px-2 py-2 sm:px-3 sm:py-2.5">
-              <p className="font-rajdhani text-[9px] font-semibold uppercase tracking-[0.18em] text-cyan-200/70">Lap time</p>
-              <p className="font-orbitron text-lg font-bold tabular-nums text-cyan-100 sm:text-xl">
+              <p className="font-rajdhani text-[9px] font-semibold uppercase tracking-[0.18em] text-orange-200/70">Lap time</p>
+              <p className="font-orbitron text-lg font-bold tabular-nums text-orange-100 sm:text-xl">
                 {snap ? formatRaceTimeMs(snap.currentLapTimeMs) : "—"}
               </p>
             </div>
@@ -82,10 +82,10 @@ export function RaceHUD({ snap, coinsCollected, phase, isMuted, onPauseToggle, o
               </div>
             </div>
           </div>
-          <div className="border-t border-cyan-400/10 px-3 py-2">
+          <div className="border-t border-orange-400/10 px-3 py-2">
             <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
               <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-fuchsia-500 to-cyan-400"
+                className="h-full rounded-full bg-gradient-to-r from-rose-500 to-orange-400"
                 style={{ width: `${progress * 100}%` }}
                 transition={{ type: "spring", stiffness: 120, damping: 20 }}
               />
@@ -131,7 +131,7 @@ export function RaceHUD({ snap, coinsCollected, phase, isMuted, onPauseToggle, o
           initial={{ opacity: 1 }}
           animate={{ opacity: 0 }}
           transition={{ delay: 4, duration: 1 }}
-          className="pointer-events-none absolute bottom-3 left-0 right-0 z-10 text-center text-xs font-rajdhani font-semibold uppercase tracking-widest text-cyan-300/60"
+          className="pointer-events-none absolute bottom-3 left-0 right-0 z-10 text-center text-xs font-rajdhani font-semibold uppercase tracking-widest text-orange-300/60"
         >
           ← swipe → lane | ↑ jump | ↓ brake
         </motion.div>

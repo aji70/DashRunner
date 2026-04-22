@@ -67,7 +67,7 @@ const NITRO_HIT_R = 22;
 const MIN_PLAYABLE_SIZE = 48;
 
 // Colors
-const COLOR_BG = "#010F10";
+const COLOR_BG = "#12100e";
 const COLOR_LANE_LINE = "rgba(0,240,255,0.08)";
 const COLOR_COIN = "#FFD700";
 const COLOR_OBSTACLE = "#1a3a3c";
@@ -536,7 +536,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           ctx.fillRect(buildingX, buildingY, width / 3, buildingHeight);
 
           // Building windows
-          ctx.fillStyle = "#00F0FF";
+          ctx.fillStyle = "#FFB347";
           for (let row = 0; row < buildingHeight / 20; row++) {
             for (let wcol = 0; wcol < 4; wcol++) {
               ctx.fillRect(
@@ -689,7 +689,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       <canvas
         ref={canvasRef}
         tabIndex={0}
-        className="touch-none block w-full h-screen cursor-none bg-[#010F10]"
+        className="touch-none block w-full h-screen cursor-none bg-[#12100e]"
         style={{ display: "block", maxHeight: "100dvh" }}
       />
     );

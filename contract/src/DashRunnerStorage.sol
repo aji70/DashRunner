@@ -48,7 +48,7 @@ abstract contract DashRunnerStorage {
     /// @notice USDC token (`IERC20`) used for character purchases and withdrawals.
     address public usdc;
 
-    /// @notice On-chain “steps” for a wallet, incremented by {DashRunner.dashStep} (campaigns / light activity).
+    /// @notice On-chain step counter per wallet; incremented by `dashStep()` (campaigns / light activity).
     mapping(address => uint64) public dashSteps;
 
     /**

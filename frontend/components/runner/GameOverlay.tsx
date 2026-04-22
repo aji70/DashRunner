@@ -77,7 +77,7 @@ export function GameOverlay({
                 DashRunner
               </h1>
 
-              <p className="mt-2 font-rajdhani text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300/70">
+              <p className="mt-2 font-rajdhani text-xs font-semibold uppercase tracking-[0.3em] text-orange-300/70">
                 Endless Neon Chase
               </p>
 
@@ -87,14 +87,14 @@ export function GameOverlay({
                 </Button>
               </motion.div>
 
-              <p className="mt-4 font-rajdhani text-[10px] uppercase tracking-widest text-cyan-200/50 sm:text-xs">
+              <p className="mt-4 font-rajdhani text-[10px] uppercase tracking-widest text-orange-200/50 sm:text-xs">
                 ← Swipe → Switch | ↑ Jump | ↓ Brake
               </p>
 
               <button
                 type="button"
                 onClick={() => router.push("/")}
-                className="mt-5 w-full text-center font-rajdhani text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)] transition hover:text-cyan-200"
+                className="mt-5 w-full text-center font-rajdhani text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)] transition hover:text-orange-200"
               >
                 Hub
               </button>
@@ -125,11 +125,11 @@ export function GameOverlay({
             className="w-full max-w-md"
           >
             <GlassPanel className="px-6 py-8 text-center shadow-lift sm:px-10 sm:py-10">
-              <p className="font-rajdhani text-[11px] font-semibold uppercase tracking-[0.35em] text-fuchsia-200/60">Hold up</p>
-              <h2 className="mt-2 font-orbitron text-3xl font-black uppercase tracking-wide text-fuchsia-100 sm:text-4xl">Paused</h2>
+              <p className="font-rajdhani text-[11px] font-semibold uppercase tracking-[0.35em] text-rose-200/60">Hold up</p>
+              <h2 className="mt-2 font-orbitron text-3xl font-black uppercase tracking-wide text-rose-100 sm:text-4xl">Paused</h2>
               <p className="mt-4 font-rajdhani text-base text-[var(--text-secondary)]">
                 Current score{" "}
-                <span className="font-orbitron text-lg font-bold tabular-nums text-cyan-100">{score.toLocaleString()}</span>
+                <span className="font-orbitron text-lg font-bold tabular-nums text-orange-100">{score.toLocaleString()}</span>
               </p>
 
               <div className="mt-8 flex flex-col gap-3">
@@ -173,7 +173,7 @@ export function GameOverlay({
                 Game over
               </h2>
 
-              <div className="my-6 h-px bg-gradient-to-r from-transparent via-cyan-400/25 to-transparent" />
+              <div className="my-6 h-px bg-gradient-to-r from-transparent via-orange-400/25 to-transparent" />
 
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <motion.div
@@ -182,7 +182,7 @@ export function GameOverlay({
                   transition={{ duration: 2, repeat: Infinity }}
                 >
                   <p className="font-rajdhani text-[10px] font-semibold uppercase tracking-widest text-[var(--text-dim)]">Run score</p>
-                  <p className="mt-1 font-orbitron text-2xl font-bold tabular-nums text-cyan-100 sm:text-3xl">{score.toLocaleString()}</p>
+                  <p className="mt-1 font-orbitron text-2xl font-bold tabular-nums text-orange-100 sm:text-3xl">{score.toLocaleString()}</p>
                 </motion.div>
                 <div className={statTile}>
                   <div className="flex items-center justify-between">

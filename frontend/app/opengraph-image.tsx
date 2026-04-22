@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
-export const alt = "DashRunner — neon endless runner for MiniPay";
+export const alt = "DashRunner — arcade street racing for MiniPay";
 
 export const size = {
   width: 1200,
@@ -22,7 +22,7 @@ export default function OpenGraphImage() {
           flexDirection: "column",
           justifyContent: "center",
           padding: 72,
-          background: "linear-gradient(125deg, #010F10 0%, #0d2830 40%, #1f0a28 100%)",
+          background: "linear-gradient(125deg, #12100e 0%, #2a1810 40%, #240808 100%)",
           fontFamily: "ui-sans-serif, system-ui, sans-serif",
         }}
       >
@@ -31,13 +31,13 @@ export default function OpenGraphImage() {
             fontSize: 86,
             fontWeight: 800,
             letterSpacing: "-0.03em",
-            color: "#f472b6",
+            color: "#FB923C",
           }}
         >
           DashRunner
         </div>
-        <div style={{ marginTop: 28, fontSize: 36, color: "rgba(207, 250, 254, 0.9)", maxWidth: 900 }}>
-          Neon endless runner on Celo — built for MiniPay
+        <div style={{ marginTop: 28, fontSize: 36, color: "rgba(255, 237, 213, 0.92)", maxWidth: 900 }}>
+          Arcade street racing on Celo — built for MiniPay
         </div>
       </div>
     ),

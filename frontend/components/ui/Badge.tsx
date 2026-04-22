@@ -11,9 +11,9 @@ export function Badge({
 }) {
   const tones = {
     neutral: "border-white/10 bg-white/[0.04] text-[var(--text-dim)]",
-    cyan: "border-cyan-400/25 bg-cyan-500/10 text-cyan-200/90",
+    cyan: "border-orange-400/25 bg-orange-500/10 text-orange-200/90",
     amber: "border-amber-300/25 bg-amber-400/10 text-amber-100/90",
-    magenta: "border-fuchsia-400/25 bg-fuchsia-500/10 text-fuchsia-100/90",
+    magenta: "border-rose-400/25 bg-rose-500/10 text-rose-100/90",
   } as const;
   return (
     <span

@@ -59,12 +59,12 @@ export function ArcadeSpeedCluster({ speedKmh, gear }: { speedKmh: number; gear:
             <p className="font-orbitron text-2xl font-black tabular-nums leading-none tracking-tight text-slate-50 sm:text-[1.65rem]">
               {speedKmh}
             </p>
-            <p className="mt-0.5 font-rajdhani text-[9px] font-semibold uppercase tracking-[0.28em] text-cyan-200/55">km/h</p>
+            <p className="mt-0.5 font-rajdhani text-[9px] font-semibold uppercase tracking-[0.28em] text-orange-200/55">km/h</p>
           </div>
         </div>
         <div className="min-w-[3.25rem] pb-0.5 text-right">
           <p className="font-rajdhani text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--text-dim)]">Gear</p>
-          <p className="font-orbitron text-3xl font-black tabular-nums leading-none text-fuchsia-200 sm:text-[2.1rem]">{gear}</p>
+          <p className="font-orbitron text-3xl font-black tabular-nums leading-none text-rose-200 sm:text-[2.1rem]">{gear}</p>
         </div>
       </div>
     </GlassPanel>

@@ -33,7 +33,7 @@ const NITRO_BOOST_MS = 2400;
 const NITRO_HIT_R = 22;
 const MIN_PLAYABLE_SIZE = 48;
 
-const COLOR_BG = "#010F10";
+const COLOR_BG = "#12100e";
 const COLOR_LANE_LINE = "rgba(0,240,255,0.08)";
 const COLOR_COIN = "#FFD700";
 const COLOR_OBSTACLE = "#1a3a3c";
@@ -259,7 +259,7 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
           const buildingX = (col * width) / 3;
           const buildingHeight = 100 + ((i * col * 13) % 60);
           ctx.fillRect(buildingX, buildingY, width / 3, buildingHeight);
-          ctx.fillStyle = "#00F0FF";
+          ctx.fillStyle = "#FFB347";
           for (let row = 0; row < buildingHeight / 20; row++) {
             for (let wcol = 0; wcol < 4; wcol++) {
               ctx.fillRect(buildingX + wcol * (width / 12) + 5, buildingY + row * 20 + 5, 8, 8);
@@ -699,7 +699,7 @@ const RacingGameCanvas = forwardRef<RacingGameCanvasHandle, RacingGameCanvasProp
       <canvas
         ref={canvasRef}
         tabIndex={0}
-        className="touch-none block h-screen w-full cursor-none bg-[#010F10]"
+        className="touch-none block h-screen w-full cursor-none bg-[#12100e]"
         style={{ display: "block", maxHeight: "100dvh" }}
       />
     );

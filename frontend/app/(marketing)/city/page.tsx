@@ -10,16 +10,16 @@ import { Badge } from "@/components/ui/Badge";
 import { InlineNotice } from "@/components/ui/InlineNotice";
 
 const routeGlow: Record<number, string> = {
-  0: "from-cyan-400/25 to-fuchsia-600/20",
+  0: "from-orange-400/25 to-rose-600/20",
   1: "from-violet-400/25 to-purple-600/20",
   2: "from-emerald-400/20 to-green-900/15",
   3: "from-green-400/25 to-emerald-800/20",
   4: "from-amber-400/25 to-orange-600/15",
   5: "from-orange-500/25 to-amber-900/20",
   6: "from-rose-400/25 to-red-900/20",
-  7: "from-cyan-400/25 to-blue-900/20",
+  7: "from-orange-400/25 to-blue-900/20",
   8: "from-sky-400/25 to-indigo-900/20",
-  9: "from-blue-400/25 to-cyan-900/20",
+  9: "from-blue-400/25 to-orange-900/20",
   10: "from-red-500/25 to-orange-950/25",
   11: "from-red-600/25 to-yellow-900/20",
   12: "from-pink-400/25 to-purple-800/20",
@@ -54,7 +54,7 @@ export default function CityPage() {
       <div className="grid gap-4 sm:grid-cols-2">
         {CITY_ROUTES.map((city, i) => {
           const active = profile.selectedCityId === city.id;
-          const glow = routeGlow[city.id] ?? "from-cyan-400/20 to-violet-950/20";
+          const glow = routeGlow[city.id] ?? "from-orange-400/20 to-violet-950/20";
           return (
             <motion.button
               key={city.id}
@@ -71,7 +71,7 @@ export default function CityPage() {
                 </Badge>
                 <h2 className="font-orbitron text-xl font-bold text-[var(--text-primary)]">{city.name}</h2>
                 <p className="mt-2 font-rajdhani text-[15px] leading-relaxed text-[var(--text-secondary)]">{city.tagline}</p>
-                <p className="mt-4 font-rajdhani text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-300/60">
+                <p className="mt-4 font-rajdhani text-[11px] font-semibold uppercase tracking-[0.2em] text-orange-300/60">
                   {active ? "● Active route" : "Tap to assign"}
                 </p>
               </GlassPanel>

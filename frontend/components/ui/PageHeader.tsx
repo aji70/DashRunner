@@ -26,7 +26,7 @@ export function PageHeader({
 
 export function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded-md border border-white/[0.12] bg-black/40 px-1.5 py-0.5 font-mono text-[12px] text-cyan-200/90">
+    <kbd className="rounded-md border border-white/[0.12] bg-black/40 px-1.5 py-0.5 font-mono text-[12px] text-orange-200/90">
       {children}
     </kbd>
   );

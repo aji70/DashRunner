@@ -22,7 +22,7 @@ export function RaceCountdownOverlay({ step }: RaceCountdownOverlayProps) {
           className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center bg-black/35 backdrop-blur-[2px]"
         >
           <span
-            className="font-orbitron text-7xl font-black tabular-nums text-cyan-100 sm:text-8xl"
+            className="font-orbitron text-7xl font-black tabular-nums text-orange-100 sm:text-8xl"
             style={{ textShadow: "0 0 40px rgba(34,211,238,0.5)" }}
           >
             {label}

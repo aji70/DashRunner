@@ -21,13 +21,13 @@ export default function LandingPage() {
       <div className="flex min-h-0 flex-1 flex-col items-stretch justify-center gap-3 py-4 sm:gap-4 sm:py-6">
         <Link
           href="/play"
-          className="mx-auto flex w-full max-w-sm items-center justify-center rounded-2xl border border-fuchsia-400/45 bg-gradient-to-br from-fuchsia-600 to-violet-950 py-5 font-orbitron text-lg font-black uppercase tracking-[0.2em] text-white shadow-neon-fuchsia transition hover:scale-[1.02] active:scale-[0.98] sm:max-w-md sm:py-6 sm:text-xl"
+          className="mx-auto flex w-full max-w-sm items-center justify-center rounded-2xl border border-rose-400/45 bg-gradient-to-br from-rose-600 to-violet-950 py-5 font-orbitron text-lg font-black uppercase tracking-[0.2em] text-white shadow-neon-fuchsia transition hover:scale-[1.02] active:scale-[0.98] sm:max-w-md sm:py-6 sm:text-xl"
         >
           Play endless
         </Link>
         <Link
           href="/play?mode=racing"
-          className="mx-auto flex w-full max-w-sm items-center justify-center rounded-2xl border border-cyan-400/40 bg-gradient-to-br from-cyan-600/90 to-slate-950 py-4 font-orbitron text-base font-bold uppercase tracking-[0.18em] text-cyan-50 shadow-[0_0_24px_rgba(34,211,238,0.18)] transition hover:scale-[1.02] active:scale-[0.98] sm:max-w-md sm:py-5 sm:text-lg"
+          className="mx-auto flex w-full max-w-sm items-center justify-center rounded-2xl border border-orange-400/40 bg-gradient-to-br from-orange-600/90 to-slate-950 py-4 font-orbitron text-base font-bold uppercase tracking-[0.18em] text-orange-50 shadow-[0_0_24px_rgba(34,211,238,0.18)] transition hover:scale-[1.02] active:scale-[0.98] sm:max-w-md sm:py-5 sm:text-lg"
         >
           Race (beta)
         </Link>
@@ -37,7 +37,7 @@ export default function LandingPage() {
         {shortcuts.map((s) => (
           <Link key={s.href} href={s.href} className="flex min-h-[2.75rem] flex-1">
             <GlassPanel hover className="flex h-full min-h-[2.75rem] w-full flex-1 items-center justify-center px-4">
-              <span className="font-orbitron text-xs font-bold uppercase tracking-[0.2em] text-cyan-100/85 sm:text-sm">
+              <span className="font-orbitron text-xs font-bold uppercase tracking-[0.2em] text-orange-100/85 sm:text-sm">
                 {s.label}
               </span>
             </GlassPanel>

@@ -3,18 +3,18 @@
  * Spacing: use `rem` for vertical rhythm between sections; use `px` inside components (padding/gaps on controls).
  */
 
-/** Page background */
-export const turboBg = "#08090C";
+/** Page background — asphalt */
+export const turboBg = "#0c0c0e";
 /** Elevated panels */
-export const turboSurface = "#0F1118";
+export const turboSurface = "#161412";
 /** Card / stat surfaces */
-export const turboCard = "#141720";
-/** Primary accent — stats, CTAs, wins */
-export const turboLime = "#C8FF00";
-/** Secondary accent — AI rival only */
-export const turboCyan = "#00E5FF";
-/** Danger / depleting meters only */
-export const turboAmber = "#FFB020";
+export const turboCard = "#1c1a18";
+/** Primary accent — racing orange / tach */
+export const turboLime = "#FF7A2E";
+/** Secondary accent — nitro / rival strip */
+export const turboCyan = "#FFB347";
+/** Danger / brake / warnings */
+export const turboAmber = "#E53935";
 
 /** Border radii: 8px / 12px / 16px */
 export const turboRadius = {

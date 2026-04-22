@@ -19,7 +19,7 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #010F10 0%, #0a2a2c 45%, #1a0a24 100%)",
+          background: "linear-gradient(135deg, #12100e 0%, #2a1410 45%, #1a0806 100%)",
           fontFamily: "ui-sans-serif, system-ui, sans-serif",
         }}
       >
@@ -36,12 +36,12 @@ export default function Icon() {
               fontSize: 220,
               fontWeight: 800,
               letterSpacing: "-0.04em",
-              color: "#22d3ee",
+              color: "#fb923c",
             }}
           >
             DR
           </div>
-          <div style={{ fontSize: 42, color: "rgba(207, 250, 254, 0.85)", fontWeight: 600 }}>DashRunner</div>
+          <div style={{ fontSize: 42, color: "rgba(255, 230, 200, 0.9)", fontWeight: 600 }}>DashRunner</div>
         </div>
       </div>
     ),

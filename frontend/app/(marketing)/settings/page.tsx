@@ -99,12 +99,12 @@ export default function SettingsPage() {
           </Button>
         </div>
 
-        <label className="flex cursor-pointer items-start gap-4 rounded-xl border border-white/[0.06] bg-black/30 p-4 transition hover:border-cyan-400/20">
+        <label className="flex cursor-pointer items-start gap-4 rounded-xl border border-white/[0.06] bg-black/30 p-4 transition hover:border-orange-400/20">
           <input
             type="checkbox"
             checked={muted}
             onChange={(e) => persistMute(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-white/20 bg-black/50 text-fuchsia-500 focus:ring-cyan-400/40"
+            className="mt-1 h-4 w-4 rounded border-white/20 bg-black/50 text-rose-500 focus:ring-orange-400/40"
           />
           <span>
             <span className="block font-orbitron text-xs font-bold uppercase tracking-wide text-[var(--text-primary)]">
@@ -125,11 +125,11 @@ export default function SettingsPage() {
           <dl className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
               <dt className="font-rajdhani text-xs text-[var(--text-dim)]">Soft currency</dt>
-              <dd className="mt-1 font-orbitron text-xl font-bold tabular-nums text-cyan-100">{profile.softCurrency}</dd>
+              <dd className="mt-1 font-orbitron text-xl font-bold tabular-nums text-orange-100">{profile.softCurrency}</dd>
             </div>
             <div>
               <dt className="font-rajdhani text-xs text-[var(--text-dim)]">Claim streak</dt>
-              <dd className="mt-1 font-orbitron text-xl font-bold tabular-nums text-fuchsia-100">{profile.claimStreak}</dd>
+              <dd className="mt-1 font-orbitron text-xl font-bold tabular-nums text-rose-100">{profile.claimStreak}</dd>
             </div>
           </dl>
         </GlassPanel>
