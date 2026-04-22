@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "@/styles/globals.css";
 import FarcasterReady from "@/components/FarcasterReady";
+import { Providers } from "./providers";
 import { minikitConfig } from "../minikit.config";
 import { fontOrbitron, fontRajdhani } from "./fonts";
 
@@ -70,8 +71,10 @@ export default function RootLayout({
         <script src="/disable-extensions.js" />
       </head>
       <body className="min-h-dvh bg-void font-sans antialiased text-[var(--text-primary)]">
-        <FarcasterReady />
-        {children}
+        <Providers>
+          <FarcasterReady />
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { cn } from "@/lib/cn";
 
 const bottomLinks = [
@@ -58,16 +59,25 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
               </div>
             </Link>
 
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex min-w-0 items-center justify-end gap-1.5 sm:gap-2">
+              <div
+                className="[&_button]:h-8 [&_button]:min-h-8 [&_button]:rounded-lg [&_button]:px-2 [&_button]:text-xs sm:[&_button]:h-9 sm:[&_button]:px-2.5"
+              >
+                <ConnectButton
+                  showBalance={false}
+                  accountStatus="address"
+                  chainStatus="icon"
+                />
+              </div>
               <Link
                 href="/play?mode=racing"
-                className="hidden min-[400px]:inline-flex rounded-lg border border-fuchsia-500/35 bg-fuchsia-950/30 px-2.5 py-1.5 font-orbitron text-[9px] font-bold uppercase tracking-[0.14em] text-fuchsia-200/90 transition hover:border-fuchsia-400/50 hover:bg-fuchsia-900/30 sm:px-3 sm:text-[10px]"
+                className="hidden min-[400px]:inline-flex shrink-0 rounded-lg border border-fuchsia-500/35 bg-fuchsia-950/30 px-2.5 py-1.5 font-orbitron text-[9px] font-bold uppercase tracking-[0.14em] text-fuchsia-200/90 transition hover:border-fuchsia-400/50 hover:bg-fuchsia-900/30 sm:px-3 sm:text-[10px]"
               >
                 Race
               </Link>
               <Link
                 href="/play?start=1"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-2.5 py-1.5 font-orbitron text-[9px] font-bold uppercase tracking-[0.12em] text-cyan-50 shadow-[0_0_20px_rgba(6,182,212,0.2)] transition hover:border-cyan-300/60 hover:bg-cyan-500/25 sm:gap-2 sm:px-3.5 sm:text-[10px]"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-2.5 py-1.5 font-orbitron text-[9px] font-bold uppercase tracking-[0.12em] text-cyan-50 shadow-[0_0_20px_rgba(6,182,212,0.2)] transition hover:border-cyan-300/60 hover:bg-cyan-500/25 sm:gap-2 sm:px-3.5 sm:text-[10px]"
               >
                 <PlayIcon className="h-3 w-3" />
                 Play
