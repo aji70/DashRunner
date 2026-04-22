@@ -61,7 +61,7 @@ export function RaceResultsOverlay({ result, onRestart }: RaceResultsOverlayProp
               Race again
             </button>
             <Link
-              href="/play"
+              href="/play?start=1"
               className="block w-full rounded-2xl border border-white/[0.1] py-3.5 text-center font-orbitron text-xs font-bold uppercase tracking-[0.15em] text-[var(--text-secondary)] transition hover:bg-white/[0.05]"
             >
               Endless run

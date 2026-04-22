@@ -99,7 +99,7 @@ export function LandingHero() {
 
             <div className="mx-auto mt-8 flex w-full max-w-md flex-col gap-3 sm:flex-row sm:justify-center md:mx-0 md:mt-9 md:max-w-lg md:justify-start">
               <Link
-                href="/play"
+                href="/play?start=1"
                 className="inline-flex min-h-[2.9rem] flex-1 items-center justify-center rounded-xl border border-rose-400/50 bg-gradient-to-r from-rose-600 to-violet-900/90 py-3 font-orbitron text-sm font-bold uppercase tracking-[0.16em] text-white shadow-lg shadow-black/40 transition hover:brightness-110 active:scale-[0.99] sm:flex-initial sm:px-8 sm:text-base"
               >
                 Play endless

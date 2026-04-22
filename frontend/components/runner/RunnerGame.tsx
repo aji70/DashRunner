@@ -19,7 +19,14 @@ const Game3DScene = dynamic(
 
 export type RunnerGameMode = "endless" | "racing";
 
-export function RunnerGame({ gameMode = "endless" }: { gameMode?: RunnerGameMode }) {
+export function RunnerGame({
+  gameMode = "endless",
+  autoStart = false,
+}: {
+  gameMode?: RunnerGameMode;
+  /** When true (from `/play?start=1`), skip the start overlay and run immediately. */
+  autoStart?: boolean;
+}) {
   if (gameMode === "racing") {
     return <RacingRunnerGame />;
   }
@@ -80,14 +87,39 @@ export function RunnerGame({ gameMode = "endless" }: { gameMode?: RunnerGameMode
     }
   }, [isMuted, phase]);
 
-  const handleStart = () => {
+  const handleStart = useCallback(() => {
     setIsNewPersonalBest(false);
     canvasRef.current?.reset();
     setScore(0);
     setCoinsCollected(0);
     canvasRef.current?.start();
     setPhase("playing");
-  };
+  }, []);
+
+  const autostartDoneRef = useRef(false);
+  useEffect(() => {
+    if (!autoStart) {
+      return undefined;
+    }
+    if (autostartDoneRef.current) {
+      return undefined;
+    }
+    autostartDoneRef.current = true;
+    const id = window.setTimeout(() => {
+      handleStart();
+      if (typeof window === "undefined") {
+        return;
+      }
+      const url = new URL(window.location.href);
+      if (url.searchParams.has("start")) {
+        url.searchParams.delete("start");
+        const qs = url.searchParams.toString();
+        const next = url.pathname + (qs ? `?${qs}` : "");
+        window.history.replaceState(null, "", next);
+      }
+    }, 50);
+    return () => window.clearTimeout(id);
+  }, [autoStart, handleStart]);
 
   const handleGameOver = () => {
     const beat = score > highScore;

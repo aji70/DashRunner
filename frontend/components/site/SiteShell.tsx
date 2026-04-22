@@ -66,7 +66,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                 Race
               </Link>
               <Link
-                href="/play"
+                href="/play?start=1"
                 className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-2.5 py-1.5 font-orbitron text-[9px] font-bold uppercase tracking-[0.12em] text-cyan-50 shadow-[0_0_20px_rgba(6,182,212,0.2)] transition hover:border-cyan-300/60 hover:bg-cyan-500/25 sm:gap-2 sm:px-3.5 sm:text-[10px]"
               >
                 <PlayIcon className="h-3 w-3" />

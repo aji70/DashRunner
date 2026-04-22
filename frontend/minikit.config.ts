@@ -23,7 +23,7 @@ export const minikitConfig = {
     iconUrl: `${ROOT_URL}/icon`,
     splashImageUrl: `${ROOT_URL}/icon`,
     splashBackgroundColor: "#12100e",
-    homeUrl: `${ROOT_URL}/play`,
+    homeUrl: `${ROOT_URL}/play?start=1`,
     primaryCategory: "games" as const,
     tags: ["minipay", "celo", "runner", "endless", "games"],
     heroImageUrl: `${ROOT_URL}/opengraph-image`,

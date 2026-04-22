@@ -147,7 +147,7 @@ export function RacingRunnerGame() {
     setCountdownStep(-1);
     setResult(null);
     setGameState(null);
-    router.push("/play");
+    router.push("/play?start=1");
   };
 
   const handlePauseToggle = () => {
