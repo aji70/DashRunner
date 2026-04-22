@@ -11,10 +11,12 @@
     "start": "node dist/server.js",
     "start:prod": "NODE_ENV=production node dist/server.js",
     "knex": "tsx ./node_modules/knex/bin/cli.js --knexfile knexfile.ts",
-    "migrate:latest": "npm run knex -- migrate:latest",
-    "migrate:rollback": "npm run knex -- migrate:rollback",
-    "migrate:make": "npm run knex -- migrate:make",
-    "seed": "npm run knex -- seed:run",
+    "migrate:latest": "tsx ./node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:latest",
+    "migrate:rollback": "tsx ./node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:rollback",
+    "migrate:make": "tsx ./node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:make",
+    "seed": "tsx ./node_modules/knex/bin/cli.js --knexfile knexfile.ts seed:run",
+    "migrate:latest:sqlite": "NODE_ENV=development tsx ./node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:latest",
+    "migrate:rollback:sqlite": "NODE_ENV=development tsx ./node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:rollback",
     "typecheck": "tsc --noEmit"
   },
   "engines": {
