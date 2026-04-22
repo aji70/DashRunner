@@ -3,7 +3,7 @@ import type { Env } from '../config/env.js';
 import { mysqlConnection } from './mysql-connection.js';
 
 export function createKnex(env: Env): Knex {
-  if (env.NODE_ENV === 'production') {
+  if (env.DB_HOST?.trim()) {
     return knex({
       client: 'mysql2',
       connection: mysqlConnection({

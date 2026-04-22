@@ -11,7 +11,7 @@ const schema = z
     LOG_LEVEL: z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
       .default('info'),
-    /** SQLite file used when NODE_ENV is development or test */
+    /** SQLite database file when DB_HOST is not set (any NODE_ENV, including production). */
     SQLITE_PATH: z.string().default('./data/dev.sqlite3'),
     DB_HOST: z.string().optional(),
     DB_PORT: z.coerce.number().int().positive().default(3306),
@@ -23,9 +23,9 @@ const schema = z
     CORS_ORIGIN: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.NODE_ENV !== 'production') return;
+    const mysql = Boolean(data.DB_HOST?.trim());
+    if (!mysql) return;
     const required: Array<[keyof typeof data, unknown]> = [
-      ['DB_HOST', data.DB_HOST],
       ['DB_USER', data.DB_USER],
       ['DB_NAME', data.DB_NAME],
     ];
@@ -34,7 +34,7 @@ const schema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: [key],
-          message: `Required when NODE_ENV is production`,
+          message: `Required when DB_HOST is set (MySQL)`,
         });
       }
     }
