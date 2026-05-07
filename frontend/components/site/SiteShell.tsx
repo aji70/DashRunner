@@ -43,10 +43,10 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       />
 
       <div className="relative z-10 flex min-h-[100dvh] flex-col pb-28 sm:pb-24">
-        <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[var(--abyss)]/85 backdrop-blur-2xl">
+        <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[var(--abyss)]/85 backdrop-blur-2xl transition-all duration-200">
           <div className="mx-auto flex h-[3.35rem] max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
-            <Link href="/" className="group flex min-w-0 items-center gap-2.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-orange-400/30 bg-gradient-to-br from-rose-600/45 to-orange-600/30 transition group-hover:border-orange-300/45">
+            <Link href="/" className="group flex min-w-0 items-center gap-2.5 transition-transform hover:scale-105">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-orange-400/30 bg-gradient-to-br from-rose-600/45 to-orange-600/30 transition group-hover:border-orange-300/45 group-hover:shadow-lg group-hover:shadow-orange-500/20">
                 <span className="font-orbitron text-[11px] font-black leading-none text-white">DR</span>
               </span>
               <div className="min-w-0 leading-tight">
@@ -71,13 +71,13 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
               </div>
               <Link
                 href="/play?mode=racing"
-                className="hidden min-[400px]:inline-flex shrink-0 rounded-lg border border-fuchsia-500/35 bg-fuchsia-950/30 px-2.5 py-1.5 font-orbitron text-[9px] font-bold uppercase tracking-[0.14em] text-fuchsia-200/90 transition hover:border-fuchsia-400/50 hover:bg-fuchsia-900/30 sm:px-3 sm:text-[10px]"
+                className="hidden min-[400px]:inline-flex shrink-0 rounded-lg border border-fuchsia-500/35 bg-fuchsia-950/30 px-2.5 py-1.5 font-orbitron text-[9px] font-bold uppercase tracking-[0.14em] text-fuchsia-200/90 transition hover:border-fuchsia-400/50 hover:bg-fuchsia-900/40 hover:shadow-lg hover:shadow-fuchsia-500/10 sm:px-3 sm:text-[10px]"
               >
-                Race
+                🏁 Race
               </Link>
               <Link
                 href="/play?start=1"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-2.5 py-1.5 font-orbitron text-[9px] font-bold uppercase tracking-[0.12em] text-cyan-50 shadow-[0_0_20px_rgba(6,182,212,0.2)] transition hover:border-cyan-300/60 hover:bg-cyan-500/25 sm:gap-2 sm:px-3.5 sm:text-[10px]"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-2.5 py-1.5 font-orbitron text-[9px] font-bold uppercase tracking-[0.12em] text-cyan-50 shadow-[0_0_20px_rgba(6,182,212,0.2)] transition hover:border-cyan-300/60 hover:bg-cyan-500/25 hover:shadow-[0_0_25px_rgba(6,182,212,0.3)] sm:gap-2 sm:px-3.5 sm:text-[10px]"
               >
                 <PlayIcon className="h-3 w-3" />
                 Play
@@ -88,30 +88,37 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
         <main className="relative mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6 sm:py-8">{children}</main>
 
-        <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/[0.06] bg-[var(--abyss)]/92 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-2xl">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/[0.06] bg-gradient-to-t from-[var(--abyss)]/95 to-[var(--abyss)]/85 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-2xl">
           <div className="mx-auto flex max-w-5xl justify-between gap-0.5 px-2 sm:gap-1 sm:px-4">
             {bottomLinks.map((l) => {
               const active = pathname === l.href;
               return (
-                <Link key={l.href} href={l.href} className="min-w-0 flex-1">
-                  <motion.span
-                    layout
-                    className={cn(
-                      "flex flex-col items-center gap-0.5 rounded-xl py-2 transition sm:flex-row sm:gap-2 sm:px-2 sm:py-2.5",
-                      active
-                        ? "bg-white/[0.07] text-rose-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-                        : "text-[var(--text-dim)] hover:bg-white/[0.04] hover:text-orange-100/85"
-                    )}
-                  >
-                    <span className="font-orbitron text-[11px] opacity-80 sm:hidden">{l.short}</span>
-                    <span className="hidden font-rajdhani text-[11px] font-semibold uppercase tracking-wide sm:inline">
-                      {l.label}
-                    </span>
-                    <span className="font-rajdhani text-[9px] font-semibold uppercase tracking-wider opacity-90 sm:hidden">
-                      {l.label}
-                    </span>
-                  </motion.span>
-                </Link>
+                <motion.div
+                  key={l.href}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="min-w-0 flex-1"
+                >
+                  <Link href={l.href} className="min-w-0">
+                    <motion.span
+                      layout
+                      className={cn(
+                        "flex flex-col items-center gap-0.5 rounded-xl py-2 transition sm:flex-row sm:gap-2 sm:px-2 sm:py-2.5",
+                        active
+                          ? "bg-gradient-to-r from-rose-500/20 to-orange-500/10 text-rose-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_20px_rgba(229,47,98,0.15)]"
+                          : "text-[var(--text-dim)] hover:bg-white/[0.06] hover:text-orange-100/85 hover:shadow-[0_0_10px_rgba(255,165,0,0.1)]"
+                      )}
+                    >
+                      <span className="font-orbitron text-[11px] opacity-80 sm:hidden">{l.short}</span>
+                      <span className="hidden font-rajdhani text-[11px] font-semibold uppercase tracking-wide sm:inline">
+                        {l.label}
+                      </span>
+                      <span className="font-rajdhani text-[9px] font-semibold uppercase tracking-wider opacity-90 sm:hidden">
+                        {l.label}
+                      </span>
+                    </motion.span>
+                  </Link>
+                </motion.div>
               );
             })}
           </div>

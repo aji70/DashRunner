@@ -35,6 +35,10 @@ lerna-debug.log*
 .env.*.local
 .env.production.local
 
+# Chaos script + secrets
+scripts/chaos.js
+scripts/.env
+
 # IDE & Editor
 .vscode/
 .idea/
