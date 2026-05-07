@@ -4,324 +4,310 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 
-const features = ["High score", "Collect coins", "Unlock runners", "Neon city upgrades"] as const;
-
-const quickLinks = [
-  { href: "/characters", label: "Runners" },
-  { href: "/shop", label: "Shop" },
-  { href: "/rewards", label: "Rewards" },
-] as const;
-
-const gameFeatures = [
-  { icon: "🏃", title: "Endless Running", desc: "Test your reflexes with infinite challenges" },
-  { icon: "🏎️", title: "Racing Mode", desc: "Compete in real-time street races" },
-  { icon: "💎", title: "Collect & Earn", desc: "Gather coins to unlock premium items" },
-  { icon: "🎨", title: "Customization", desc: "Personalize your runner and city" },
-] as const;
-
-function FeaturePill({ children }: { children: React.ReactNode }) {
+function RacingStripes() {
   return (
-    <span
-      className={cn(
-        "rounded-md border border-white/[0.1] bg-black/35 px-2.5 py-1 backdrop-blur-sm",
-        "font-rajdhani text-[10px] font-semibold uppercase tracking-wider text-white/75"
-      )}
-    >
-      {children}
-    </span>
+    <div className="absolute inset-0 z-0 overflow-hidden">
+      {[...Array(3)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute h-full w-2 bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent"
+          style={{ left: `${(i + 1) * 25}%` }}
+          animate={{ y: [0, 100] }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            delay: i * 0.3,
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
-function ControlsHint() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.6, duration: 0.4 }}
-      className="pointer-events-none absolute bottom-12 left-0 right-0 z-[1] hidden text-center sm:block"
-    >
-      <p className="font-rajdhani text-[9px] text-white/40 sm:text-[10px]">
-        <span className="text-white/55">← →</span> lanes · <span className="text-white/55">↑</span> jump ·{" "}
-        <span className="text-white/55">↓</span> brake
-      </p>
-    </motion.div>
-  );
-}
+const racingModes = [
+  { label: "Endless Runner", desc: "Survive the streets", icon: "🏃" },
+  { label: "Race Mode", desc: "Compete & Earn", icon: "🏁" },
+  { label: "NFT Garage", desc: "Collect rare cars", icon: "🏎️" },
+  { label: "Leaderboard", desc: "Global rankings", icon: "🏆" },
+];
+
+const statsData = [
+  { number: "50K+", label: "Active Racers" },
+  { number: "$2.5M", label: "Prize Pool" },
+  { number: "Web3", label: "Verified" },
+];
 
 export function LandingHero() {
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
-
   return (
-    <div className="relative space-y-0" id="top">
+    <div className="relative space-y-0 overflow-hidden">
       {/* Hero Section */}
-      <section
-        aria-label="DashRunner"
-        className="relative min-h-[min(78dvh,680px)] overflow-hidden bg-void bg-cover bg-center bg-no-repeat sm:min-h-[min(85dvh,820px)]"
-        style={{ backgroundImage: "url(/hero-dash-prime.png)" }}
-      >
-        <div
-          className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-[#0c0c0e]/88 via-[#0c0c0e]/35 to-[#0c0c0e]/90"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute inset-0 z-0 hidden bg-gradient-to-r from-[#0c0c0e]/92 via-[#0c0c0e]/50 to-[#0c0c0e]/15 md:block"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_100%_80%_at_50%_0%,rgba(0,0,0,0.1),rgba(0,0,0,0.5))] md:opacity-90"
-          aria-hidden
-        />
+      <section className="relative min-h-screen overflow-hidden bg-black">
+        {/* Background with gradient and animated stripes */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-black to-black" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(6,182,212,0.15),rgba(6,182,212,0))]" />
+          <RacingStripes />
+        </div>
 
-        {/* Corner badges */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-          className="pointer-events-none absolute left-2.5 top-3 z-[1] hidden sm:left-4 sm:top-4 sm:block"
-        >
-          <p className="font-rajdhani text-[8px] font-bold uppercase tracking-[0.2em] text-white/50 sm:text-[9px]">
-            Dash prime
-          </p>
-        </motion.div>
+        {/* Grid pattern */}
+        <div className="absolute inset-0 z-0 opacity-10">
+          <div
+            className="h-full w-full"
+            style={{
+              backgroundImage:
+                "linear-gradient(0deg, transparent 24%, rgba(6, 182, 212, 0.3) 25%, rgba(6, 182, 212, 0.3) 26%, transparent 27%, transparent 74%, rgba(6, 182, 212, 0.3) 75%, rgba(6, 182, 212, 0.3) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(6, 182, 212, 0.3) 25%, rgba(6, 182, 212, 0.3) 26%, transparent 27%, transparent 74%, rgba(6, 182, 212, 0.3) 75%, rgba(6, 182, 212, 0.3) 76%, transparent 77%, transparent)",
+              backgroundSize: "50px 50px",
+            }}
+          />
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-          className="pointer-events-none absolute right-2.5 top-2.5 z-[1] hidden items-center gap-1.5 rounded border border-white/5 bg-black/45 px-2.5 py-1.5 text-right backdrop-blur sm:right-4 sm:top-3.5 sm:flex sm:px-3"
-        >
-          <p className="font-rajdhani text-[8px] uppercase text-white/50">Score</p>
-          <p className="font-rajdhani text-sm font-bold tabular-nums text-white sm:text-base">428,900</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4, duration: 0.4 }}
-          className="pointer-events-none absolute left-2.5 top-[40%] z-[1] hidden -translate-y-1/2 sm:left-4 lg:block"
-        >
-          <div className="flex items-center gap-1 rounded border border-white/5 bg-black/45 px-2.5 py-1.5 text-amber-100/95 backdrop-blur sm:px-3">
-            <span className="text-cyan-300" aria-hidden>
-              ◆
+        {/* Content */}
+        <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 text-center">
+          {/* Top badge */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 backdrop-blur"
+          >
+            <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="font-rajdhani text-sm font-bold uppercase text-cyan-300">
+              Live Racing • Web3 Ready
             </span>
-            <span className="font-rajdhani text-sm font-bold tabular-nums">1,240</span>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        <ControlsHint />
+          {/* Main title */}
+          <motion.h1
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="max-w-4xl font-orbitron text-6xl font-black uppercase leading-tight sm:text-7xl md:text-8xl"
+          >
+            <span className="block text-white">Race</span>
+            <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 bg-clip-text text-transparent">
+              The Speed
+            </span>
+          </motion.h1>
 
-        <div className="relative z-10 flex min-h-[min(78dvh,680px)] flex-col justify-center px-4 pb-14 pt-20 sm:min-h-[min(85dvh,820px)] sm:px-6 sm:pb-20 sm:pt-24">
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-6 max-w-xl font-rajdhani text-lg text-white/70 sm:text-xl"
+          >
+            Compete globally. Earn crypto. Own your cars. Pure Web3 racing.
+          </motion.p>
+
+          {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mx-auto w-full max-w-5xl text-center md:text-left"
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center"
           >
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.4 }}
-              className="font-rajdhani text-[10px] font-bold uppercase tracking-[0.4em] text-cyan-200/80 sm:text-[11px]"
+            <Link
+              href="/play?start=1"
+              className="group relative inline-flex items-center justify-center rounded-xl border-2 border-cyan-400 bg-gradient-to-r from-cyan-600/20 to-blue-600/20 px-8 py-4 font-orbitron text-lg font-bold uppercase text-cyan-300 transition hover:from-cyan-600/40 hover:to-blue-600/40 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)]"
             >
-              Endless · Street racing
-            </motion.p>
+              <span className="relative z-10">▶ Play Now</span>
+            </Link>
+            <Link
+              href="/play?mode=racing"
+              className="group relative inline-flex items-center justify-center rounded-xl border-2 border-white/30 bg-white/5 px-8 py-4 font-orbitron text-lg font-bold uppercase text-white transition backdrop-blur hover:bg-white/10 hover:border-white/50"
+            >
+              <span className="relative z-10">🏎️ Race Mode</span>
+            </Link>
+          </motion.div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="mt-2 font-orbitron text-4xl font-black uppercase leading-[0.95] tracking-[0.06em] drop-shadow-[0_2px_24px_rgba(0,0,0,0.6)] sm:text-5xl md:text-6xl"
-            >
-              <span className="bg-gradient-to-r from-rose-200 via-amber-100 to-cyan-200 bg-clip-text text-transparent">
-                Dash
-              </span>
-              <span className="text-white/95">Runner</span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.4 }}
-              className="mx-auto mt-3 max-w-md font-rajdhani text-base leading-snug text-white/80 drop-shadow sm:text-lg md:mx-0"
-            >
-              Dash through the neon city. Never stop running.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.45, duration: 0.4 }}
-              className="mx-auto mt-3 flex max-w-xl flex-wrap justify-center gap-2 sm:mt-4 md:mx-0 md:justify-start"
-            >
-              {features.map((f) => (
-                <FeaturePill key={f}>{f}</FeaturePill>
-              ))}
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.4 }}
-              className="mx-auto mt-8 flex w-full max-w-md flex-col gap-3 sm:flex-row sm:justify-center md:mx-0 md:mt-9 md:max-w-lg md:justify-start"
-            >
-              <Link
-                href="/play?start=1"
-                className="inline-flex min-h-[2.9rem] flex-1 items-center justify-center rounded-xl border border-rose-400/50 bg-gradient-to-r from-rose-600 to-violet-900/90 py-3 font-orbitron text-sm font-bold uppercase tracking-[0.16em] text-white shadow-lg shadow-black/40 transition hover:brightness-110 active:scale-[0.99] sm:flex-initial sm:px-8 sm:text-base"
-              >
-                ▶ Play endless
-              </Link>
-              <Link
-                href="/play?mode=racing"
-                className="inline-flex min-h-[2.9rem] flex-1 items-center justify-center rounded-xl border border-amber-300/30 bg-white/[0.08] py-3 font-orbitron text-sm font-bold uppercase tracking-[0.12em] text-amber-50/95 backdrop-blur transition hover:border-amber-200/40 hover:bg-white/12 active:scale-[0.99] sm:flex-initial sm:px-6 sm:text-base"
-              >
-                🏁 Race (beta)
-              </Link>
-            </motion.div>
-
-            <motion.nav
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.4 }}
-              className="mt-7 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 md:justify-start"
-              aria-label="Quick links"
-            >
-              {quickLinks.map((q) => (
-                <Link
-                  key={q.href}
-                  href={q.href}
-                  className="font-rajdhani text-sm font-semibold uppercase tracking-wide text-white/55 drop-shadow transition hover:text-cyan-200/95"
-                >
-                  {q.label}
-                </Link>
-              ))}
-            </motion.nav>
+          {/* Floating stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-16 grid gap-8 sm:grid-cols-3"
+          >
+            {statsData.map((stat, i) => (
+              <div key={i} className="text-center">
+                <div className="font-orbitron text-3xl font-bold text-cyan-400">
+                  {stat.number}
+                </div>
+                <div className="mt-2 font-rajdhani text-sm uppercase text-white/60">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
           </motion.div>
         </div>
 
-        <p className="absolute bottom-2 left-0 right-0 z-10 text-center font-rajdhani text-[10px] font-medium uppercase tracking-[0.35em] text-white/35 sm:bottom-3">
-          Built for browser — instant play
-        </p>
+        {/* Scroll indicator */}
+        <motion.div
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute bottom-10 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center"
+        >
+          <span className="font-rajdhani text-xs uppercase text-white/50">Scroll</span>
+          <svg className="mt-2 h-5 w-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </motion.div>
       </section>
 
-      {/* Features Section */}
-      <section className="relative bg-[#0a0a0c] py-16 sm:py-20">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+      {/* Racing Modes Section */}
+      <section className="relative border-t border-cyan-500/20 bg-gradient-to-b from-black via-slate-950 to-black py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-center font-orbitron text-2xl font-bold uppercase text-white sm:text-3xl"
+            className="text-center font-orbitron text-4xl font-black uppercase text-white sm:text-5xl"
           >
-            Why Play <span className="text-cyan-300">DashRunner</span>?
+            Choose Your Race
           </motion.h2>
 
           <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-          >
-            {gameFeatures.map((feature) => (
-              <motion.div
-                key={feature.title}
-                variants={item}
-                className="group rounded-lg border border-white/[0.08] bg-white/[0.02] p-5 backdrop-blur transition hover:border-cyan-400/30 hover:bg-white/[0.05]"
-              >
-                <div className="text-3xl">{feature.icon}</div>
-                <h3 className="mt-3 font-rajdhani text-sm font-bold uppercase tracking-wide text-white">
-                  {feature.title}
-                </h3>
-                <p className="mt-2 font-rajdhani text-xs text-white/60">{feature.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="relative border-t border-white/[0.06] bg-gradient-to-b from-[#0a0a0c] to-[#050506] py-12 sm:py-16">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
             viewport={{ once: true }}
-            className="grid gap-6 sm:grid-cols-3 text-center"
+            className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
           >
-            {[
-              { value: "60 FPS", label: "Smooth Performance" },
-              { value: "∞", label: "Endless Gameplay" },
-              { value: "Web3", label: "Blockchain Ready" },
-            ].map((stat) => (
+            {racingModes.map((mode, i) => (
               <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4 }}
+                key={mode.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
                 viewport={{ once: true }}
+                whileHover={{ y: -5 }}
+                className="group relative overflow-hidden rounded-xl border border-cyan-500/30 bg-gradient-to-br from-slate-900/50 to-black/50 p-6 backdrop-blur transition hover:border-cyan-400/60"
               >
-                <p className="font-orbitron text-2xl font-bold text-cyan-300 sm:text-3xl">
-                  {stat.value}
-                </p>
-                <p className="mt-2 font-rajdhani text-xs uppercase text-white/60 tracking-wide">
-                  {stat.label}
-                </p>
+                <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/10 to-transparent opacity-0 transition group-hover:opacity-100" />
+                <div className="relative z-10">
+                  <div className="text-4xl">{mode.icon}</div>
+                  <h3 className="mt-4 font-orbitron text-lg font-bold text-white">
+                    {mode.label}
+                  </h3>
+                  <p className="mt-2 font-rajdhani text-sm text-white/60">{mode.desc}</p>
+                </div>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="relative border-t border-white/[0.06] bg-[#0a0a0c] py-16 sm:py-20">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+      {/* Web3 Features Section */}
+      <section className="relative border-t border-cyan-500/20 bg-black py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid gap-12 sm:grid-cols-2">
+            {/* Left side - Features */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="font-orbitron text-3xl font-black uppercase text-white">
+                Own Your{" "}
+                <span className="text-cyan-400">Digital Assets</span>
+              </h2>
+              <div className="mt-8 space-y-6">
+                {[
+                  { icon: "🔗", title: "Blockchain Verified", desc: "All cars are NFTs on-chain" },
+                  { icon: "💰", title: "Real Rewards", desc: "Earn crypto while racing" },
+                  { icon: "🛡️", title: "True Ownership", desc: "You control your assets" },
+                  { icon: "🌍", title: "Global Market", desc: "Trade on any DEX" },
+                ].map((feature, i) => (
+                  <motion.div
+                    key={feature.title}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    viewport={{ once: true }}
+                    className="flex gap-4"
+                  >
+                    <div className="text-2xl">{feature.icon}</div>
+                    <div>
+                      <h3 className="font-rajdhani font-bold text-white">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm text-white/60">{feature.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Right side - Stats Box */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="flex flex-col justify-center"
+            >
+              <div className="space-y-4 rounded-xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 p-8 backdrop-blur">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-orbitron text-4xl font-black text-cyan-400">
+                    1000+
+                  </span>
+                  <span className="font-rajdhani text-sm uppercase text-white/70">
+                    NFT Cars
+                  </span>
+                </div>
+
+                <div className="h-1 w-24 bg-gradient-to-r from-cyan-400 to-transparent" />
+
+                <div>
+                  <p className="font-rajdhani text-sm leading-relaxed text-white/80">
+                    Unique, tradeable NFT cars. Earn more by racing. Sell on open markets. Your assets, your rules.
+                  </p>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <span className="rounded-full bg-cyan-500/20 px-3 py-1 font-rajdhani text-xs text-cyan-300">
+                    ERC-721
+                  </span>
+                  <span className="rounded-full bg-blue-500/20 px-3 py-1 font-rajdhani text-xs text-blue-300">
+                    Celo Chain
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="relative border-t border-cyan-500/20 bg-gradient-to-b from-black to-slate-950 py-20">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-center"
           >
-            <h2 className="font-orbitron text-2xl font-bold uppercase text-white sm:text-3xl">
-              Ready to Run?
+            <h2 className="font-orbitron text-4xl font-black uppercase text-white sm:text-5xl">
+              Ready to{" "}
+              <span className="text-cyan-400">Dominate</span>?
             </h2>
-            <p className="mt-3 font-rajdhani text-white/70">
-              Jump in now and start your endless adventure
+            <p className="mt-4 font-rajdhani text-lg text-white/70">
+              Join thousands of racers. Compete. Earn. Own.
             </p>
+
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.4 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
-              className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center"
+              className="mt-8"
             >
               <Link
                 href="/play?start=1"
-                className="inline-flex items-center justify-center rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-6 py-3 font-orbitron text-sm font-bold uppercase tracking-wide text-cyan-50 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-500/25 active:scale-95"
+                className="inline-flex items-center justify-center rounded-xl border-2 border-cyan-400 bg-gradient-to-r from-cyan-600/30 to-blue-600/30 px-12 py-5 font-orbitron text-xl font-bold uppercase text-cyan-300 transition hover:from-cyan-600/50 hover:to-blue-600/50 hover:shadow-[0_0_40px_rgba(6,182,212,0.5)]"
               >
-                ▶ Play Now
-              </Link>
-              <Link
-                href="/characters"
-                className="inline-flex items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.05] px-6 py-3 font-orbitron text-sm font-bold uppercase tracking-wide text-white transition hover:bg-white/10"
-              >
-                View Runners
+                Enter The Race
               </Link>
             </motion.div>
           </motion.div>
