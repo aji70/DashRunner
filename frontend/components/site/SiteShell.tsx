@@ -86,7 +86,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="relative mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+        <main className="relative w-full flex-1">{children}</main>
 
         <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/[0.06] bg-gradient-to-t from-[var(--abyss)]/95 to-[var(--abyss)]/85 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-2xl">
           <div className="mx-auto flex max-w-5xl justify-between gap-0.5 px-2 sm:gap-1 sm:px-4">
