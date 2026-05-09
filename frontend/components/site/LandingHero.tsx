@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useEffect, useState } from "react";
 
 const fadeUp = (delay = 0) => ({
@@ -110,6 +111,7 @@ function GameModeCard({ mode, isLocked, mounted }: { mode: (typeof gameModes)[0]
 
 export function LandingHero() {
   const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -174,12 +176,12 @@ export function LandingHero() {
             <span className="block skew-x-2">Play Now</span>
           </Link>
 
-          <Link
-            href="#connect-wallet"
-            className="relative px-10 py-4 rounded-lg font-inter font-bold uppercase tracking-wider text-cyan-300 border-2 border-cyan-500 hover:border-cyan-400 hover:text-cyan-200 transition-colors duration-200 -skew-x-2 bg-transparent hover:bg-cyan-500/10"
+          <button
+            onClick={openConnectModal}
+            className="relative px-10 py-4 rounded-lg font-inter font-bold uppercase tracking-wider text-cyan-300 border-2 border-cyan-500 hover:border-cyan-400 hover:text-cyan-200 transition-colors duration-200 -skew-x-2 bg-transparent hover:bg-cyan-500/10 cursor-pointer"
           >
             <span className="block skew-x-2">Connect Wallet</span>
-          </Link>
+          </button>
         </motion.div>
       </section>
 
