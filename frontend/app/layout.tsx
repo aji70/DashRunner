@@ -66,11 +66,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${fontOrbitron.variable} ${fontRajdhani.variable}`}>
+    <html lang="en" className={`${fontOrbitron.variable} ${fontRajdhani.variable} overflow-hidden`}>
       <head>
         <script src="/disable-extensions.js" />
       </head>
-      <body className="min-h-dvh bg-void font-sans antialiased text-[var(--text-primary)]">
+      <body className="h-screen overflow-hidden bg-void font-sans antialiased text-[var(--text-primary)]">
         <Providers>
           <FarcasterReady />
           {children}

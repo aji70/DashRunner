@@ -40,17 +40,13 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             borderBottom: "1px solid rgba(0, 229, 204, 0.15)",
           }}
         >
-          {/* LEFT - Logo + Wordmark */}
-          <Link href="/" className="group flex items-center gap-3 transition-transform hover:scale-105">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-500 flex-shrink-0">
-              <span className="font-bebas text-sm font-bold text-slate-950">DR</span>
-            </div>
-            <span
-              className="hidden sm:block font-inter text-base font-bold text-white whitespace-nowrap"
-              style={{ letterSpacing: "2px" }}
-            >
-              DASH RUNNER
-            </span>
+          {/* LEFT - Logo */}
+          <Link href="/" className="group transition-transform hover:scale-105" style={{ paddingLeft: "20px" }}>
+            <img
+              src="/logo"
+              alt="Dash Runner"
+              style={{ height: "36px", width: "auto", objectFit: "contain" }}
+            />
           </Link>
 
           {/* CENTRE - Wallet + Celo */}

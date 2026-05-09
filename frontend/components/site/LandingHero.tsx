@@ -101,11 +101,11 @@ function GameModeCard({
     <motion.div
       whileHover={mounted && !isLocked ? { y: -4 } : {}}
       whileTap={mounted && !isLocked ? { y: -2 } : {}}
-      className="flex-1 min-w-[160px]"
+      className="flex-1 min-w-[160px] h-full"
     >
       <Link href={isLocked ? "#" : mode.href}>
         <div
-          className="relative h-[120px] flex flex-col items-center justify-center gap-1.5 transition-all duration-200 group cursor-pointer"
+          className="relative h-full w-full flex flex-col items-center justify-center gap-1.5 transition-all duration-200 group cursor-pointer"
           style={{
             backgroundColor: mounted && !isLocked ? "rgba(5, 8, 25, 0.75)" : "rgba(5, 8, 25, 0.5)",
             border: mounted && !isLocked ? "1px solid rgba(0, 229, 204, 0.2)" : "1px solid rgba(0, 229, 204, 0.1)",
@@ -174,7 +174,7 @@ export function LandingHero() {
   }, []);
 
   return (
-    <div className="relative w-full min-h-screen overflow-hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8">
+    <div className="relative w-full overflow-hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8" style={{ height: "calc(100vh - 64px - 120px)" }}>
       {/* Full viewport background image */}
       <Image
         src="/hero-dash-prime.png"
@@ -190,8 +190,15 @@ export function LandingHero() {
       {/* Additional dark overlay for extra contrast */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/50 to-slate-900/60" />
 
-      {/* Content - centered both vertically and horizontally */}
-      <section className="relative z-10 w-full h-screen flex flex-col items-center justify-center px-4 text-center pb-20">
+      {/* Content - positioned higher */}
+      <section
+        className="relative z-10 w-full flex flex-col items-center px-4 text-center"
+        style={{
+          height: "100%",
+          justifyContent: "flex-start",
+          paddingTop: "12vh",
+        }}
+      >
         {/* Badge */}
         <motion.div
           {...fadeUp(0.1)}
@@ -219,31 +226,52 @@ export function LandingHero() {
           Race. Dodge. Survive. Score forever on-chain.
         </motion.p>
 
-        {/* CTA Buttons */}
-        <motion.div
-          {...fadeUp(0.4)}
-          className="mt-10 flex flex-col sm:flex-row items-center gap-6"
-        >
-          <Link
-            href="/play?start=1"
-            className="group relative px-10 py-4 rounded-lg font-inter font-bold uppercase tracking-wider text-white bg-cyan-500 hover:bg-cyan-400 transition-colors duration-200 -skew-x-2 shadow-[0_8px_16px_rgba(0,229,204,0.3)] hover:shadow-[0_12px_24px_rgba(0,229,204,0.5)]"
+        {/* CTA Buttons or Connected Address */}
+        {!isConnected ? (
+          <motion.div
+            {...fadeUp(0.4)}
+            className="mt-10 flex flex-col sm:flex-row items-center gap-6"
           >
-            <span className="block skew-x-2">Play Now</span>
-          </Link>
+            <Link
+              href="/play?start=1"
+              className="group relative px-10 py-4 rounded-lg font-inter font-bold uppercase tracking-wider text-white bg-cyan-500 hover:bg-cyan-400 transition-colors duration-200 -skew-x-2 shadow-[0_8px_16px_rgba(0,229,204,0.3)] hover:shadow-[0_12px_24px_rgba(0,229,204,0.5)]"
+            >
+              <span className="block skew-x-2">Play Now</span>
+            </Link>
 
-          <button
-            onClick={openConnectModal}
-            className="relative px-10 py-4 rounded-lg font-inter font-bold uppercase tracking-wider text-cyan-300 border-2 border-cyan-500 hover:border-cyan-400 hover:text-cyan-200 transition-colors duration-200 -skew-x-2 bg-transparent hover:bg-cyan-500/10 cursor-pointer"
+            <button
+              onClick={openConnectModal}
+              className="relative px-10 py-4 rounded-lg font-inter font-bold uppercase tracking-wider text-cyan-300 border-2 border-cyan-500 hover:border-cyan-400 hover:text-cyan-200 transition-colors duration-200 -skew-x-2 bg-transparent hover:bg-cyan-500/10 cursor-pointer"
+            >
+              <span className="block skew-x-2">Connect Wallet</span>
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div
+            {...fadeUp(0.4)}
+            className="mt-10 inline-flex items-center gap-2 font-inter text-sm"
+            style={{
+              background: "rgba(0,229,204,0.1)",
+              border: "1px solid #00E5CC",
+              color: "#00E5CC",
+              borderRadius: "999px",
+              padding: "8px 20px",
+              fontSize: "13px",
+            }}
           >
-            <span className="block skew-x-2">Connect Wallet</span>
-          </button>
-        </motion.div>
+            <span>✓ Racing as</span>
+            <span className="font-mono font-bold">
+              {typeof window !== "undefined" && mounted ? "0x..." : "connected"}
+            </span>
+          </motion.div>
+        )}
       </section>
 
-      {/* Game Modes Row - anchored to bottom like HUD */}
+      {/* Game Modes Row - fixed to bottom */}
       <div
-        className="absolute bottom-0 left-0 right-0 z-20 w-full"
+        className="fixed bottom-0 left-0 right-0 z-50 w-full"
         style={{
+          height: "120px",
           background: "linear-gradient(to bottom, transparent, rgba(5,8,25,0.6))",
           pointerEvents: mounted && !isConnected ? "none" : "auto",
         }}
@@ -251,7 +279,7 @@ export function LandingHero() {
         {/* Locked overlay */}
         {mounted && !isConnected && (
           <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-            <div className="text-center pt-6">
+            <div className="text-center">
               <p className="font-inter text-lg font-semibold tracking-wider" style={{ color: "#00E5CC" }}>
                 🔗 Connect wallet to access game modes
               </p>
@@ -261,7 +289,7 @@ export function LandingHero() {
 
         {/* Cards container */}
         <div
-          className="w-full flex gap-0.5 px-0"
+          className="w-full h-full flex gap-0.5 px-0"
           style={{
             filter: mounted && !isConnected ? "blur(3px)" : "none",
             opacity: mounted && !isConnected ? 0.5 : 1,
@@ -276,7 +304,7 @@ export function LandingHero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.5 + idx * 0.05 }}
-              className="flex-1 min-w-[160px]"
+              className="flex-1 min-w-[160px] h-full"
             >
               <GameModeCard mode={mode} isLocked={!isConnected} mounted={mounted} />
             </motion.div>
