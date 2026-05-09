@@ -120,18 +120,21 @@ export function RunnerGame({
     return () => window.clearTimeout(id);
   }, [autoStart, handleStart]);
 
-  const handleGameOver = () => {
-    const beat = score > highScore;
-    setIsNewPersonalBest(beat);
-    // Don't change phase to "dead" - keep playing
-    // setPhase("dead");
+  const handleGameOver = useCallback(() => {
+    const currentScore = score;
+    const beat = currentScore > highScore;
     if (beat) {
-      setHighScore(score);
+      setHighScore(currentScore);
       if (typeof window !== "undefined") {
-        localStorage.setItem("runner_highscore", score.toString());
+        localStorage.setItem("runner_highscore", currentScore.toString());
       }
     }
-  };
+    // Auto-restart: reset and continue playing so phase never freezes
+    canvasRef.current?.reset();
+    setScore(0);
+    setCoinsCollected(0);
+    canvasRef.current?.start();
+  }, [score, highScore]);
 
   const handleRestart = () => {
     handleStart();
