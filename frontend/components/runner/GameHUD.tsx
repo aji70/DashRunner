@@ -1,8 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import type { GamePhase } from "@/types/runner";
-import { cn } from "@/lib/cn";
 import { ArcadeSpeedCluster } from "./ArcadeSpeedCluster";
 
 function IconPause({ className }: { className?: string }) {
@@ -29,16 +28,6 @@ function IconVolumeOff({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <path d="M11 5 6 9H3v6h3l5 4V5Z" fill="currentColor" stroke="none" />
       <path d="m17 9 5 5M22 9l-5 5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function CeloIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <text x="12" y="16" textAnchor="middle" fontSize="18" fontWeight="bold" fill="#F5C518">
-        $
-      </text>
     </svg>
   );
 }

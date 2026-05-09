@@ -39,7 +39,6 @@ export function RunnerGame({
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [playerLane, setPlayerLane] = useState<0 | 1 | 2>(1);
   const [isJumping, setIsJumping] = useState(false);
-  const [isSliding, setIsSliding] = useState(false);
   const [cityId, setCityId] = useState(0);
   const [characterTint, setCharacterTint] = useState<string | undefined>(undefined);
   const [isNewPersonalBest, setIsNewPersonalBest] = useState(false);
@@ -228,7 +227,7 @@ export function RunnerGame({
           onGameStateUpdate={setGameState}
           onPlayerLaneChange={setPlayerLane}
           onJumpChange={setIsJumping}
-          onSlideChange={setIsSliding}
+          onSlideChange={() => {}}
         />
       </div>
 
@@ -236,11 +235,9 @@ export function RunnerGame({
       {gameState && phase !== "idle" && (
         <ErrorBoundary>
           <Game3DScene
-            gameState={gameState}
             catPosition={Math.max(0, gameState.distance / 140)}
             playerLane={playerLane}
             jumping={isJumping}
-            sliding={isSliding}
             cityId={cityId}
             characterTint={characterTint}
             currentSpeed={speedKmh}

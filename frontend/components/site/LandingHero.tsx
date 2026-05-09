@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useEffect, useState, useRef } from "react";
@@ -192,7 +192,7 @@ function CarouselCard({
   );
 }
 
-function Carousel({ isLocked, mounted }: { isLocked: boolean; mounted: boolean }) {
+function Carousel({ isLocked }: { isLocked: boolean }) {
   const [activeIndex, setActiveIndex] = useState(2); // QUICK RACE is at index 2
   const [isMobile, setIsMobile] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -254,11 +254,11 @@ function Carousel({ isLocked, mounted }: { isLocked: boolean; mounted: boolean }
 
   // Handle touch swipe on mobile
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.clientX || e.touches[0].clientX;
+    touchStartX.current = e.touches[0]?.clientX || 0;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    touchEndX.current = e.clientX || e.changedTouches[0].clientX;
+    touchEndX.current = e.changedTouches[0]?.clientX || 0;
     const diff = touchStartX.current - touchEndX.current;
     if (Math.abs(diff) > 40) { // 40px minimum swipe distance
       if (diff > 0) {
@@ -485,7 +485,7 @@ export function LandingHero() {
         )}
 
         {/* Carousel */}
-        {mounted && <Carousel isLocked={!isConnected} mounted={mounted} />}
+        {mounted && <Carousel isLocked={!isConnected} />}
       </section>
 
       <style jsx>{`

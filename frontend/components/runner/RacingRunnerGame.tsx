@@ -39,7 +39,6 @@ export function RacingRunnerGame() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [playerLane, setPlayerLane] = useState<0 | 1 | 2>(1);
   const [isJumping, setIsJumping] = useState(false);
-  const [isSliding, setIsSliding] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
   const canvasRef = useRef<RacingGameCanvasHandle>(null);
@@ -230,7 +229,7 @@ export function RacingRunnerGame() {
           onGameStateUpdate={setGameState}
           onPlayerLaneChange={setPlayerLane}
           onJumpChange={setIsJumping}
-          onSlideChange={setIsSliding}
+          onSlideChange={() => {}}
           onHudTick={onHudTick}
         />
       </div>
@@ -238,11 +237,9 @@ export function RacingRunnerGame() {
       {show3D && (
         <ErrorBoundary>
           <Game3DScene
-            gameState={gameState!}
             catPosition={Math.max(0, gameState!.distance / 140)}
             playerLane={playerLane}
             jumping={isJumping}
-            sliding={isSliding}
             cityId={cityId}
             characterTint={characterTint}
           />
