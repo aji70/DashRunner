@@ -21,7 +21,6 @@ function CeloIcon({ className }: { className?: string }) {
 }
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
-
   return (
     <div className="relative isolate min-h-[100dvh] bg-slate-950 text-white">
       {/* Background image */}
@@ -32,46 +31,66 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       />
 
       <div className="relative z-10 flex min-h-[100dvh] flex-col">
-        {/* Top Navigation Bar - simplified */}
+        {/* Top Navigation Bar - redesigned */}
         <header
-          className="sticky top-0 z-40 border-b border-slate-700/30"
+          className="sticky top-0 z-40 w-full flex items-center justify-between px-6 h-16"
           style={{
-            backgroundColor: "rgba(5, 5, 20, 0.75)",
-            backdropFilter: "blur(12px)",
+            backgroundColor: "rgba(5, 8, 25, 0.9)",
+            backdropFilter: "blur(16px)",
+            borderBottom: "1px solid rgba(0, 229, 204, 0.15)",
           }}
         >
-          <div className="mx-auto h-16 px-4 sm:px-6 max-w-7xl flex items-center justify-between gap-4">
-            {/* Logo left */}
-            <Link href="/" className="group flex items-center gap-2 transition-transform hover:scale-105">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600">
-                <span className="font-bebas text-lg font-bold text-slate-950">DR</span>
-              </div>
-              <span className="hidden sm:block font-bebas text-xl font-bold text-white">DASH RUNNER</span>
-            </Link>
+          {/* LEFT - Logo + Wordmark */}
+          <Link href="/" className="group flex items-center gap-3 transition-transform hover:scale-105">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-500 flex-shrink-0">
+              <span className="font-bebas text-sm font-bold text-slate-950">DR</span>
+            </div>
+            <span
+              className="hidden sm:block font-inter text-base font-bold text-white whitespace-nowrap"
+              style={{ letterSpacing: "2px" }}
+            >
+              DASH RUNNER
+            </span>
+          </Link>
 
-            {/* Wallet + Celo centre */}
-            <div className="flex-1 flex items-center justify-center gap-2">
-              <div className="[&_button]:h-9 [&_button]:text-xs [&_button]:rounded-lg [&_button]:px-3">
+          {/* CENTRE - Wallet + Celo */}
+          <div className="flex-1 flex items-center justify-center">
+            <div
+              className="flex items-center gap-2"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: "999px",
+                padding: "6px 14px",
+                fontSize: "13px",
+                color: "white",
+              }}
+            >
+              <CeloIcon className="w-4 h-4 flex-shrink-0" />
+              <div className="[&_button]:text-xs [&_button]:h-auto [&_button]:px-0 [&_button]:py-0 [&_button]:bg-transparent [&_button]:border-0 [&_button]:text-white [&_button]:font-inter">
                 <ConnectButton
                   showBalance={false}
                   accountStatus="address"
-                  chainStatus="icon"
+                  chainStatus="none"
                 />
               </div>
-              <div className="hidden sm:flex items-center gap-1">
-                <CeloIcon className="w-5 h-5" />
-              </div>
             </div>
-
-            {/* Play button right */}
-            <Link
-              href="/play?start=1"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-inter font-bold uppercase tracking-wider text-slate-950 bg-cyan-500 hover:bg-cyan-400 transition-colors duration-200 text-sm shadow-[0_0_20px_rgba(0,229,204,0.3)]"
-            >
-              <PlayIcon className="w-4 h-4" />
-              <span className="hidden sm:inline">Play</span>
-            </Link>
           </div>
+
+          {/* RIGHT - Play Button */}
+          <Link
+            href="/play?start=1"
+            className="flex items-center gap-2 font-inter font-black uppercase tracking-wider text-slate-950 ml-6 transition-all duration-200 hover:opacity-90 flex-shrink-0"
+            style={{
+              background: "#00E5CC",
+              padding: "10px 28px",
+              clipPath: "polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%)",
+              fontSize: "13px",
+            }}
+          >
+            <PlayIcon className="w-4 h-4" />
+            <span className="hidden sm:inline">Play</span>
+          </Link>
         </header>
 
         {/* Main content */}
