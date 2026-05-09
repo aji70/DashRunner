@@ -1,0 +1,4 @@
+- [ ] Rewrite frontend/components/site/LandingHero.tsx to a cleaner, game-first web3 endless driver home (reduce sections/text)
+- [ ] Keep existing neon/web3 vibe and core CTAs to /play?start=1 and /play?mode=racing
+- [ ] Ensure Tailwind/Next/Framer Motion usage remains valid
+- [ ] Build/test frontend to confirm no compile errors
