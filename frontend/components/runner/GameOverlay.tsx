@@ -145,7 +145,7 @@ export function GameOverlay({
         </motion.div>
       )}
 
-      {phase === "dead" && (
+      {false && phase === "dead" && (
         <motion.div
           key="game-over-screen"
           initial={{ opacity: 0 }}
