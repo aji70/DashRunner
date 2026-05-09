@@ -1,18 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-
-const bottomLinks = [
-  { href: "/", label: "Home", icon: "⌂" },
-  { href: "/characters", label: "Runners", icon: "◎" },
-  { href: "/city", label: "City", icon: "▣" },
-  { href: "/shop", label: "Shop", icon: "◆" },
-  { href: "/rewards", label: "Rewards", icon: "✦" },
-  { href: "/settings", label: "Settings", icon: "⚙" },
-] as const;
 
 function PlayIcon({ className }: { className?: string }) {
   return (
@@ -32,21 +21,17 @@ function CeloIcon({ className }: { className?: string }) {
 }
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isHome = pathname === "/";
 
   return (
     <div className="relative isolate min-h-[100dvh] bg-slate-950 text-white">
-      {/* Background - hidden on home as it's covered by hero */}
-      {!isHome && (
-        <div
-          aria-hidden
-          className="pointer-events-none fixed inset-0 z-0 bg-slate-900 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url(/background.jpg)" }}
-        />
-      )}
+      {/* Background image */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-0 bg-slate-900 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url(/background.jpg)" }}
+      />
 
-      <div className="relative z-10 flex min-h-[100dvh] flex-col pb-24 sm:pb-20">
+      <div className="relative z-10 flex min-h-[100dvh] flex-col">
         {/* Top Navigation Bar - simplified */}
         <header
           className="sticky top-0 z-40 border-b border-slate-700/30"
@@ -91,54 +76,6 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
         {/* Main content */}
         <main className="relative w-full flex-1">{children}</main>
-
-        {/* Bottom Navigation Bar - Brûler-style boxes */}
-        <nav
-          className="fixed bottom-0 left-0 right-0 z-40 w-full"
-          style={{
-            borderTop: "1px solid rgba(0, 229, 204, 0.2)",
-            backgroundColor: "#0d0d1a",
-          }}
-        >
-          <div className="w-full h-20 flex items-center justify-between gap-1 px-2 sm:px-4">
-            {bottomLinks.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <motion.div
-                  key={link.href}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex-1 h-14"
-                >
-                  <Link
-                    href={link.href}
-                    className="w-full h-full flex flex-col items-center justify-center gap-1 transition-all duration-150"
-                    style={{
-                      backgroundColor: isActive ? "#00E5CC20" : "transparent",
-                      border: `1px solid ${isActive ? "#00E5CC" : "rgba(0, 229, 204, 0.3)"}`,
-                      borderLeft: isActive ? "3px solid #00E5CC" : "1px solid rgba(0, 229, 204, 0.3)",
-                      clipPath: "polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%)",
-                      boxShadow: isActive ? "0 -2px 12px rgba(0, 229, 204, 0.4)" : "none",
-                    }}
-                  >
-                    <span
-                      className="text-lg sm:text-xl"
-                      style={{ color: isActive ? "#00E5CC" : "rgba(255,255,255,0.5)" }}
-                    >
-                      {link.icon}
-                    </span>
-                    <span
-                      className="text-[11px] font-inter font-semibold uppercase tracking-wide"
-                      style={{ color: isActive ? "#00E5CC" : "rgba(255,255,255,0.5)" }}
-                    >
-                      {link.label}
-                    </span>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-        </nav>
       </div>
 
       <style jsx>{`

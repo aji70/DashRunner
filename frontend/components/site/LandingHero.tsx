@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useAccount } from "wagmi";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
@@ -10,9 +11,107 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.6, delay, ease: "easeOut" as const },
 });
 
-export function LandingHero() {
+const gameModes = [
+  {
+    icon: "🏁",
+    label: "Quick Race",
+    subtitle: "Jump in & race now",
+    href: "/play?mode=quick",
+  },
+  {
+    icon: "🗺️",
+    label: "Story Mode",
+    subtitle: "Follow the campaign",
+    href: "/play?mode=story",
+  },
+  {
+    icon: "🏆",
+    label: "Leaderboard",
+    subtitle: "Top racers on-chain",
+    href: "/leaderboard",
+  },
+  {
+    icon: "🚗",
+    label: "My Garage",
+    subtitle: "Your cars & upgrades",
+    href: "/characters",
+  },
+  {
+    icon: "🏙️",
+    label: "The City",
+    subtitle: "Explore the open world",
+    href: "/city",
+  },
+  {
+    icon: "🛒",
+    label: "Shop",
+    subtitle: "Gear, NFTs & boosts",
+    href: "/shop",
+  },
+];
+
+function GameModeCard({ mode, isLocked }: { mode: (typeof gameModes)[0]; isLocked: boolean }) {
   return (
-    <div className="relative w-full h-screen overflow-hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8">
+    <motion.div
+      whileHover={!isLocked ? { scale: 1.05 } : {}}
+      whileTap={!isLocked ? { scale: 0.98 } : {}}
+      className="flex-shrink-0 scroll-snap-align-start"
+      style={{
+        scrollSnapAlign: "start",
+      }}
+    >
+      <Link href={isLocked ? "#" : mode.href}>
+        <div
+          className="relative w-44 h-28 flex flex-col items-center justify-center gap-2 transition-all duration-200 cursor-pointer group"
+          style={{
+            backgroundColor: "rgba(5, 8, 25, 0.85)",
+            border: "1px solid rgba(0, 229, 204, 0.25)",
+            clipPath: "polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%)",
+            boxShadow: "none",
+          }}
+          onMouseEnter={(e) => {
+            if (!isLocked) {
+              e.currentTarget.style.backgroundColor = "rgba(0, 229, 204, 0.12)";
+              e.currentTarget.style.borderColor = "rgba(0, 229, 204, 0.7)";
+              e.currentTarget.style.boxShadow = "0 -3px 16px rgba(0, 229, 204, 0.35)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isLocked) {
+              e.currentTarget.style.backgroundColor = "rgba(5, 8, 25, 0.85)";
+              e.currentTarget.style.borderColor = "rgba(0, 229, 204, 0.25)";
+              e.currentTarget.style.boxShadow = "none";
+            }
+          }}
+        >
+          <span className="text-3xl" style={{ color: isLocked ? "rgba(0,229,204,0.3)" : "#00E5CC" }}>
+            {mode.icon}
+          </span>
+          <span
+            className="text-xs font-inter font-bold uppercase tracking-wider text-center"
+            style={{ color: isLocked ? "rgba(255,255,255,0.2)" : "white" }}
+          >
+            {mode.label}
+          </span>
+          <span
+            className="text-[10px] font-inter text-center leading-tight"
+            style={{
+              color: isLocked ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.45)",
+            }}
+          >
+            {mode.subtitle}
+          </span>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
+export function LandingHero() {
+  const { isConnected } = useAccount();
+
+  return (
+    <div className="relative w-full min-h-screen overflow-hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8 pb-12">
       {/* Full viewport background image */}
       <Image
         src="/hero-dash-prime.png"
@@ -29,7 +128,7 @@ export function LandingHero() {
       <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-900/50 to-slate-900/60" />
 
       {/* Content - centered both vertically and horizontally */}
-      <section className="relative z-10 w-full h-full flex flex-col items-center justify-center px-4 text-center">
+      <section className="relative z-10 w-full h-screen flex flex-col items-center justify-center px-4 text-center">
         {/* Badge */}
         <motion.div
           {...fadeUp(0.1)}
@@ -78,6 +177,53 @@ export function LandingHero() {
         </motion.div>
       </section>
 
+      {/* Game Modes Row - scrollable */}
+      <motion.div
+        {...fadeUp(0.5)}
+        className="relative z-10 px-4 sm:px-6 py-8"
+      >
+        {/* Locked overlay */}
+        {!isConnected && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+            <div className="text-center">
+              <p className="font-inter text-lg font-semibold tracking-wider" style={{ color: "#00E5CC" }}>
+                🔗 Connect wallet to access game modes
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Cards container */}
+        <div
+          className="mx-auto max-w-7xl"
+          style={{
+            filter: !isConnected ? "blur(4px)" : "none",
+            opacity: !isConnected ? 0.4 : 1,
+            pointerEvents: !isConnected ? "none" : "auto",
+            transition: "filter 0.3s ease, opacity 0.3s ease",
+          }}
+        >
+          <div
+            className="flex gap-3 overflow-x-auto px-4 py-4"
+            style={{
+              scrollSnapType: "x mandatory",
+              scrollBehavior: "smooth",
+            }}
+          >
+            {gameModes.map((mode, idx) => (
+              <motion.div
+                key={mode.href}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 + idx * 0.05 }}
+              >
+                <GameModeCard mode={mode} isLocked={!isConnected} />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
 
@@ -87,6 +233,15 @@ export function LandingHero() {
 
         .font-inter {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Hide scrollbar */
+        div[style*="scrollSnapType"] {
+          scrollbar-width: none;
+        }
+
+        div[style*="scrollSnapType"]::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
     </div>
