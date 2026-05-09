@@ -59,9 +59,9 @@ export function GameHUD({
       <div
         className="absolute left-0 right-0 top-0 z-20 w-full px-4 py-3 sm:px-6 sm:py-4"
         style={{
-          backgroundColor: "rgba(5, 8, 25, 0.85)",
-          backdropFilter: "blur(8px)",
-          borderBottom: "1px solid rgba(0, 229, 204, 0.1)",
+          backgroundColor: "rgba(5, 8, 25, 0.9)",
+          backdropFilter: "blur(16px)",
+          borderBottom: "1px solid rgba(0, 229, 204, 0.15)",
         }}
       >
         <div className="mx-auto max-w-7xl flex items-center justify-between gap-4">
