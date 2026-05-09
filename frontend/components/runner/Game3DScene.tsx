@@ -228,7 +228,7 @@ function GameScene({
 
         const lanes = [-3, 0, 3];
         tc.position.x = lanes[Math.floor(Math.random() * lanes.length)];
-        tc.position.z = -(200 + i * 35);
+        tc.position.z = -(50 + i * 35);
 
         const box = new THREE.Box3().setFromObject(tc);
         tc.position.y = -box.min.y;
@@ -284,7 +284,7 @@ function GameScene({
     for (let i = 0; i < 16; i++) {
       const p = createPedestrian();
       const side = i % 2 === 0 ? -10 : 10;
-      p.position.set(side + (Math.random() * 3 - 1.5), 0, -(300 + i * 18));
+      p.position.set(side + (Math.random() * 3 - 1.5), 0, -(80 + i * 18));
       scene.add(p);
       pedestriansRef.current.push(p);
     }
@@ -292,7 +292,7 @@ function GameScene({
     for (let i = 0; i < 8; i++) {
       const bench = createBench();
       const side = i % 2 === 0 ? -9 : 9;
-      bench.position.set(side, 0, -(320 + i * 30));
+      bench.position.set(side, 0, -(100 + i * 30));
       scene.add(bench);
       pedestriansRef.current.push(bench);
     }

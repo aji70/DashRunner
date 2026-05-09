@@ -123,7 +123,8 @@ export function RunnerGame({
   const handleGameOver = () => {
     const beat = score > highScore;
     setIsNewPersonalBest(beat);
-    setPhase("dead");
+    // Don't change phase to "dead" - keep playing
+    // setPhase("dead");
     if (beat) {
       setHighScore(score);
       if (typeof window !== "undefined") {
@@ -189,16 +190,13 @@ export function RunnerGame({
   }, [gameState, phase]);
 
   const dispatchRunnerAction = useCallback((dir: SwipeDirection) => {
-    const mappedDir = dir === "left" ? "right" : dir === "right" ? "left" : dir;
-    canvasRef.current?.dispatchAction(mappedDir);
+    canvasRef.current?.dispatchAction(dir);
   }, []);
 
   useSwipeGesture(
     gameSurfaceRef,
     (dir) => {
-      if (phase === "playing") {
-        dispatchRunnerAction(dir);
-      }
+      dispatchRunnerAction(dir);
     },
     18
   );
