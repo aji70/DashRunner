@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
@@ -13,19 +13,8 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.6, delay, ease: "easeOut" as const },
 });
 
-// Game mode cards with proper icon definitions
+// Game mode cards - reordered so QUICK RACE is center
 const gameModes = [
-  {
-    id: "quick-race",
-    label: "Quick Race",
-    subtitle: "Jump in & race now",
-    href: "/play?mode=quick",
-    icon: (props: any) => (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-        <path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" />
-      </svg>
-    ),
-  },
   {
     id: "story-mode",
     label: "Story Mode",
@@ -45,6 +34,17 @@ const gameModes = [
     icon: (props: any) => (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
         <path d="M12 15v7M6 15v7M18 15v7M6 8h.01M6 4h.01M12 8h.01M12 4h.01M18 8h.01M18 4h.01" />
+      </svg>
+    ),
+  },
+  {
+    id: "quick-race",
+    label: "Quick Race",
+    subtitle: "Jump in & race now",
+    href: "/play?mode=quick",
+    icon: (props: any) => (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+        <path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" />
       </svg>
     ),
   },
@@ -86,80 +86,211 @@ const gameModes = [
   },
 ];
 
-function GameModeCard({
+function CarouselCard({
   mode,
-  isLocked,
-  mounted,
+  isCenter,
+  onClick,
+  isMobile,
 }: {
   mode: (typeof gameModes)[0];
-  isLocked: boolean;
-  mounted: boolean;
+  isCenter: boolean;
+  onClick: () => void;
+  isMobile: boolean;
 }) {
   const Icon = mode.icon;
+  const cardWidth = isCenter ? 200 : 180;
+  const cardHeight = isCenter ? 110 : 100;
+  const iconSize = isCenter ? 28 : 22;
+  const labelSize = isCenter ? 15 : 12;
+  const showSubtitle = isCenter;
 
   return (
     <motion.div
-      whileHover={mounted && !isLocked ? { y: -4 } : {}}
-      whileTap={mounted && !isLocked ? { y: -2 } : {}}
-      className="flex-1 min-w-[160px] h-full"
+      animate={{
+        scale: isCenter ? 1 : 0.85,
+        opacity: isCenter ? 1 : 0.5,
+      }}
+      transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+      onClick={onClick}
+      className="flex-shrink-0 cursor-pointer"
     >
-      <Link href={isLocked ? "#" : mode.href}>
-        <div
-          className="relative h-full w-full flex flex-col items-center justify-center gap-1.5 transition-all duration-200 group cursor-pointer"
+      <div
+        className="relative flex flex-col items-center justify-center gap-1.5 transition-all duration-200"
+        style={{
+          width: `${cardWidth}px`,
+          height: `${cardHeight}px`,
+          backgroundColor: "rgba(5, 8, 25, 0.85)",
+          border: "1px solid rgba(0, 229, 204, 0.2)",
+          clipPath: "polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%)",
+          filter: isCenter ? "none" : "blur(1px)",
+          boxShadow: isCenter ? "0 -4px 20px rgba(0, 229, 204, 0.5), inset 3px 0 0 #00E5CC" : "none",
+        }}
+      >
+        {/* Icon */}
+        <Icon
+          className="flex-shrink-0"
           style={{
-            backgroundColor: mounted && !isLocked ? "rgba(5, 8, 25, 0.75)" : "rgba(5, 8, 25, 0.5)",
-            border: mounted && !isLocked ? "1px solid rgba(0, 229, 204, 0.2)" : "1px solid rgba(0, 229, 204, 0.1)",
-            clipPath: "polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%)",
-            boxShadow: "none",
+            width: `${iconSize}px`,
+            height: `${iconSize}px`,
+            color: "#00E5CC",
+            strokeWidth: "2.5",
           }}
-          onMouseEnter={(e) => {
-            if (mounted && !isLocked) {
-              e.currentTarget.style.backgroundColor = "rgba(0, 229, 204, 0.1)";
-              e.currentTarget.style.borderColor = "rgba(0, 229, 204, 0.6)";
-              e.currentTarget.style.boxShadow = "0 0 20px rgba(0, 229, 204, 0.2)";
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (mounted && !isLocked) {
-              e.currentTarget.style.backgroundColor = "rgba(5, 8, 25, 0.75)";
-              e.currentTarget.style.borderColor = "1px solid rgba(0, 229, 204, 0.2)";
-              e.currentTarget.style.boxShadow = "none";
-            }
+        />
+
+        {/* Label */}
+        <span
+          className="font-inter font-bold uppercase text-center text-white"
+          style={{
+            fontSize: `${labelSize}px`,
+            letterSpacing: "1px",
           }}
         >
-          {/* Icon */}
-          <Icon
-            className="w-8 h-8"
-            style={{
-              color: mounted && !isLocked ? "#00E5CC" : "rgba(0, 229, 204, 0.3)",
-              strokeWidth: "2.5",
-            }}
-          />
+          {mode.label}
+        </span>
 
-          {/* Label */}
+        {/* Subtitle - only show on centre card */}
+        {showSubtitle && (
           <span
-            className="text-sm font-inter font-bold uppercase text-center"
+            className="text-[10px] font-inter text-center leading-tight"
             style={{
-              fontSize: "14px",
-              fontWeight: 700,
-              letterSpacing: "1.5px",
-              color: mounted && !isLocked ? "white" : "rgba(255,255,255,0.3)",
-            }}
-          >
-            {mode.label}
-          </span>
-
-          {/* Subtitle */}
-          <span
-            className="text-[11px] font-inter text-center leading-tight"
-            style={{
-              color: mounted && !isLocked ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.15)",
+              color: "rgba(255,255,255,0.45)",
             }}
           >
             {mode.subtitle}
           </span>
-        </div>
-      </Link>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+function Carousel({ isLocked, mounted }: { isLocked: boolean; mounted: boolean }) {
+  const [activeIndex, setActiveIndex] = useState(2); // QUICK RACE is at index 2
+  const [isMobile, setIsMobile] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const cardsPerView = isMobile ? 3 : 5;
+  const sideCards = Math.floor(cardsPerView / 2);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        setActiveIndex((prev) => (prev - 1 + gameModes.length) % gameModes.length);
+      } else if (e.key === "ArrowRight") {
+        setActiveIndex((prev) => (prev + 1) % gameModes.length);
+      }
+    };
+
+    if (carouselRef.current) {
+      carouselRef.current.addEventListener("keydown", handleKeyDown);
+      return () => carouselRef.current?.removeEventListener("keydown", handleKeyDown);
+    }
+  }, []);
+
+  const handleCardClick = (index: number) => {
+    setActiveIndex(index);
+  };
+
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev - 1 + gameModes.length) % gameModes.length);
+  };
+
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev + 1) % gameModes.length);
+  };
+
+  // Get visible cards indices
+  const visibleIndices: number[] = [];
+  for (let i = -sideCards; i <= sideCards; i++) {
+    visibleIndices.push((activeIndex + i + gameModes.length) % gameModes.length);
+  }
+
+  if (isLocked) {
+    return (
+      <div className="h-32 flex items-center justify-center">
+        <p className="font-inter text-lg font-semibold tracking-wider" style={{ color: "#00E5CC" }}>
+          🔗 Connect wallet to access game modes
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      {...fadeUp(0.5)}
+      ref={carouselRef}
+      tabIndex={0}
+      className="relative flex items-center justify-center gap-6 mt-6"
+      style={{
+        outline: "none",
+      }}
+    >
+      {/* Left Arrow */}
+      <button
+        onClick={handlePrev}
+        className="flex-shrink-0 flex items-center justify-center text-2xl transition-all duration-200 hover:scale-110 hover:opacity-100"
+        style={{
+          width: "40px",
+          height: "40px",
+          border: "1px solid rgba(0,229,204,0.4)",
+          background: "rgba(0,229,204,0.08)",
+          color: "#00E5CC",
+          borderRadius: "50%",
+          cursor: "pointer",
+          opacity: 0.7,
+        }}
+        aria-label="Previous card"
+      >
+        ‹
+      </button>
+
+      {/* Cards Container */}
+      <div
+        className="flex items-center justify-center gap-4 overflow-hidden"
+        style={{
+          perspective: "1000px",
+        }}
+      >
+        {visibleIndices.map((index) => (
+          <div key={index} onClick={() => handleCardClick(index)}>
+            <CarouselCard
+              mode={gameModes[index]}
+              isCenter={index === activeIndex}
+              onClick={() => handleCardClick(index)}
+              isMobile={isMobile}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Right Arrow */}
+      <button
+        onClick={handleNext}
+        className="flex-shrink-0 flex items-center justify-center text-2xl transition-all duration-200 hover:scale-110 hover:opacity-100"
+        style={{
+          width: "40px",
+          height: "40px",
+          border: "1px solid rgba(0,229,204,0.4)",
+          background: "rgba(0,229,204,0.08)",
+          color: "#00E5CC",
+          borderRadius: "50%",
+          cursor: "pointer",
+          opacity: 0.7,
+        }}
+        aria-label="Next card"
+      >
+        ›
+      </button>
+
+      {/* Center card link */}
+      <Link href={gameModes[activeIndex].href} className="absolute inset-0 pointer-events-none" />
     </motion.div>
   );
 }
@@ -174,7 +305,7 @@ export function LandingHero() {
   }, []);
 
   return (
-    <div className="relative w-full overflow-hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8" style={{ height: "calc(100vh - 64px - 120px)" }}>
+    <div className="relative w-full overflow-hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8" style={{ height: "calc(100vh - 64px)" }}>
       {/* Full viewport background image */}
       <Image
         src="/hero-dash-prime.png"
@@ -196,7 +327,7 @@ export function LandingHero() {
         style={{
           height: "100%",
           justifyContent: "flex-start",
-          paddingTop: "12vh",
+          paddingTop: "8vh",
         }}
       >
         {/* Badge */}
@@ -210,10 +341,10 @@ export function LandingHero() {
           </span>
         </motion.div>
 
-        {/* Main headline - bold italic condensed */}
+        {/* Main headline */}
         <motion.h1
           {...fadeUp(0.2)}
-          className="font-bebas text-[clamp(4rem,14vw,9rem)] font-black italic -skew-x-12 leading-none text-white drop-shadow-[0_0_30px_rgba(0,229,204,0.5)]"
+          className="font-bebas text-[clamp(3rem,10vw,8rem)] font-black italic -skew-x-12 leading-none text-white drop-shadow-[0_0_30px_rgba(0,229,204,0.5)]"
         >
           DASH RUNNER
         </motion.h1>
@@ -221,7 +352,7 @@ export function LandingHero() {
         {/* Tagline */}
         <motion.p
           {...fadeUp(0.3)}
-          className="mt-6 max-w-xl font-inter text-lg sm:text-xl font-medium text-white/90 leading-relaxed"
+          className="mt-4 max-w-xl font-inter text-base sm:text-lg font-medium text-white/90 leading-relaxed"
         >
           Race. Dodge. Survive. Score forever on-chain.
         </motion.p>
@@ -230,7 +361,7 @@ export function LandingHero() {
         {!isConnected ? (
           <motion.div
             {...fadeUp(0.4)}
-            className="mt-10 flex flex-col sm:flex-row items-center gap-6"
+            className="mt-8 flex flex-col sm:flex-row items-center gap-6"
           >
             <Link
               href="/play?start=1"
@@ -249,7 +380,7 @@ export function LandingHero() {
         ) : (
           <motion.div
             {...fadeUp(0.4)}
-            className="mt-10 inline-flex items-center gap-2 font-inter text-sm"
+            className="mt-8 inline-flex items-center gap-2 font-inter text-sm"
             style={{
               background: "rgba(0,229,204,0.1)",
               border: "1px solid #00E5CC",
@@ -260,57 +391,13 @@ export function LandingHero() {
             }}
           >
             <span>✓ Racing as</span>
-            <span className="font-mono font-bold">
-              {typeof window !== "undefined" && mounted ? "0x..." : "connected"}
-            </span>
+            <span className="font-mono font-bold">0x...</span>
           </motion.div>
         )}
+
+        {/* Carousel */}
+        {mounted && <Carousel isLocked={!isConnected} mounted={mounted} />}
       </section>
-
-      {/* Game Modes Row - fixed to bottom */}
-      <div
-        className="fixed bottom-0 left-0 right-0 z-50 w-full"
-        style={{
-          height: "120px",
-          background: "linear-gradient(to bottom, transparent, rgba(5,8,25,0.6))",
-          pointerEvents: mounted && !isConnected ? "none" : "auto",
-        }}
-      >
-        {/* Locked overlay */}
-        {mounted && !isConnected && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-            <div className="text-center">
-              <p className="font-inter text-lg font-semibold tracking-wider" style={{ color: "#00E5CC" }}>
-                🔗 Connect wallet to access game modes
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Cards container */}
-        <div
-          className="w-full h-full flex gap-0.5 px-0"
-          style={{
-            filter: mounted && !isConnected ? "blur(3px)" : "none",
-            opacity: mounted && !isConnected ? 0.5 : 1,
-            transition: "filter 0.3s ease, opacity 0.3s ease",
-            overflowX: "auto",
-            scrollSnapType: "x mandatory",
-          }}
-        >
-          {gameModes.map((mode, idx) => (
-            <motion.div
-              key={mode.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 + idx * 0.05 }}
-              className="flex-1 min-w-[160px] h-full"
-            >
-              <GameModeCard mode={mode} isLocked={!isConnected} mounted={mounted} />
-            </motion.div>
-          ))}
-        </div>
-      </div>
 
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
@@ -321,15 +408,6 @@ export function LandingHero() {
 
         .font-inter {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        /* Hide scrollbar */
-        div[style*="scrollSnapType"] {
-          scrollbar-width: none;
-        }
-
-        div[style*="scrollSnapType"]::-webkit-scrollbar {
-          display: none;
         }
       `}</style>
     </div>

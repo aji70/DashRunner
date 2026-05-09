@@ -22,7 +22,7 @@ function CeloIcon({ className }: { className?: string }) {
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative isolate min-h-[100dvh] bg-slate-950 text-white">
+    <div className="relative isolate h-screen bg-slate-950 text-white overflow-hidden">
       {/* Background image */}
       <div
         aria-hidden
@@ -30,7 +30,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         style={{ backgroundImage: "url(/background.jpg)" }}
       />
 
-      <div className="relative z-10 flex min-h-[100dvh] flex-col">
+      <div className="relative z-10 flex h-screen flex-col overflow-hidden">
         {/* Top Navigation Bar - redesigned */}
         <header
           className="sticky top-0 z-40 w-full flex items-center justify-between px-6 h-16"
