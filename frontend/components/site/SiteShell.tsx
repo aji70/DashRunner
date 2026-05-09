@@ -49,7 +49,13 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
       <div className="relative z-10 flex min-h-[100dvh] flex-col pb-24 sm:pb-20">
         {/* Top Navigation Bar - simplified */}
-        <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-lg border-b border-slate-700/50">
+        <header
+          className="sticky top-0 z-40 border-b border-slate-700/30"
+          style={{
+            backgroundColor: "rgba(5, 5, 20, 0.75)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
           <div className="mx-auto h-16 px-4 sm:px-6 max-w-7xl flex items-center justify-between gap-4">
             {/* Logo left */}
             <Link href="/" className="group flex items-center gap-2 transition-transform hover:scale-105">
@@ -68,16 +74,15 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                   chainStatus="icon"
                 />
               </div>
-              <div className="hidden sm:flex items-center gap-1 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700">
+              <div className="hidden sm:flex items-center gap-1">
                 <CeloIcon className="w-5 h-5" />
-                <span className="text-xs font-semibold text-cyan-400">CELO</span>
               </div>
             </div>
 
             {/* Play button right */}
             <Link
               href="/play?start=1"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-inter font-bold uppercase tracking-wider text-slate-950 bg-cyan-500 hover:bg-cyan-400 transition-colors duration-200 text-sm"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-inter font-bold uppercase tracking-wider text-slate-950 bg-cyan-500 hover:bg-cyan-400 transition-colors duration-200 text-sm shadow-[0_0_20px_rgba(0,229,204,0.3)]"
             >
               <PlayIcon className="w-4 h-4" />
               <span className="hidden sm:inline">Play</span>
@@ -88,41 +93,51 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         {/* Main content */}
         <main className="relative w-full flex-1">{children}</main>
 
-        {/* Bottom Navigation Bar - Arcade style */}
+        {/* Bottom Navigation Bar - Brûler-style boxes */}
         <nav
-          className="fixed bottom-0 left-0 right-0 z-40 bg-[#1a1a1a]"
+          className="fixed bottom-0 left-0 right-0 z-40 w-full"
           style={{
-            clipPath: "polygon(2% 0, 100% 0, 98% 100%, 0 100%)",
+            borderTop: "1px solid rgba(0, 229, 204, 0.2)",
+            backgroundColor: "#0d0d1a",
           }}
         >
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
-            <div className="flex justify-between items-center gap-0.5 sm:gap-1">
-              {bottomLinks.map((link) => {
-                const isActive = pathname === link.href;
-                return (
-                  <motion.div
-                    key={link.href}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex-1"
+          <div className="w-full h-20 flex items-center justify-between gap-1 px-2 sm:px-4">
+            {bottomLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <motion.div
+                  key={link.href}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex-1 h-14"
+                >
+                  <Link
+                    href={link.href}
+                    className="w-full h-full flex flex-col items-center justify-center gap-1 transition-all duration-150"
+                    style={{
+                      backgroundColor: isActive ? "#00E5CC20" : "transparent",
+                      border: `1px solid ${isActive ? "#00E5CC" : "rgba(0, 229, 204, 0.3)"}`,
+                      borderLeft: isActive ? "3px solid #00E5CC" : "1px solid rgba(0, 229, 204, 0.3)",
+                      clipPath: "polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%)",
+                      boxShadow: isActive ? "0 -2px 12px rgba(0, 229, 204, 0.4)" : "none",
+                    }}
                   >
-                    <Link
-                      href={link.href}
-                      className={cn(
-                        "flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 px-2 sm:px-4 py-2.5 rounded text-xs sm:text-sm font-inter font-semibold uppercase tracking-widest transition-all duration-150",
-                        isActive
-                          ? "text-cyan-300 border-l-4 border-cyan-500 bg-slate-800/40"
-                          : "text-slate-400 border-l-4 border-transparent hover:text-cyan-300 hover:border-cyan-400 hover:bg-slate-800/20"
-                      )}
+                    <span
+                      className="text-lg sm:text-xl"
+                      style={{ color: isActive ? "#00E5CC" : "rgba(255,255,255,0.5)" }}
                     >
-                      <span className="sm:hidden text-base">{link.icon}</span>
-                      <span className="hidden sm:block">{link.label}</span>
-                      <span className="sm:hidden text-[10px]">{link.label}</span>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </div>
+                      {link.icon}
+                    </span>
+                    <span
+                      className="text-[11px] font-inter font-semibold uppercase tracking-wide"
+                      style={{ color: isActive ? "#00E5CC" : "rgba(255,255,255,0.5)" }}
+                    >
+                      {link.label}
+                    </span>
+                  </Link>
+                </motion.div>
+              );
+            })}
           </div>
         </nav>
       </div>
