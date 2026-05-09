@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
+import { useEffect, useState } from "react";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
@@ -50,7 +51,7 @@ const gameModes = [
   },
 ];
 
-function GameModeCard({ mode, isLocked }: { mode: (typeof gameModes)[0]; isLocked: boolean }) {
+function GameModeCard({ mode, isLocked, mounted }: { mode: (typeof gameModes)[0]; isLocked: boolean; mounted: boolean }) {
   return (
     <motion.div
       whileHover={!isLocked ? { scale: 1.05 } : {}}
@@ -84,19 +85,19 @@ function GameModeCard({ mode, isLocked }: { mode: (typeof gameModes)[0]; isLocke
             }
           }}
         >
-          <span className="text-3xl" style={{ color: isLocked ? "rgba(0,229,204,0.3)" : "#00E5CC" }}>
+          <span className="text-3xl" style={{ color: mounted && isLocked ? "rgba(0,229,204,0.3)" : "#00E5CC" }}>
             {mode.icon}
           </span>
           <span
             className="text-xs font-inter font-bold uppercase tracking-wider text-center"
-            style={{ color: isLocked ? "rgba(255,255,255,0.2)" : "white" }}
+            style={{ color: mounted && isLocked ? "rgba(255,255,255,0.2)" : "white" }}
           >
             {mode.label}
           </span>
           <span
             className="text-[10px] font-inter text-center leading-tight"
             style={{
-              color: isLocked ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.45)",
+              color: mounted && isLocked ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.45)",
             }}
           >
             {mode.subtitle}
@@ -109,6 +110,11 @@ function GameModeCard({ mode, isLocked }: { mode: (typeof gameModes)[0]; isLocke
 
 export function LandingHero() {
   const { isConnected } = useAccount();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="relative w-full min-h-screen overflow-hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8 pb-12">
@@ -183,7 +189,7 @@ export function LandingHero() {
         className="relative z-10 px-4 sm:px-6 py-8"
       >
         {/* Locked overlay */}
-        {!isConnected && (
+        {mounted && !isConnected && (
           <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
             <div className="text-center">
               <p className="font-inter text-lg font-semibold tracking-wider" style={{ color: "#00E5CC" }}>
@@ -197,9 +203,9 @@ export function LandingHero() {
         <div
           className="mx-auto max-w-7xl"
           style={{
-            filter: !isConnected ? "blur(4px)" : "none",
-            opacity: !isConnected ? 0.4 : 1,
-            pointerEvents: !isConnected ? "none" : "auto",
+            filter: mounted && !isConnected ? "blur(4px)" : "none",
+            opacity: mounted && !isConnected ? 0.4 : 1,
+            pointerEvents: mounted && !isConnected ? "none" : "auto",
             transition: "filter 0.3s ease, opacity 0.3s ease",
           }}
         >
@@ -217,7 +223,7 @@ export function LandingHero() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 + idx * 0.05 }}
               >
-                <GameModeCard mode={mode} isLocked={!isConnected} />
+                <GameModeCard mode={mode} isLocked={!isConnected} mounted={mounted} />
               </motion.div>
             ))}
           </div>
