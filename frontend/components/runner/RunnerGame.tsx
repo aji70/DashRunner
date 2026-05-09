@@ -155,6 +155,10 @@ export function RunnerGame({
   };
 
   const handlePhaseChange = (newPhase: GamePhase) => {
+    // Keep phase as "playing" always
+    if (newPhase !== "playing") {
+      return;
+    }
     setPhase(newPhase);
   };
 
@@ -196,7 +200,9 @@ export function RunnerGame({
   useSwipeGesture(
     gameSurfaceRef,
     (dir) => {
-      dispatchRunnerAction(dir);
+      if (phase === "playing") {
+        dispatchRunnerAction(dir);
+      }
     },
     18
   );
