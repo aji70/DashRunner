@@ -7,12 +7,12 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { cn } from "@/lib/cn";
 
 const bottomLinks = [
-  { href: "/", label: "Home", short: "⌂" },
-  { href: "/characters", label: "Runners", short: "◎" },
-  { href: "/city", label: "City", short: "▣" },
-  { href: "/shop", label: "Shop", short: "◆" },
-  { href: "/rewards", label: "Rewards", short: "✦" },
-  { href: "/settings", label: "Settings", short: "⚙" },
+  { href: "/", label: "Home", icon: "⌂" },
+  { href: "/characters", label: "Runners", icon: "◎" },
+  { href: "/city", label: "City", icon: "▣" },
+  { href: "/shop", label: "Shop", icon: "◆" },
+  { href: "/rewards", label: "Rewards", icon: "✦" },
+  { href: "/settings", label: "Settings", icon: "⚙" },
 ] as const;
 
 function PlayIcon({ className }: { className?: string }) {
@@ -23,107 +23,121 @@ function PlayIcon({ className }: { className?: string }) {
   );
 }
 
+function CeloIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <circle cx="12" cy="12" r="10" fill="#FCFF52" />
+      <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 2a8 8 0 110 16 8 8 0 010-16z" fill="#1F1E1B" />
+    </svg>
+  );
+}
+
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isHome = pathname === "/";
 
   return (
-    <div className="relative isolate min-h-[100dvh] text-[var(--text-primary)]">
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-0 bg-[var(--void)] bg-cover bg-center bg-no-repeat"
-        style={isHome ? undefined : { backgroundImage: "url(/background.jpg)" }}
-      />
-      <div
-        aria-hidden
-        className={cn(
-          "pointer-events-none fixed inset-0 z-[1] app-shell-photo-mesh",
-          isHome && "opacity-40"
-        )}
-      />
+    <div className="relative isolate min-h-[100dvh] bg-slate-950 text-white">
+      {/* Background - hidden on home as it's covered by hero */}
+      {!isHome && (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 z-0 bg-slate-900 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url(/background.jpg)" }}
+        />
+      )}
 
-      <div className="relative z-10 flex min-h-[100dvh] flex-col pb-28 sm:pb-24">
-        <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[var(--abyss)]/85 backdrop-blur-2xl transition-all duration-200">
-          <div className="mx-auto flex h-[3.35rem] max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
-            <Link href="/" className="group flex min-w-0 items-center gap-2.5 transition-transform hover:scale-105">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-orange-400/30 bg-gradient-to-br from-rose-600/45 to-orange-600/30 transition group-hover:border-orange-300/45 group-hover:shadow-lg group-hover:shadow-orange-500/20">
-                <span className="font-orbitron text-[11px] font-black leading-none text-white">DR</span>
-              </span>
-              <div className="min-w-0 leading-tight">
-                <p className="font-orbitron text-sm font-bold tracking-wide text-transparent [background:linear-gradient(95deg,#e9d5ff,#67e8f9,#fde68a)] bg-clip-text sm:text-[15px]">
-                  DashRunner
-                </p>
-                <p className="font-rajdhani text-[9px] font-semibold uppercase tracking-[0.26em] text-[var(--text-dim)] sm:text-[10px]">
-                  Arcade · Celo
-                </p>
+      <div className="relative z-10 flex min-h-[100dvh] flex-col pb-24 sm:pb-20">
+        {/* Top Navigation Bar - simplified */}
+        <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-lg border-b border-slate-700/50">
+          <div className="mx-auto h-16 px-4 sm:px-6 max-w-7xl flex items-center justify-between gap-4">
+            {/* Logo left */}
+            <Link href="/" className="group flex items-center gap-2 transition-transform hover:scale-105">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600">
+                <span className="font-bebas text-lg font-bold text-slate-950">DR</span>
               </div>
+              <span className="hidden sm:block font-bebas text-xl font-bold text-white">DASH RUNNER</span>
             </Link>
 
-            <div className="flex min-w-0 items-center justify-end gap-1.5 sm:gap-2">
-              <div
-                className="[&_button]:h-8 [&_button]:min-h-8 [&_button]:rounded-lg [&_button]:px-2 [&_button]:text-xs sm:[&_button]:h-9 sm:[&_button]:px-2.5"
-              >
+            {/* Wallet + Celo centre */}
+            <div className="flex-1 flex items-center justify-center gap-2">
+              <div className="[&_button]:h-9 [&_button]:text-xs [&_button]:rounded-lg [&_button]:px-3">
                 <ConnectButton
                   showBalance={false}
                   accountStatus="address"
                   chainStatus="icon"
                 />
               </div>
-              <Link
-                href="/play?mode=racing"
-                className="hidden min-[400px]:inline-flex shrink-0 rounded-lg border border-fuchsia-500/35 bg-fuchsia-950/30 px-2.5 py-1.5 font-orbitron text-[9px] font-bold uppercase tracking-[0.14em] text-fuchsia-200/90 transition hover:border-fuchsia-400/50 hover:bg-fuchsia-900/40 hover:shadow-lg hover:shadow-fuchsia-500/10 sm:px-3 sm:text-[10px]"
-              >
-                🏁 Race
-              </Link>
-              <Link
-                href="/play?start=1"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-2.5 py-1.5 font-orbitron text-[9px] font-bold uppercase tracking-[0.12em] text-cyan-50 shadow-[0_0_20px_rgba(6,182,212,0.2)] transition hover:border-cyan-300/60 hover:bg-cyan-500/25 hover:shadow-[0_0_25px_rgba(6,182,212,0.3)] sm:gap-2 sm:px-3.5 sm:text-[10px]"
-              >
-                <PlayIcon className="h-3 w-3" />
-                Play
-              </Link>
+              <div className="hidden sm:flex items-center gap-1 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700">
+                <CeloIcon className="w-5 h-5" />
+                <span className="text-xs font-semibold text-cyan-400">CELO</span>
+              </div>
             </div>
+
+            {/* Play button right */}
+            <Link
+              href="/play?start=1"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-inter font-bold uppercase tracking-wider text-slate-950 bg-cyan-500 hover:bg-cyan-400 transition-colors duration-200 text-sm"
+            >
+              <PlayIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">Play</span>
+            </Link>
           </div>
         </header>
 
+        {/* Main content */}
         <main className="relative w-full flex-1">{children}</main>
 
-        <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/[0.06] bg-gradient-to-t from-[var(--abyss)]/95 to-[var(--abyss)]/85 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-2xl">
-          <div className="mx-auto flex max-w-5xl justify-between gap-0.5 px-2 sm:gap-1 sm:px-4">
-            {bottomLinks.map((l) => {
-              const active = pathname === l.href;
-              return (
-                <motion.div
-                  key={l.href}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="min-w-0 flex-1"
-                >
-                  <Link href={l.href} className="min-w-0">
-                    <motion.span
-                      layout
+        {/* Bottom Navigation Bar - Arcade style */}
+        <nav
+          className="fixed bottom-0 left-0 right-0 z-40 bg-[#1a1a1a]"
+          style={{
+            clipPath: "polygon(2% 0, 100% 0, 98% 100%, 0 100%)",
+          }}
+        >
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
+            <div className="flex justify-between items-center gap-0.5 sm:gap-1">
+              {bottomLinks.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <motion.div
+                    key={link.href}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex-1"
+                  >
+                    <Link
+                      href={link.href}
                       className={cn(
-                        "flex flex-col items-center gap-0.5 rounded-xl py-2 transition sm:flex-row sm:gap-2 sm:px-2 sm:py-2.5",
-                        active
-                          ? "bg-gradient-to-r from-rose-500/20 to-orange-500/10 text-rose-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_20px_rgba(229,47,98,0.15)]"
-                          : "text-[var(--text-dim)] hover:bg-white/[0.06] hover:text-orange-100/85 hover:shadow-[0_0_10px_rgba(255,165,0,0.1)]"
+                        "flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 px-2 sm:px-4 py-2.5 rounded text-xs sm:text-sm font-inter font-semibold uppercase tracking-widest transition-all duration-150",
+                        isActive
+                          ? "text-cyan-300 border-l-4 border-cyan-500 bg-slate-800/40"
+                          : "text-slate-400 border-l-4 border-transparent hover:text-cyan-300 hover:border-cyan-400 hover:bg-slate-800/20"
                       )}
                     >
-                      <span className="font-orbitron text-[11px] opacity-80 sm:hidden">{l.short}</span>
-                      <span className="hidden font-rajdhani text-[11px] font-semibold uppercase tracking-wide sm:inline">
-                        {l.label}
-                      </span>
-                      <span className="font-rajdhani text-[9px] font-semibold uppercase tracking-wider opacity-90 sm:hidden">
-                        {l.label}
-                      </span>
-                    </motion.span>
-                  </Link>
-                </motion.div>
-              );
-            })}
+                      <span className="sm:hidden text-base">{link.icon}</span>
+                      <span className="hidden sm:block">{link.label}</span>
+                      <span className="sm:hidden text-[10px]">{link.label}</span>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         </nav>
       </div>
+
+      <style jsx>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+        .font-bebas {
+          font-family: 'Bebas Neue', cursive;
+        }
+
+        .font-inter {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+      `}</style>
     </div>
   );
 }
