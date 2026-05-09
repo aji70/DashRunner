@@ -199,11 +199,7 @@ export function RunnerGame({
 
   useSwipeGesture(
     gameSurfaceRef,
-    (dir) => {
-      if (phase === "playing") {
-        dispatchRunnerAction(dir);
-      }
-    },
+    dispatchRunnerAction,
     18
   );
 

@@ -226,7 +226,7 @@ function GameScene({
         tc.scale.set(1.8, 1.8, 1.8);
         tc.rotation.y = Math.PI;
 
-        const lanes = [-3, 0, 3];
+        const lanes = [-2.5, 0, 2.5];
         tc.position.x = lanes[Math.floor(Math.random() * lanes.length)];
         tc.position.z = -(50 + i * 35);
 
@@ -283,7 +283,7 @@ function GameScene({
 
     for (let i = 0; i < 16; i++) {
       const p = createPedestrian();
-      const side = i % 2 === 0 ? -10 : 10;
+      const side = i % 2 === 0 ? -11 : 11;
       p.position.set(side + (Math.random() * 3 - 1.5), 0, -(80 + i * 18));
       scene.add(p);
       pedestriansRef.current.push(p);
@@ -551,9 +551,16 @@ function GameScene({
     // Recycle traffic cars
     trafficCarsRef.current.forEach((t) => {
       t.mesh.position.z += gameSpeed * 0.4;
+      // Clamp x position to lanes if outside safe range
+      if (t.mesh.position.x < -5 || t.mesh.position.x > 5) {
+        const lanes = [-2.5, 0, 2.5];
+        t.mesh.position.x = lanes.reduce((nearest, lane) =>
+          Math.abs(lane - t.mesh.position.x) < Math.abs(nearest - t.mesh.position.x) ? lane : nearest
+        );
+      }
       if (t.mesh.position.z > camera.position.z + 15) {
         t.mesh.position.z -= 250;
-        const lanes = [-3, 0, 3];
+        const lanes = [-2.5, 0, 2.5];
         t.mesh.position.x = lanes[Math.floor(Math.random() * lanes.length)];
       }
     });
