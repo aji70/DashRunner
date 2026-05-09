@@ -29,6 +29,13 @@ function GameScene({
   const carModelRef = useRef<THREE.Group | null>(null);
   const leftStreakRef = useRef<THREE.Mesh | null>(null);
   const rightStreakRef = useRef<THREE.Mesh | null>(null);
+  const reflectionRef = useRef<THREE.Mesh | null>(null);
+  const lampPoolRef = useRef<
+    Array<{ group: THREE.Group; initialZ: number }>
+  >([]);
+  const buildingPoolRef = useRef<
+    Array<{ mesh: THREE.Mesh; side: number; initialZ: number }>
+  >([]);
 
   // Initialize scene once
   useEffect(() => {
@@ -42,12 +49,32 @@ function GameScene({
     gl.setClearColor("#05000f");
 
     // Deep purple sky
-    scene.background = new THREE.Color("#0a0010");
+    scene.background = new THREE.Color("#08001a");
+
+    // Star field
+    const starGeo = new THREE.BufferGeometry();
+    const starPositions = [];
+    for (let i = 0; i < 200; i++) {
+      starPositions.push(
+        (Math.random() - 0.5) * 300,
+        Math.random() * 80 + 20,
+        (Math.random() - 0.5) * 300
+      );
+    }
+    starGeo.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(starPositions, 3)
+    );
+    const stars = new THREE.Points(
+      starGeo,
+      new THREE.PointsMaterial({ color: "#ffffff", size: 0.3 })
+    );
+    scene.add(stars);
 
     // STEP 2 — Camera setup (critical for visibility)
-    camera.position.set(0, 6, 12);
-    camera.lookAt(0, 1, -20);
-    (camera as THREE.PerspectiveCamera).fov = 70;
+    camera.position.set(0, 8, 16);
+    camera.lookAt(0, 2, -30);
+    (camera as THREE.PerspectiveCamera).fov = 75;
     camera.near = 0.1;
     camera.far = 300;
     camera.updateProjectionMatrix();
@@ -60,8 +87,11 @@ function GameScene({
     dirLight.position.set(0, 50, 10);
     scene.add(dirLight);
 
+    // Add fog for depth
+    scene.fog = new THREE.Fog("#08001a", 80, 220);
+
     // STEP 4 — Road (simplest possible)
-    const roadGeo = new THREE.PlaneGeometry(12, 500);
+    const roadGeo = new THREE.PlaneGeometry(12, 1000);
     const roadMat = new THREE.MeshStandardMaterial({
       color: "#1a1a3e",
       roughness: 0.8,
@@ -80,7 +110,7 @@ function GameScene({
     });
     // Left lane line
     const leftLine = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.2, 500),
+      new THREE.PlaneGeometry(0.2, 1000),
       lineMat
     );
     leftLine.rotation.x = -Math.PI / 2;
@@ -89,7 +119,7 @@ function GameScene({
 
     // Right lane line
     const rightLine = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.2, 500),
+      new THREE.PlaneGeometry(0.2, 1000),
       lineMat.clone()
     );
     rightLine.rotation.x = -Math.PI / 2;
@@ -98,7 +128,7 @@ function GameScene({
 
     // Centre dashes
     const centreLine = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.1, 500),
+      new THREE.PlaneGeometry(0.1, 1000),
       new THREE.MeshBasicMaterial({
         color: "#00E5CC",
         opacity: 0.5,
@@ -112,17 +142,17 @@ function GameScene({
     // Edge kerbs
     const kerbMat = new THREE.MeshStandardMaterial({ color: "#ff2244" });
     const leftKerb = new THREE.Mesh(
-      new THREE.BoxGeometry(0.5, 0.2, 500),
+      new THREE.BoxGeometry(0.5, 0.2, 1000),
       kerbMat
     );
-    leftKerb.position.set(-6.5, 0.1, -200);
+    leftKerb.position.set(-6.5, 0.15, -200);
     scene.add(leftKerb);
 
     const rightKerb = new THREE.Mesh(
-      new THREE.BoxGeometry(0.5, 0.2, 500),
+      new THREE.BoxGeometry(0.5, 0.2, 1000),
       kerbMat.clone()
     );
-    rightKerb.position.set(6.5, 0.1, -200);
+    rightKerb.position.set(6.5, 0.15, -200);
     scene.add(rightKerb);
 
     // STEP 5 — Car (load GLB model)
@@ -147,68 +177,114 @@ function GameScene({
     );
 
     // STEP 6 — Cyberpunk buildings with InstancedMesh
-    // Create window texture
-    const canvas = document.createElement("canvas");
-    canvas.width = 64;
-    canvas.height = 128;
-    const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = "#0d0d2b";
-    ctx.fillRect(0, 0, 64, 128);
+    // Create 3 reusable window textures upfront
+    function makeWindowTexture() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 64;
+      canvas.height = 128;
+      const ctx = canvas.getContext("2d")!;
+      ctx.fillStyle = "#08001a";
+      ctx.fillRect(0, 0, 64, 128);
+      for (let row = 0; row < 14; row++) {
+        for (let col = 0; col < 6; col++) {
+          if (Math.random() > 0.45) { // 55% windows lit
+            ctx.fillStyle = Math.random() > 0.5
+              ? 'rgba(0,229,204,0.95)'
+              : 'rgba(180,80,255,0.95)';
+            ctx.fillRect(col * 9 + 3, row * 8 + 3, 5, 4);
+          }
+        }
+      }
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.generateMipmaps = false;
+      tex.minFilter = THREE.LinearFilter;
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(1, 1);
+      return tex;
+    }
+
+    const texPool = [
+      makeWindowTexture(),
+      makeWindowTexture(),
+      makeWindowTexture(),
+    ];
+
+    // Create 20 individual building meshes — simple and reliable
+    const buildingPool: Array<{
+      mesh: THREE.Mesh;
+      side: number;
+      initialZ: number;
+    }> = [];
     for (let i = 0; i < 20; i++) {
-      ctx.fillStyle =
-        Math.random() > 0.5 ? "rgba(0,229,204,0.8)" : "rgba(120,40,255,0.6)";
-      ctx.fillRect(Math.random() * 50 + 4, Math.random() * 110 + 4, 6, 4);
+      const h = 15 + Math.random() * 25;
+      const w = 7 + Math.random() * 5;
+      const geo = new THREE.BoxGeometry(w, h, 14);
+      const mat = new THREE.MeshStandardMaterial({
+        map: texPool[i % 3],
+        color: "#ffffff",
+        emissive: "#0d0d2b",
+        emissiveIntensity: 0.5,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      const side = i % 2 === 0 ? -28 : 28;
+      mesh.position.set(side, h / 2, -(Math.floor(i / 2) * 40));
+      scene.add(mesh);
+      buildingPool.push({ mesh, side, initialZ: mesh.position.z });
     }
-    const windowTex = new THREE.CanvasTexture(canvas);
-    windowTex.generateMipmaps = false;
-    windowTex.minFilter = THREE.LinearFilter;
+    buildingPoolRef.current = buildingPool;
 
-    const buildingGeo = new THREE.BoxGeometry(1, 1, 1);
-    const buildingMat = new THREE.MeshStandardMaterial({
-      color: "#0d0d2b",
-      emissive: "#1a1a3e",
-      emissiveIntensity: 0.6,
-      roughness: 0.7,
-      metalness: 0.3,
-      map: windowTex,
-    });
-    const buildings = new THREE.InstancedMesh(buildingGeo, buildingMat, 16);
-    scene.add(buildings);
-
-    const dummy = new THREE.Object3D();
-    for (let i = 0; i < 8; i++) {
-      const h = 15 + Math.random() * 35;
-      const w = 6 + Math.random() * 6;
-      // Left side
-      dummy.position.set(-14, h / 2, -i * 35);
-      dummy.scale.set(w, h, 8);
-      dummy.updateMatrix();
-      buildings.setMatrixAt(i, dummy.matrix);
-      // Right side
-      dummy.position.set(14, h / 2, -i * 35);
-      dummy.updateMatrix();
-      buildings.setMatrixAt(i + 8, dummy.matrix);
+    // Check if lights already exist — without them buildings render black
+    if (!scene.getObjectByName("ambientLight")) {
+      const ambient = new THREE.AmbientLight("#ffffff", 1.0);
+      ambient.name = "ambientLight";
+      scene.add(ambient);
     }
-    buildings.instanceMatrix.needsUpdate = true;
+    if (!scene.getObjectByName("dirLight")) {
+      const dir = new THREE.DirectionalLight("#8866ff", 1.2);
+      dir.position.set(10, 30, 10);
+      dir.name = "dirLight";
+      scene.add(dir);
+    }
 
-    // Neon street lights
+    // Neon street lights - recycled with buildings
     const poleMat = new THREE.MeshBasicMaterial({ color: "#333344" });
-    const glowMat = new THREE.MeshBasicMaterial({ color: "#00E5CC" });
-    for (let i = 0; i < 8; i++) {
+    const glowMat = new THREE.MeshBasicMaterial({ color: "#fffae0" });
+    const armMat = new THREE.MeshBasicMaterial({ color: "#333344" });
+    const lampPool: Array<{ group: THREE.Group; initialZ: number }> = [];
+
+    for (let i = 0; i < 16; i++) {
+      const lampGroup = new THREE.Group();
+
       const pole = new THREE.Mesh(
         new THREE.CylinderGeometry(0.1, 0.1, 8),
         poleMat
       );
-      const glow = new THREE.Mesh(new THREE.SphereGeometry(0.15), glowMat);
-      const side = i % 2 === 0 ? -8 : 8;
-      pole.position.set(side, 4, -i * 25);
-      glow.position.set(side, 8, -i * 25);
-      scene.add(pole, glow);
+      const glow = new THREE.Mesh(new THREE.SphereGeometry(0.12), glowMat);
+      const side = i % 2 === 0 ? -10 : 10;
+      const z = -(Math.floor(i / 2) * 30);
+      const poleHeight = 8;
+      pole.position.set(0, 4, 0);
+      glow.position.set(0, poleHeight, 0);
+
+      // Arm connecting glow to pole
+      const arm = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.04, 0.04, 1.2),
+        armMat
+      );
+      arm.rotation.z = Math.PI / 2;
+      arm.position.set(side > 0 ? -0.6 : 0.6, poleHeight, 0);
+
+      lampGroup.add(pole, glow, arm);
+      lampGroup.position.set(side, 0, z);
+      scene.add(lampGroup);
+      lampPool.push({ group: lampGroup, initialZ: z });
     }
+    lampPoolRef.current = lampPool;
 
     // Purple road glow strip
     const glowStrip = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.4, 500),
+      new THREE.PlaneGeometry(0.4, 1000),
       new THREE.MeshBasicMaterial({
         color: "#7B2FFF",
         transparent: true,
@@ -218,6 +294,21 @@ function GameScene({
     glowStrip.rotation.x = -Math.PI / 2;
     glowStrip.position.set(0, 0.02, -200);
     scene.add(glowStrip);
+
+    // Ground reflection strip under car
+    const reflectionMat = new THREE.MeshBasicMaterial({
+      color: "#7B2FFF",
+      transparent: true,
+      opacity: 0.15,
+    });
+    const reflection = new THREE.Mesh(
+      new THREE.PlaneGeometry(10, 30),
+      reflectionMat
+    );
+    reflection.rotation.x = -Math.PI / 2;
+    reflection.position.set(0, 0.03, 5);
+    scene.add(reflection);
+    reflectionRef.current = reflection;
 
     // Speed streak lines
     const streakMat = new THREE.MeshBasicMaterial({
@@ -287,6 +378,11 @@ function GameScene({
       carModelRef.current.rotation.z = (playerLane - 1) * 0.1; // Subtle lean rotation
     }
 
+    // Update reflection to follow car
+    if (reflectionRef.current && carModelRef.current) {
+      reflectionRef.current.position.x = carModelRef.current.position.x;
+    }
+
     // Update speed streaks
     if (leftStreakRef.current && rightStreakRef.current) {
       const streakOpacity = speedRatio > 0.6 ? (speedRatio - 0.6) * 2 : 0;
@@ -295,6 +391,23 @@ function GameScene({
       (rightStreakRef.current.material as THREE.MeshBasicMaterial).opacity =
         streakOpacity;
     }
+
+    // Recycle buildings that pass the camera
+    const gameSpeed = (currentSpeed / maxSpeed) * 0.5;
+    buildingPoolRef.current.forEach((b) => {
+      b.mesh.position.z += gameSpeed;
+      if (b.mesh.position.z > camera.position.z + 20) {
+        b.mesh.position.z -= 400;
+      }
+    });
+
+    // Recycle street lamps that pass the camera
+    lampPoolRef.current.forEach((lamp) => {
+      lamp.group.position.z += gameSpeed;
+      if (lamp.group.position.z > camera.position.z + 20) {
+        lamp.group.position.z -= 480;
+      }
+    });
   });
 
   return null; // All geometry added directly to scene via useEffect
@@ -307,8 +420,8 @@ export function Game3DScene(props: Game3DSceneProps) {
     <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
       <Canvas
         camera={{
-          position: [0, 6, 12],
-          fov: 70,
+          position: [0, 8, 16],
+          fov: 75,
           near: 0.1,
           far: 300,
         }}

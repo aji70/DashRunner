@@ -59,15 +59,15 @@ export function GameHUD({
       <div
         className="absolute left-0 right-0 top-0 z-20 w-full px-4 py-3 sm:px-6 sm:py-4"
         style={{
-          backgroundColor: "rgba(5, 8, 25, 0.9)",
-          backdropFilter: "blur(16px)",
-          borderBottom: "1px solid rgba(0, 229, 204, 0.15)",
+          backgroundColor: "rgba(5, 0, 20, 0.85)",
+          backdropFilter: "blur(10px)",
+          borderBottom: "1px solid rgba(0, 229, 204, 0.2)",
         }}
       >
         <div className="mx-auto max-w-7xl flex items-center justify-between gap-4">
           {/* Score */}
-          <div className="flex items-center gap-3">
-            <span className="font-inter text-xs font-semibold uppercase tracking-widest text-white/50">
+          <div className="flex items-center gap-3" style={{ borderLeft: "3px solid #00E5CC", paddingLeft: "12px" }}>
+            <span className="font-inter text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", letterSpacing: "3px" }}>
               Score
             </span>
             <AnimatePresence mode="wait">
@@ -77,9 +77,11 @@ export function GameHUD({
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 4, opacity: 0.4 }}
                 transition={{ type: "spring", stiffness: 480, damping: 28 }}
-                className="font-orbitron text-xl font-black tabular-nums tracking-tight sm:text-2xl"
+                className="font-orbitron font-black tabular-nums tracking-tight"
                 style={{
                   color: "#00E5CC",
+                  fontSize: "28px",
+                  fontWeight: "800",
                   textShadow: "0 0 20px rgba(0, 229, 204, 0.5)",
                 }}
               >
@@ -90,7 +92,7 @@ export function GameHUD({
 
           {/* Coins */}
           <div className="flex items-center gap-3">
-            <span className="font-inter text-xs font-semibold uppercase tracking-widest text-white/50">
+            <span className="font-inter font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", letterSpacing: "3px" }}>
               Celo
             </span>
             <div className="flex items-center gap-1.5">
@@ -102,9 +104,11 @@ export function GameHUD({
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 4, opacity: 0.4 }}
                   transition={{ type: "spring", stiffness: 480, damping: 28 }}
-                  className="font-orbitron text-xl font-black tabular-nums tracking-tight sm:text-2xl"
+                  className="font-orbitron font-black tabular-nums tracking-tight"
                   style={{
                     color: "#F5C518",
+                    fontSize: "24px",
+                    fontWeight: "700",
                     textShadow: "0 0 16px rgba(245, 197, 24, 0.3)",
                   }}
                 >
