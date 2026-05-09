@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { cn } from "@/lib/cn";
 
 const bottomLinks = [
   { href: "/", label: "Home", icon: "⌂" },
