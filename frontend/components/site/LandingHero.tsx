@@ -88,27 +88,50 @@ const gameModes = [
 
 function CarouselCard({
   mode,
-  isCenter,
+  distance,
   onClick,
-  isMobile,
 }: {
   mode: (typeof gameModes)[0];
-  isCenter: boolean;
+  distance: number; // 0 = center, 1 = adjacent, 2 = far
   onClick: () => void;
-  isMobile: boolean;
 }) {
   const Icon = mode.icon;
-  const cardWidth = isCenter ? 200 : 180;
-  const cardHeight = isCenter ? 110 : 100;
-  const iconSize = isCenter ? 28 : 22;
-  const labelSize = isCenter ? 15 : 12;
-  const showSubtitle = isCenter;
+
+  // Size tiers based on distance from center
+  let cardWidth = 190;
+  let cardHeight = 110;
+  let iconSize = 22;
+  let labelSize = 12;
+  let showSubtitle = false;
+  let scale = 0.85;
+  let opacity = 0.5;
+
+  if (distance === 0) {
+    // Centre card
+    cardWidth = 260;
+    cardHeight = 140;
+    iconSize = 34;
+    labelSize = 16;
+    showSubtitle = true;
+    scale = 1;
+    opacity = 1;
+  } else if (distance === 1) {
+    // Adjacent cards (±1)
+    cardWidth = 220;
+    cardHeight = 120;
+    iconSize = 26;
+    labelSize = 13;
+    showSubtitle = false;
+    scale = 0.85;
+    opacity = 0.5;
+  }
+  // distance === 2: far cards - use defaults above
 
   return (
     <motion.div
       animate={{
-        scale: isCenter ? 1 : 0.85,
-        opacity: isCenter ? 1 : 0.5,
+        scale: scale,
+        opacity: opacity,
       }}
       transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
       onClick={onClick}
@@ -122,8 +145,8 @@ function CarouselCard({
           backgroundColor: "rgba(5, 8, 25, 0.85)",
           border: "1px solid rgba(0, 229, 204, 0.2)",
           clipPath: "polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%)",
-          filter: isCenter ? "none" : "blur(1px)",
-          boxShadow: isCenter ? "0 -4px 20px rgba(0, 229, 204, 0.5), inset 3px 0 0 #00E5CC" : "none",
+          filter: distance === 0 ? "none" : "blur(1px)",
+          boxShadow: distance === 0 ? "0 -4px 20px rgba(0, 229, 204, 0.5), inset 3px 0 0 #00E5CC" : "none",
         }}
       >
         {/* Icon */}
@@ -227,16 +250,18 @@ function Carousel({ isLocked, mounted }: { isLocked: boolean; mounted: boolean }
       {...fadeUp(0.5)}
       ref={carouselRef}
       tabIndex={0}
-      className="relative flex items-center justify-center gap-6 mt-6"
+      className="relative flex items-center justify-center mt-6"
       style={{
         outline: "none",
+        height: "160px",
       }}
     >
       {/* Left Arrow */}
       <button
         onClick={handlePrev}
-        className="flex-shrink-0 flex items-center justify-center text-2xl transition-all duration-200 hover:scale-110 hover:opacity-100"
+        className="absolute flex items-center justify-center text-2xl transition-all duration-200 hover:scale-110 hover:opacity-100 z-10"
         style={{
+          left: "calc(50% - 360px)",
           width: "40px",
           height: "40px",
           border: "1px solid rgba(0,229,204,0.4)",
@@ -258,23 +283,26 @@ function Carousel({ isLocked, mounted }: { isLocked: boolean; mounted: boolean }
           perspective: "1000px",
         }}
       >
-        {visibleIndices.map((index) => (
-          <div key={index} onClick={() => handleCardClick(index)}>
-            <CarouselCard
-              mode={gameModes[index]}
-              isCenter={index === activeIndex}
-              onClick={() => handleCardClick(index)}
-              isMobile={isMobile}
-            />
-          </div>
-        ))}
+        {visibleIndices.map((index, idx) => {
+          const distance = Math.abs(idx - sideCards);
+          return (
+            <div key={index} onClick={() => handleCardClick(index)}>
+              <CarouselCard
+                mode={gameModes[index]}
+                distance={distance}
+                onClick={() => handleCardClick(index)}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* Right Arrow */}
       <button
         onClick={handleNext}
-        className="flex-shrink-0 flex items-center justify-center text-2xl transition-all duration-200 hover:scale-110 hover:opacity-100"
+        className="absolute flex items-center justify-center text-2xl transition-all duration-200 hover:scale-110 hover:opacity-100 z-10"
         style={{
+          right: "calc(50% - 360px)",
           width: "40px",
           height: "40px",
           border: "1px solid rgba(0,229,204,0.4)",

@@ -43,7 +43,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           {/* LEFT - Logo */}
           <Link href="/" className="group transition-transform hover:scale-105" style={{ paddingLeft: "20px" }}>
             <img
-              src="/logo"
+              src="/logo.jpg"
               alt="Dash Runner"
               style={{ height: "36px", width: "auto", objectFit: "contain" }}
             />
