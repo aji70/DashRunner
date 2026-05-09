@@ -145,15 +145,42 @@ function GameScene({
       new THREE.BoxGeometry(0.5, 0.2, 1000),
       kerbMat
     );
-    leftKerb.position.set(-6.5, 0.15, -200);
+    leftKerb.position.set(-5.8, 0.08, -200);
     scene.add(leftKerb);
 
     const rightKerb = new THREE.Mesh(
       new THREE.BoxGeometry(0.5, 0.2, 1000),
       kerbMat.clone()
     );
-    rightKerb.position.set(6.5, 0.15, -200);
+    rightKerb.position.set(5.8, 0.08, -200);
     scene.add(rightKerb);
+
+    // Pavement strips on left and right shoulders
+    const pavementMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color("#1a0a2e"),
+      emissive: new THREE.Color("#0d0520"),
+      emissiveIntensity: 0.3,
+      roughness: 0.9,
+      metalness: 0,
+    });
+
+    // Left pavement (outside left kerb)
+    const leftPavement = new THREE.Mesh(
+      new THREE.PlaneGeometry(26.2, 1000),
+      pavementMat
+    );
+    leftPavement.rotation.x = -Math.PI / 2;
+    leftPavement.position.set(-18.9, 0, -200);
+    scene.add(leftPavement);
+
+    // Right pavement (outside right kerb)
+    const rightPavement = new THREE.Mesh(
+      new THREE.PlaneGeometry(26.2, 1000),
+      pavementMat.clone()
+    );
+    rightPavement.rotation.x = -Math.PI / 2;
+    rightPavement.position.set(18.9, 0, -200);
+    scene.add(rightPavement);
 
     // STEP 5 — Car (load GLB model)
     const loader = new GLTFLoader();
@@ -210,15 +237,15 @@ function GameScene({
       makeWindowTexture(),
     ];
 
-    // Create 20 individual building meshes — simple and reliable
+    // Create 30 individual building meshes — main foreground row
     const buildingPool: Array<{
       mesh: THREE.Mesh;
       side: number;
       initialZ: number;
     }> = [];
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 30; i++) {
       const h = 15 + Math.random() * 25;
-      const w = 7 + Math.random() * 5;
+      const w = 8 + Math.random() * 10;
       const geo = new THREE.BoxGeometry(w, h, 14);
       const mat = new THREE.MeshStandardMaterial({
         map: texPool[i % 3],
@@ -227,12 +254,30 @@ function GameScene({
         emissiveIntensity: 0.5,
       });
       const mesh = new THREE.Mesh(geo, mat);
-      const side = i % 2 === 0 ? -28 : 28;
-      mesh.position.set(side, h / 2, -(Math.floor(i / 2) * 40));
+      const side = i % 2 === 0 ? -35 : 35;
+      const baseZ = -(Math.floor(i / 2) * 25);
+      const parallaxOffset = Math.random() * 10 - 5;
+      mesh.position.set(side, h / 2, baseZ + parallaxOffset);
       scene.add(mesh);
       buildingPool.push({ mesh, side, initialZ: mesh.position.z });
     }
     buildingPoolRef.current = buildingPool;
+
+    // Create 10 shorter background buildings for depth
+    for (let i = 0; i < 10; i++) {
+      const h = 10 + Math.random() * 15;
+      const geo = new THREE.BoxGeometry(14, h, 8);
+      const mat = new THREE.MeshStandardMaterial({
+        map: texPool[i % 3],
+        color: "#ffffff",
+        emissive: "#0a0020",
+        emissiveIntensity: 0.3,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      const side = i % 2 === 0 ? -50 : 50;
+      mesh.position.set(side, h / 2, -(i * 30));
+      scene.add(mesh);
+    }
 
     // Check if lights already exist — without them buildings render black
     if (!scene.getObjectByName("ambientLight")) {
