@@ -30,6 +30,10 @@ function GameScene({
   const leftStreakRef = useRef<THREE.Mesh | null>(null);
   const rightStreakRef = useRef<THREE.Mesh | null>(null);
   const reflectionRef = useRef<THREE.Mesh | null>(null);
+  const trafficCarsRef = useRef<
+    Array<{ mesh: THREE.Group }>
+  >([]);
+  const pedestriansRef = useRef<THREE.Group[]>([]);
   const lampPoolRef = useRef<
     Array<{ group: THREE.Group; initialZ: number }>
   >([]);
@@ -188,7 +192,7 @@ function GameScene({
       "/kenney_car-kit/Models/GLB format/race.glb",
       (gltf: any) => {
         const carModel = gltf.scene as THREE.Group;
-        carModel.scale.set(3, 3, 3);
+        carModel.scale.set(1.8, 1.8, 1.8);
         carModel.traverse((child: any) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = false;
@@ -202,6 +206,96 @@ function GameScene({
         carModelRef.current = carModel;
       }
     );
+
+    // STEP 6 — Traffic cars with different models
+    const trafficModels = [
+      "/kenney_car-kit/Models/GLB format/sedan.glb",
+      "/kenney_car-kit/Models/GLB format/suv.glb",
+      "/kenney_car-kit/Models/GLB format/taxi.glb",
+      "/kenney_car-kit/Models/GLB format/police.glb",
+      "/kenney_car-kit/Models/GLB format/ambulance.glb",
+      "/kenney_car-kit/Models/GLB format/firetruck.glb",
+    ];
+    const trafficColors = ["#ff2244", "#4488ff", "#ffaa00", "#ffffff", "#44ff88", "#ff44ff"];
+    const trafficLoader = new GLTFLoader();
+
+    for (let i = 0; i < 6; i++) {
+      const modelPath = trafficModels[i % trafficModels.length];
+      trafficLoader.load(modelPath, (gltf: any) => {
+        const tc = gltf.scene as THREE.Group;
+        tc.scale.set(1.8, 1.8, 1.8);
+        tc.rotation.y = Math.PI;
+
+        const lanes = [-3, 0, 3];
+        tc.position.x = lanes[Math.floor(Math.random() * lanes.length)];
+        tc.position.z = -(20 + i * 35);
+
+        const box = new THREE.Box3().setFromObject(tc);
+        tc.position.y = -box.min.y;
+
+        tc.traverse((child: any) => {
+          if (child instanceof THREE.Mesh) {
+            child.castShadow = false;
+            child.receiveShadow = false;
+            child.material = child.material.clone();
+            const mat = child.material as any;
+            if (mat.color) mat.color.set(trafficColors[i]);
+          }
+        });
+
+        scene.add(tc);
+        trafficCarsRef.current.push({ mesh: tc });
+      });
+    }
+
+    // STEP 7 — Pedestrians and benches (start far down track to avoid collision with player)
+    function createPedestrian() {
+      const group = new THREE.Group();
+      const colors = ["#ff6ec7", "#00E5CC", "#ffaa00", "#ffffff", "#aa88ff"];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const mat = new THREE.MeshStandardMaterial({ color });
+
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.3), mat);
+      head.position.y = 1.5;
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.8, 0.3), mat);
+      body.position.y = 0.9;
+      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.7, 0.18), mat);
+      legL.position.set(-0.12, 0.35, 0);
+      const legR = legL.clone();
+      legR.position.x = 0.12;
+
+      group.add(head, body, legL, legR);
+      return group;
+    }
+
+    function createBench() {
+      const group = new THREE.Group();
+      const mat = new THREE.MeshStandardMaterial({ color: "#334455" });
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.1, 0.5), mat);
+      seat.position.y = 0.5;
+      const leg1 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.1), mat);
+      leg1.position.set(-0.6, 0.25, 0);
+      const leg2 = leg1.clone();
+      leg2.position.x = 0.6;
+      group.add(seat, leg1, leg2);
+      return group;
+    }
+
+    for (let i = 0; i < 16; i++) {
+      const p = createPedestrian();
+      const side = i % 2 === 0 ? -10 : 10;
+      p.position.set(side + (Math.random() * 3 - 1.5), 0, -(200 + i * 18));
+      scene.add(p);
+      pedestriansRef.current.push(p);
+    }
+
+    for (let i = 0; i < 8; i++) {
+      const bench = createBench();
+      const side = i % 2 === 0 ? -9 : 9;
+      bench.position.set(side, 0, -(220 + i * 30));
+      scene.add(bench);
+      pedestriansRef.current.push(bench);
+    }
 
     // STEP 6 — Cyberpunk buildings with InstancedMesh
     // Create 3 reusable window textures upfront
@@ -451,6 +545,26 @@ function GameScene({
       lamp.group.position.z += gameSpeed;
       if (lamp.group.position.z > camera.position.z + 20) {
         lamp.group.position.z -= 480;
+      }
+    });
+
+    // Recycle traffic cars
+    trafficCarsRef.current.forEach((t) => {
+      t.mesh.position.z += gameSpeed * 0.4;
+      if (t.mesh.position.z > camera.position.z + 15) {
+        t.mesh.position.z -= 250;
+        const lanes = [-3, 0, 3];
+        t.mesh.position.x = lanes[Math.floor(Math.random() * lanes.length)];
+      }
+    });
+
+    // Recycle pedestrians and benches
+    pedestriansRef.current.forEach((p) => {
+      p.position.z += gameSpeed;
+      if (p.position.z > camera.position.z + 10) {
+        p.position.z -= 300;
+        const side = p.position.x > 0 ? 10 : -10;
+        p.position.x = side + (Math.random() * 3 - 1.5);
       }
     });
   });
