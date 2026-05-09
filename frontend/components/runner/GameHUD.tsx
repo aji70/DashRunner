@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import type { GamePhase } from "@/types/runner";
-import { GlassPanel } from "@/components/ui/GlassPanel";
 import { cn } from "@/lib/cn";
 import { ArcadeSpeedCluster } from "./ArcadeSpeedCluster";
 
@@ -34,8 +33,15 @@ function IconVolumeOff({ className }: { className?: string }) {
   );
 }
 
-const iconBtn =
-  "pointer-events-auto flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.1] bg-[var(--panel)]/95 text-orange-200 shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:border-[var(--line-bright)] hover:text-rose-100";
+function CeloIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <text x="12" y="16" textAnchor="middle" fontSize="18" fontWeight="bold" fill="#F5C518">
+        $
+      </text>
+    </svg>
+  );
+}
 
 interface GameHUDProps {
   score: number;
@@ -60,78 +66,104 @@ export function GameHUD({
 }: GameHUDProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-10 pt-[max(0.5rem,env(safe-area-inset-top))]">
-      <div className="absolute left-3 right-[5.5rem] top-3 z-20 sm:left-4 sm:right-36 sm:top-4">
-        <GlassPanel className="shadow-lift">
-          <div className="grid grid-cols-2 divide-x divide-orange-400/15">
-            <div className="px-3 py-2.5 sm:px-4 sm:py-3">
-              <p className="font-rajdhani text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)]">
-                Score
-              </p>
+      {/* Top bar - Score and Coins */}
+      <div
+        className="absolute left-0 right-0 top-0 z-20 w-full px-4 py-3 sm:px-6 sm:py-4"
+        style={{
+          backgroundColor: "rgba(5, 8, 25, 0.85)",
+          backdropFilter: "blur(8px)",
+          borderBottom: "1px solid rgba(0, 229, 204, 0.1)",
+        }}
+      >
+        <div className="mx-auto max-w-7xl flex items-center justify-between gap-4">
+          {/* Score */}
+          <div className="flex items-center gap-3">
+            <span className="font-inter text-xs font-semibold uppercase tracking-widest text-white/50">
+              Score
+            </span>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={score}
+                initial={{ y: -6, opacity: 0.5 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 4, opacity: 0.4 }}
+                transition={{ type: "spring", stiffness: 480, damping: 28 }}
+                className="font-orbitron text-xl font-black tabular-nums tracking-tight sm:text-2xl"
+                style={{
+                  color: "#00E5CC",
+                  textShadow: "0 0 20px rgba(0, 229, 204, 0.5)",
+                }}
+              >
+                {score.toLocaleString()}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+
+          {/* Coins */}
+          <div className="flex items-center gap-3">
+            <span className="font-inter text-xs font-semibold uppercase tracking-widest text-white/50">
+              Celo
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span style={{ color: "#F5C518" }}>$</span>
               <AnimatePresence mode="wait">
                 <motion.p
-                  key={score}
+                  key={coinsCollected}
                   initial={{ y: -6, opacity: 0.5 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 4, opacity: 0.4 }}
                   transition={{ type: "spring", stiffness: 480, damping: 28 }}
-                  className="font-orbitron text-xl font-bold tabular-nums tracking-tight text-orange-100 sm:text-2xl"
-                  style={{ textShadow: "0 0 20px rgba(34,211,238,0.5), 0 0 40px rgba(34,211,238,0.25)" }}
+                  className="font-orbitron text-xl font-black tabular-nums tracking-tight sm:text-2xl"
+                  style={{
+                    color: "#F5C518",
+                    textShadow: "0 0 16px rgba(245, 197, 24, 0.3)",
+                  }}
                 >
-                  {score.toLocaleString()}
+                  {coinsCollected.toLocaleString()}
                 </motion.p>
               </AnimatePresence>
             </div>
-
-            <div className="px-3 py-2.5 sm:px-4 sm:py-3">
-              <p className="font-rajdhani text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/55">
-                Coins
-              </p>
-              <div className="flex items-center gap-1.5">
-                <span className="text-amber-200">◆</span>
-                <AnimatePresence mode="wait">
-                  <motion.p
-                    key={coinsCollected}
-                    initial={{ y: -6, opacity: 0.5 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 4, opacity: 0.4 }}
-                    transition={{ type: "spring", stiffness: 480, damping: 28 }}
-                    className="font-orbitron text-xl font-bold tabular-nums tracking-tight text-amber-200 sm:text-2xl"
-                    style={{ textShadow: "0 0 16px rgba(251,191,36,0.35)" }}
-                  >
-                    {coinsCollected.toLocaleString()}
-                  </motion.p>
-                </AnimatePresence>
-              </div>
-            </div>
           </div>
-        </GlassPanel>
+
+          {/* Control buttons */}
+          <div className="ml-auto flex items-center gap-2">
+            {phase === "playing" && (
+              <>
+                <motion.button
+                  type="button"
+                  onClick={onPauseToggle}
+                  whileTap={{ scale: 0.92 }}
+                  className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-lg transition"
+                  style={{
+                    border: "1px solid rgba(0, 229, 204, 0.4)",
+                    backgroundColor: "rgba(0, 229, 204, 0.08)",
+                    color: "#00E5CC",
+                  }}
+                  title="Pause"
+                >
+                  <IconPause className="h-4 w-4" />
+                </motion.button>
+                <motion.button
+                  type="button"
+                  onClick={onMuteToggle}
+                  whileTap={{ scale: 0.92 }}
+                  className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-lg transition"
+                  style={{
+                    border: "1px solid rgba(0, 229, 204, 0.4)",
+                    backgroundColor: "rgba(0, 229, 204, 0.08)",
+                    color: "#00E5CC",
+                  }}
+                  title={isMuted ? "Unmute" : "Mute"}
+                >
+                  {isMuted ? <IconVolumeOff className="h-5 w-5" /> : <IconVolumeOn className="h-5 w-5" />}
+                </motion.button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="absolute right-3 top-3 z-20 flex items-center gap-2 sm:right-4 sm:top-4 sm:gap-2.5">
-        {phase === "playing" && (
-          <>
-            <motion.button
-              type="button"
-              onClick={onPauseToggle}
-              whileTap={{ scale: 0.92 }}
-              className={cn(iconBtn, "shadow-neon-cyan")}
-              title="Pause"
-            >
-              <IconPause className="h-4 w-4" />
-            </motion.button>
-            <motion.button
-              type="button"
-              onClick={onMuteToggle}
-              whileTap={{ scale: 0.92 }}
-              className={cn(iconBtn, "shadow-neon-cyan")}
-              title={isMuted ? "Unmute" : "Mute"}
-            >
-              {isMuted ? <IconVolumeOff className="h-5 w-5" /> : <IconVolumeOn className="h-5 w-5" />}
-            </motion.button>
-          </>
-        )}
-      </div>
-
+      {/* Speedometer in bottom right */}
       {(phase === "playing" || phase === "paused") && (
         <div className="pointer-events-none absolute bottom-3 right-3 z-20 sm:bottom-4 sm:right-4">
           <ArcadeSpeedCluster speedKmh={speedKmh} gear={gear} />
@@ -144,7 +176,8 @@ export function GameHUD({
           initial={{ opacity: 1 }}
           animate={{ opacity: 0 }}
           transition={{ delay: 4, duration: 1 }}
-          className="pointer-events-none absolute bottom-3 left-0 right-0 z-10 text-center text-xs font-rajdhani font-semibold uppercase tracking-widest text-orange-300/60"
+          className="pointer-events-none absolute bottom-3 left-0 right-0 z-10 text-center text-xs font-inter font-semibold uppercase tracking-widest"
+          style={{ color: "rgba(0, 229, 204, 0.5)" }}
         >
           ← SWIPE → SWITCH | ↑ JUMP | ↓ SLIDE
         </motion.div>

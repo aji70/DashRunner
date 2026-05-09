@@ -90,40 +90,45 @@ function CarouselCard({
   mode,
   distance,
   onClick,
+  isMobile = false,
 }: {
   mode: (typeof gameModes)[0];
   distance: number; // 0 = center, 1 = adjacent, 2 = far
   onClick: () => void;
+  isMobile?: boolean;
 }) {
   const Icon = mode.icon;
 
   // Size tiers based on distance from center
-  let cardWidth = 190;
-  let cardHeight = 110;
-  let iconSize = 22;
-  let labelSize = 12;
+  let cardWidth = isMobile ? 130 : 190;
+  let cardHeight = isMobile ? 110 : 110;
+  let iconSize = isMobile ? 20 : 22;
+  let labelSize = isMobile ? 11 : 12;
   let showSubtitle = false;
   let scale = 0.85;
-  let opacity = 0.5;
+  let opacity = isMobile ? 0.45 : 0.5;
+  let blur = isMobile ? 1.5 : 1;
 
   if (distance === 0) {
     // Centre card
-    cardWidth = 260;
-    cardHeight = 140;
-    iconSize = 34;
-    labelSize = 16;
+    cardWidth = isMobile ? 160 : 260;
+    cardHeight = isMobile ? 130 : 140;
+    iconSize = isMobile ? 28 : 34;
+    labelSize = isMobile ? 14 : 16;
     showSubtitle = true;
     scale = 1;
     opacity = 1;
+    blur = 0;
   } else if (distance === 1) {
     // Adjacent cards (±1)
-    cardWidth = 220;
-    cardHeight = 120;
-    iconSize = 26;
-    labelSize = 13;
+    cardWidth = isMobile ? 130 : 220;
+    cardHeight = isMobile ? 110 : 120;
+    iconSize = isMobile ? 20 : 26;
+    labelSize = isMobile ? 11 : 13;
     showSubtitle = false;
     scale = 0.85;
-    opacity = 0.5;
+    opacity = isMobile ? 0.45 : 0.5;
+    blur = isMobile ? 1.5 : 1;
   }
   // distance === 2: far cards - use defaults above
 
@@ -145,7 +150,7 @@ function CarouselCard({
           backgroundColor: "rgba(5, 8, 25, 0.85)",
           border: "1px solid rgba(0, 229, 204, 0.2)",
           clipPath: "polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%)",
-          filter: distance === 0 ? "none" : "blur(1px)",
+          filter: distance === 0 ? "none" : `blur(${blur}px)`,
           boxShadow: distance === 0 ? "0 -4px 20px rgba(0, 229, 204, 0.5), inset 3px 0 0 #00E5CC" : "none",
         }}
       >
@@ -191,6 +196,8 @@ function Carousel({ isLocked, mounted }: { isLocked: boolean; mounted: boolean }
   const [activeIndex, setActiveIndex] = useState(2); // QUICK RACE is at index 2
   const [isMobile, setIsMobile] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
   const cardsPerView = isMobile ? 3 : 5;
   const sideCards = Math.floor(cardsPerView / 2);
 
@@ -245,42 +252,84 @@ function Carousel({ isLocked, mounted }: { isLocked: boolean; mounted: boolean }
     );
   }
 
+  // Handle touch swipe on mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.clientX || e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    touchEndX.current = e.clientX || e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 40) { // 40px minimum swipe distance
+      if (diff > 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+    }
+  };
+
   return (
     <motion.div
       {...fadeUp(0.5)}
       ref={carouselRef}
       tabIndex={0}
-      className="relative flex items-center justify-center mt-6"
+      className="relative flex flex-col items-center justify-center mt-4 sm:mt-6 w-full"
       style={{
         outline: "none",
-        height: "160px",
       }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
-      {/* Left Arrow */}
-      <button
-        onClick={handlePrev}
-        className="absolute flex items-center justify-center text-2xl transition-all duration-200 hover:scale-110 hover:opacity-100 z-10"
-        style={{
-          left: "calc(50% - 360px)",
-          width: "40px",
-          height: "40px",
-          border: "1px solid rgba(0,229,204,0.4)",
-          background: "rgba(0,229,204,0.08)",
-          color: "#00E5CC",
-          borderRadius: "50%",
-          cursor: "pointer",
-          opacity: 0.7,
-        }}
-        aria-label="Previous card"
-      >
-        ‹
-      </button>
+      {/* Desktop Arrow Buttons - Hidden on mobile */}
+      {!isMobile && (
+        <>
+          <button
+            onClick={handlePrev}
+            className="absolute flex items-center justify-center text-2xl transition-all duration-200 hover:scale-110 hover:opacity-100 z-10 hidden sm:flex"
+            style={{
+              left: "calc(50% - 360px)",
+              width: "40px",
+              height: "40px",
+              border: "1px solid rgba(0,229,204,0.4)",
+              background: "rgba(0,229,204,0.08)",
+              color: "#00E5CC",
+              borderRadius: "50%",
+              cursor: "pointer",
+              opacity: 0.7,
+            }}
+            aria-label="Previous card"
+          >
+            ‹
+          </button>
+
+          <button
+            onClick={handleNext}
+            className="absolute flex items-center justify-center text-2xl transition-all duration-200 hover:scale-110 hover:opacity-100 z-10 hidden sm:flex"
+            style={{
+              right: "calc(50% - 360px)",
+              width: "40px",
+              height: "40px",
+              border: "1px solid rgba(0,229,204,0.4)",
+              background: "rgba(0,229,204,0.08)",
+              color: "#00E5CC",
+              borderRadius: "50%",
+              cursor: "pointer",
+              opacity: 0.7,
+            }}
+            aria-label="Next card"
+          >
+            ›
+          </button>
+        </>
+      )}
 
       {/* Cards Container */}
       <div
-        className="flex items-center justify-center gap-4 overflow-hidden"
+        className="flex items-center justify-center gap-3 sm:gap-4 overflow-hidden"
         style={{
           perspective: "1000px",
+          height: "150px",
         }}
       >
         {visibleIndices.map((index, idx) => {
@@ -291,31 +340,34 @@ function Carousel({ isLocked, mounted }: { isLocked: boolean; mounted: boolean }
                 mode={gameModes[index]}
                 distance={distance}
                 onClick={() => handleCardClick(index)}
+                isMobile={isMobile}
               />
             </div>
           );
         })}
       </div>
 
-      {/* Right Arrow */}
-      <button
-        onClick={handleNext}
-        className="absolute flex items-center justify-center text-2xl transition-all duration-200 hover:scale-110 hover:opacity-100 z-10"
-        style={{
-          right: "calc(50% - 360px)",
-          width: "40px",
-          height: "40px",
-          border: "1px solid rgba(0,229,204,0.4)",
-          background: "rgba(0,229,204,0.08)",
-          color: "#00E5CC",
-          borderRadius: "50%",
-          cursor: "pointer",
-          opacity: 0.7,
-        }}
-        aria-label="Next card"
-      >
-        ›
-      </button>
+      {/* Dot Indicators - Mobile only */}
+      {isMobile && (
+        <div className="flex items-center justify-center gap-2 mt-3">
+          {gameModes.map((_, index) => (
+            <motion.button
+              key={index}
+              onClick={() => setActiveIndex(index)}
+              className="rounded-full transition-all duration-300 cursor-pointer min-h-[44px] flex items-center justify-center"
+              animate={{
+                width: index === activeIndex ? 20 : 6,
+              }}
+              style={{
+                backgroundColor: index === activeIndex ? "#00E5CC" : "rgba(255,255,255,0.3)",
+                borderRadius: "999px",
+                height: "6px",
+              }}
+              aria-label={`Go to card ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Center card link */}
       <Link href={gameModes[activeIndex].href} className="absolute inset-0 pointer-events-none" />
@@ -333,14 +385,18 @@ export function LandingHero() {
   }, []);
 
   return (
-    <div className="relative w-full overflow-hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8" style={{ height: "calc(100vh - 64px)" }}>
-      {/* Full viewport background image */}
+    <div className="relative w-full overflow-hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8" style={{ height: "calc(100dvh - 56px)" }}>
+      {/* Full viewport background image - mobile optimized focal point */}
       <Image
         src="/hero-dash-prime.png"
         alt="DashRunner Race Car"
         fill
         priority
         className="object-cover w-full h-full"
+        style={{
+          backgroundPosition: "center bottom",
+          objectPosition: "60% center",
+        }}
       />
 
       {/* Dark radial vignette overlay for text legibility */}
@@ -355,16 +411,17 @@ export function LandingHero() {
         style={{
           height: "100%",
           justifyContent: "flex-start",
-          paddingTop: "8vh",
+          paddingTop: "clamp(2rem, 8dvh, 12vh)",
+          paddingBottom: "env(safe-area-inset-bottom, 1rem)",
         }}
       >
         {/* Badge */}
         <motion.div
           {...fadeUp(0.1)}
-          className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/50 bg-cyan-500/15 px-6 py-2.5 backdrop-blur-sm"
+          className="mb-4 sm:mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/50 bg-cyan-500/15 px-3 sm:px-6 py-2 sm:py-2.5 backdrop-blur-sm"
         >
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-          <span className="font-inter text-xs font-bold uppercase tracking-widest text-cyan-300">
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="font-inter text-[10px] sm:text-xs font-bold uppercase tracking-widest text-cyan-300">
             Next-Gen Racing
           </span>
         </motion.div>
@@ -372,7 +429,7 @@ export function LandingHero() {
         {/* Main headline */}
         <motion.h1
           {...fadeUp(0.2)}
-          className="font-bebas text-[clamp(3rem,10vw,8rem)] font-black italic -skew-x-12 leading-none text-white drop-shadow-[0_0_30px_rgba(0,229,204,0.5)]"
+          className="font-bebas text-[clamp(48px,14vw,80px)] font-black italic -skew-x-12 leading-[0.95] text-white drop-shadow-[0_0_30px_rgba(0,229,204,0.5)]"
         >
           DASH RUNNER
         </motion.h1>
@@ -380,7 +437,7 @@ export function LandingHero() {
         {/* Tagline */}
         <motion.p
           {...fadeUp(0.3)}
-          className="mt-4 max-w-xl font-inter text-base sm:text-lg font-medium text-white/90 leading-relaxed"
+          className="mt-2 sm:mt-4 max-w-xl font-inter text-sm sm:text-base font-medium text-white/75 leading-relaxed"
         >
           Race. Dodge. Survive. Score forever on-chain.
         </motion.p>
@@ -389,33 +446,37 @@ export function LandingHero() {
         {!isConnected ? (
           <motion.div
             {...fadeUp(0.4)}
-            className="mt-8 flex flex-col sm:flex-row items-center gap-6"
+            className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center gap-3 sm:gap-6 w-full sm:w-auto"
+            style={{
+              maxWidth: "85%",
+              margin: "1.5rem auto 0",
+            }}
           >
             <Link
               href="/play?start=1"
-              className="group relative px-10 py-4 rounded-lg font-inter font-bold uppercase tracking-wider text-white bg-cyan-500 hover:bg-cyan-400 transition-colors duration-200 -skew-x-2 shadow-[0_8px_16px_rgba(0,229,204,0.3)] hover:shadow-[0_12px_24px_rgba(0,229,204,0.5)]"
+              className="group relative w-full sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-lg font-inter font-bold uppercase tracking-wider text-white bg-cyan-500 hover:bg-cyan-400 transition-colors duration-200 -skew-x-2 shadow-[0_8px_16px_rgba(0,229,204,0.3)] hover:shadow-[0_12px_24px_rgba(0,229,204,0.5)] text-center min-h-[48px] sm:min-h-[44px] flex items-center justify-center"
             >
-              <span className="block skew-x-2">Play Now</span>
+              <span className="block skew-x-2">▶ Play Now</span>
             </Link>
 
             <button
               onClick={openConnectModal}
-              className="relative px-10 py-4 rounded-lg font-inter font-bold uppercase tracking-wider text-cyan-300 border-2 border-cyan-500 hover:border-cyan-400 hover:text-cyan-200 transition-colors duration-200 -skew-x-2 bg-transparent hover:bg-cyan-500/10 cursor-pointer"
+              className="group relative w-full sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-lg font-inter font-bold uppercase tracking-wider text-cyan-300 border-2 border-cyan-500 hover:border-cyan-400 hover:text-cyan-200 transition-colors duration-200 -skew-x-2 bg-transparent hover:bg-cyan-500/10 cursor-pointer text-center min-h-[48px] sm:min-h-[44px] flex items-center justify-center"
             >
-              <span className="block skew-x-2">Connect Wallet</span>
+              <span className="block skew-x-2">🔗 Connect Wallet</span>
             </button>
           </motion.div>
         ) : (
           <motion.div
             {...fadeUp(0.4)}
-            className="mt-8 inline-flex items-center gap-2 font-inter text-sm"
+            className="mt-6 sm:mt-8 inline-flex items-center gap-2 font-inter text-xs sm:text-sm min-h-[44px]"
             style={{
               background: "rgba(0,229,204,0.1)",
               border: "1px solid #00E5CC",
               color: "#00E5CC",
               borderRadius: "999px",
               padding: "8px 20px",
-              fontSize: "13px",
+              fontSize: "12px",
             }}
           >
             <span>✓ Racing as</span>

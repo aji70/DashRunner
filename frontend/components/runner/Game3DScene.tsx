@@ -3,9 +3,6 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { Car3D } from "./Car3D";
-import { TrafficCar3D } from "./TrafficCar3D";
-import { Coin3D } from "./Coin3D";
 import type { GameState } from "@/types/runner";
 
 interface Game3DSceneProps {
@@ -14,445 +11,318 @@ interface Game3DSceneProps {
   playerLane: 0 | 1 | 2;
   jumping: boolean;
   sliding: boolean;
-  /** Route / city theme (0–31); shifts skyline palette and lighting. */
   cityId?: number;
-  /** Per-character accent on the runner model. */
   characterTint?: string;
+  currentSpeed?: number;
+  maxSpeed?: number;
 }
-
-const CITY_ROUTE_THEMES = [
-  // Neon City (Original)
-  { fog: "#140a24", bg: "#12091f", accentA: "#f472b6", accentB: "#22d3ee" },
-  { fog: "#0f172a", bg: "#0c1424", accentA: "#38bdf8", accentB: "#a78bfa" },
-  { fog: "#1a0a14", bg: "#160812", accentA: "#fb7185", accentB: "#fbbf24" },
-  // Forest
-  { fog: "#1a3a1a", bg: "#0d2014", accentA: "#4ade80", accentB: "#22c55e" },
-  { fog: "#052e16", bg: "#041a0d", accentA: "#4ade80", accentB: "#86efac" },
-  // Desert
-  { fog: "#4a2b0f", bg: "#2a1810", accentA: "#fb923c", accentB: "#fbbf24" },
-  { fog: "#2a0f06", bg: "#1a0a04", accentA: "#fb923c", accentB: "#fcd34d" },
-  // Seaside
-  { fog: "#0b2e3a", bg: "#051820", accentA: "#06b6d4", accentB: "#67e8f9" },
-  { fog: "#0b1e2e", bg: "#07121c", accentA: "#7dd3fc", accentB: "#e0f2fe" },
-  // Arctic/Snow
-  { fog: "#1a2a3a", bg: "#0f1a2a", accentA: "#cffafe", accentB: "#e0f2fe" },
-  // Volcano/Lava
-  { fog: "#3a1a0a", bg: "#2a0a04", accentA: "#ff6b6b", accentB: "#fca5a5" },
-  // Cyberpunk (Synthwave)
-  { fog: "#2a0a3a", bg: "#1a0524", accentA: "#ff006e", accentB: "#8338ec" },
-] as const;
 
 const WORLD_SCROLL_SCALE = 0.045;
 const TRACK_CENTER_Z = 14;
-const BUILDING_PALETTES = [
-  // Neon City
-  { body: "#60a5fa", accent: "#f8fafc", secondary: "#bfdbfe" },
-  { body: "#a78bfa", accent: "#fdf4ff", secondary: "#ddd6fe" },
-  { body: "#f472b6", accent: "#fff1f2", secondary: "#fbcfe8" },
-  // Forest
-  { body: "#16a34a", accent: "#dcfce7", secondary: "#86efac" },
-  { body: "#15803d", accent: "#bbf7d0", secondary: "#6ee7b7" },
-  // Desert
-  { body: "#d97706", accent: "#fffbeb", secondary: "#fde68a" },
-  { body: "#b45309", accent: "#fef3c7", secondary: "#fcd34d" },
-  // Seaside
-  { body: "#0891b2", accent: "#ecfeff", secondary: "#a5f3fc" },
-  { body: "#0e7490", accent: "#cffafe", secondary: "#67e8f9" },
-  // Arctic
-  { body: "#e0f2fe", accent: "#f0f9ff", secondary: "#cffafe" },
-  { body: "#bae6fd", accent: "#f0f9ff", secondary: "#e0f2fe" },
-  // Volcano
-  { body: "#dc2626", accent: "#fecaca", secondary: "#fca5a5" },
-  { body: "#991b1b", accent: "#fecaca", secondary: "#f87171" },
-  // Cyberpunk
-  { body: "#ec4899", accent: "#fbcfe8", secondary: "#f472b6" },
-  { body: "#7c3aed", accent: "#ddd6fe", secondary: "#c4b5fd" },
-  // Default
-  { body: "#34d399", accent: "#ecfdf5", secondary: "#a7f3d0" },
-  { body: "#f59e0b", accent: "#fffbeb", secondary: "#fde68a" },
-  { body: "#22d3ee", accent: "#ecfeff", secondary: "#a5f3fc" },
-];
-const SKYLINE_PALETTES = [
-  // City
-  "#1d4ed8", "#7c3aed", "#db2777",
-  // Forest
-  "#16a34a", "#059669", "#047857",
-  // Desert
-  "#d97706", "#b45309", "#92400e",
-  // Seaside
-  "#0891b2", "#0e7490", "#155e75",
-  // Arctic
-  "#06b6d4", "#0891b2", "#0284c7",
-  // Volcano
-  "#dc2626", "#991b1b", "#7f1d1d",
-  // Cyberpunk
-  "#ec4899", "#7c3aed", "#a855f7",
-];
+const POOL_SIZE = 20;
+const TOTAL_ROAD_LENGTH = POOL_SIZE * 30;
 
-function SkylineLayer({
-  catPosition,
-  mobileMode = false,
-  paletteShift = 0,
-}: {
-  catPosition: number;
-  mobileMode?: boolean;
-  paletteShift?: number;
-}) {
-  const skyline = useMemo(() => {
-    const chunks: Array<{ x: number; z: number; width: number; height: number; color: string }> = [];
-    const count = mobileMode ? 18 : 28;
-    for (let i = -6; i < count; i++) {
-      const side = i % 2 === 0 ? -1 : 1;
-      chunks.push({
-        x: side * (6.2 + (i % 3) * 0.8),
-        z: i * 8,
-        width: 1.2 + (i % 4) * 0.35,
-        height: 5 + (i % 5) * 1.4,
-        color: SKYLINE_PALETTES[(i + paletteShift) % SKYLINE_PALETTES.length],
-      });
-    }
-    return chunks;
-  }, [mobileMode, paletteShift]);
+// Create window textures once at startup - 3 variations
+function createWindowTextures(): THREE.Texture[] {
+  const textures: THREE.Texture[] = [];
 
-  const skylineOffsetZ = Math.floor((catPosition * 0.35) / 8) * 8;
+  for (let v = 0; v < 3; v++) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext("2d")!;
 
-  return (
-    <group position={[0, 0, skylineOffsetZ]}>
-      {skyline.map((chunk, idx) => (
-        <group key={`skyline-${idx}`}>
-          <mesh position={[chunk.x, chunk.height / 2 + 0.2, chunk.z]}>
-            <boxGeometry args={[chunk.width, chunk.height, 1.1]} />
-            <meshBasicMaterial color={chunk.color} transparent opacity={0.55} />
-          </mesh>
-          <mesh position={[chunk.x, chunk.height / 2 + 0.2, chunk.z + 0.57]}>
-            <planeGeometry args={[chunk.width * 0.7, chunk.height * 0.7]} />
-            <meshBasicMaterial color="#e0f2fe" transparent opacity={0.18} />
-          </mesh>
-        </group>
-      ))}
-    </group>
-  );
-}
+    ctx.fillStyle = "#0d0d1f";
+    ctx.fillRect(0, 0, 256, 256);
 
-function CityBuilder({ mobileMode = false }: { mobileMode?: boolean }) {
-  const buildings = useMemo(() => {
-    const buildings: Array<{
-      x: number;
-      z: number;
-      height: number;
-      id: string;
-      color: string;
-      accentColor: string;
-      secondaryColor: string;
-      width: number;
-      depth: number;
-      roofHeight: number;
-    }> = [];
-    const start = mobileMode ? -4 : -8;
-    const end = mobileMode ? 16 : 24;
-    for (let i = start; i < end; i++) {
-      for (let side = -1; side <= 1; side += 2) {
-        const height = 3.2 + Math.random() * 4.8;
-        const width = 0.85 + Math.random() * 0.45;
-        const depth = 0.9 + Math.random() * 0.5;
-        const roofHeight = 0.15 + Math.random() * 0.28;
-        const x = side * (2.4 + Math.random() * 0.7);
-        const z = i * 4;
-        const palette = BUILDING_PALETTES[Math.floor(Math.random() * BUILDING_PALETTES.length)];
-        buildings.push({
-          x,
-          z,
-          height,
-          id: `${i}-${side}`,
-          color: palette.body,
-          accentColor: palette.accent,
-          secondaryColor: palette.secondary,
-          width,
-          depth,
-          roofHeight,
-        });
+    const windowSize = 16;
+    const windowSpacing = 20;
+    const seed = v * 12345;
+
+    for (let y = 0; y < 256; y += windowSpacing) {
+      for (let x = 0; x < 256; x += windowSpacing) {
+        const rand = Math.sin(x * 0.1 + y * 0.1 + seed) * 10000;
+        if ((rand - Math.floor(rand)) > 0.5) {
+          ctx.fillStyle = "rgba(0, 229, 204, 0.6)";
+          ctx.fillRect(x + 2, y + 2, windowSize - 4, windowSize - 4);
+        } else if ((rand - Math.floor(rand)) > 0.3) {
+          ctx.fillStyle = "rgba(180, 100, 255, 0.4)";
+          ctx.fillRect(x + 2, y + 2, windowSize - 4, windowSize - 4);
+        }
       }
     }
-    return buildings;
-  }, [mobileMode]);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.generateMipmaps = false;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    textures.push(texture);
+  }
+
+  return textures;
+}
+
+// Cyberpunk car
+function CyberpunkCar({ position }: { position: THREE.Vector3Tuple }) {
+  const groupRef = useRef<THREE.Group>(null);
 
   return (
-    <group>
-      {/* Ground */}
-      <mesh position={[0, -1, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[16, 500]} />
-        <meshStandardMaterial color="#170f2e" roughness={0.95} metalness={0.05} />
+    <group ref={groupRef} position={position}>
+      {/* Main body */}
+      <mesh position={[0, 0.5, 0]}>
+        <boxGeometry args={[1.5, 0.8, 3]} />
+        <meshStandardMaterial
+          color="#00E5CC"
+          metalness={0.9}
+          roughness={0.1}
+          emissive="#00E5CC"
+          emissiveIntensity={0.2}
+        />
       </mesh>
 
-      {/* Road */}
-      <mesh position={[0, -0.98, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[4.2, 500]} />
-        <meshStandardMaterial color="#312e81" roughness={0.7} metalness={0.1} />
+      {/* Windscreen */}
+      <mesh position={[0, 0.6, 0.5]}>
+        <boxGeometry args={[1.4, 0.5, 0.3]} />
+        <meshStandardMaterial color="#0a0a1a" transparent opacity={0.7} />
       </mesh>
 
-      {/* Sidewalks */}
-      {[-1, 1].map((side) => (
-        <mesh key={`sidewalk-${side}`} position={[side * 2.7, -0.97, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[1.1, 500]} />
-          <meshStandardMaterial color="#6b7280" roughness={0.9} metalness={0.05} />
-        </mesh>
-      ))}
+      {/* Left wheel */}
+      <mesh position={[-0.8, 0.3, 0.5]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.4, 0.4, 0.3, 8]} />
+        <meshStandardMaterial color="#111" roughness={1} metalness={0} />
+      </mesh>
 
-      {/* Neon curb strips */}
-      {[-1, 1].map((side) => (
-        <mesh key={`curb-${side}`} position={[side * 2.1, -0.955, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[0.12, 500]} />
-          <meshStandardMaterial
-            color={side === -1 ? "#22d3ee" : "#f472b6"}
-            emissive={side === -1 ? "#22d3ee" : "#f472b6"}
-            emissiveIntensity={1}
-          />
-        </mesh>
-      ))}
-
-      {/* Sky glow columns */}
-      {[-1, 1].map((side) => (
-        <mesh key={`sky-glow-${side}`} position={[side * 4.8, 4.5, 60]} rotation={[0, 0, 0]}>
-          <planeGeometry args={[10, 20]} />
-          <meshBasicMaterial
-            color={side === -1 ? "#22d3ee" : "#f472b6"}
-            transparent
-            opacity={0.12}
-          />
-        </mesh>
-      ))}
-
-      {/* Lane markers & guides */}
-      {[-1, 0, 1].map((lane) => (
-        <group key={`lane-${lane}`}>
-          {/* Dashed lane markers */}
-          {Array.from({ length: 25 }).map((_, i) => (
-            <mesh key={`marker-${i}`} position={[lane, 0.01, i * 16]}>
-              <boxGeometry args={[0.12, 0.01, 1.4]} />
-              <meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={0.6} />
-            </mesh>
-          ))}
-          {/* Center lane guides for clarity */}
-          {lane !== 0 && Array.from({ length: 50 }).map((_, i) => (
-            <mesh key={`guide-${i}`} position={[lane, 0.005, i * 8 - 4]}>
-              <boxGeometry args={[0.05, 0.005, 0.6]} />
-              <meshStandardMaterial color={lane === -1 ? "#22d3ee" : "#f472b6"} emissive={lane === -1 ? "#22d3ee" : "#f472b6"} emissiveIntensity={0.3} />
-            </mesh>
-          ))}
-        </group>
-      ))}
-
-      {/* Buildings (drastically simplified for performance) */}
-      {buildings.map((building) => (
-        <group key={building.id}>
-          {/* Main body */}
-          <mesh position={[building.x, building.height / 2, building.z]} castShadow>
-            <boxGeometry args={[building.width, building.height, building.depth]} />
-            <meshStandardMaterial
-              color={building.color}
-              emissive={building.color}
-              emissiveIntensity={0.35}
-              metalness={0.3}
-              roughness={0.6}
-            />
-          </mesh>
-
-          {/* Roof cap */}
-          <mesh position={[building.x, building.height + building.roofHeight / 2, building.z]} castShadow>
-            <boxGeometry args={[building.width * 1.02, building.roofHeight, building.depth * 1.02]} />
-            <meshStandardMaterial
-              color={building.accentColor}
-              emissive={building.accentColor}
-              emissiveIntensity={0.4}
-            />
-          </mesh>
-
-          {/* Front facade window band (simple emissive plane) */}
-          <mesh position={[building.x, building.height * 0.55, building.z + building.depth / 2 + 0.02]}>
-            <planeGeometry args={[building.width * 0.85, building.height * 0.6]} />
-            <meshStandardMaterial
-              color={building.secondaryColor}
-              emissive={building.secondaryColor}
-              emissiveIntensity={0.5}
-            />
-          </mesh>
-
-          {/* Side accent strip */}
-          <mesh position={[building.x + (building.x < 0 ? building.width * 0.35 : -building.width * 0.35), building.height * 0.5, building.z]}>
-            <planeGeometry args={[0.08, building.height * 0.7]} />
-            <meshStandardMaterial
-              color={building.accentColor}
-              emissive={building.accentColor}
-              emissiveIntensity={0.6}
-            />
-          </mesh>
-        </group>
-      ))}
+      {/* Right wheel */}
+      <mesh position={[0.8, 0.3, 0.5]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.4, 0.4, 0.3, 8]} />
+        <meshStandardMaterial color="#111" roughness={1} metalness={0} />
+      </mesh>
     </group>
   );
 }
 
-function Scene3D({
+// Street lamp - visual only, no light
+function StreetLamp({
+  position,
+  color,
+}: {
+  position: [number, number, number];
+  color: string;
+}) {
+  return (
+    <group position={position}>
+      {/* Pole */}
+      <mesh position={[0, 5, 0]}>
+        <cylinderGeometry args={[0.15, 0.15, 10, 6]} />
+        <meshStandardMaterial color="#333" roughness={0.8} metalness={0.2} />
+      </mesh>
+
+      {/* Light head - emissive glow only */}
+      <mesh position={[0, 10, 0]}>
+        <sphereGeometry args={[0.4, 6, 6]} />
+        <meshBasicMaterial color={color} />
+      </mesh>
+    </group>
+  );
+}
+
+// Main scene
+function GameScene({
   gameState,
   catPosition,
   playerLane,
   jumping,
   sliding,
-  cityId = 0,
-  characterTint,
+  currentSpeed = 0,
+  maxSpeed = 100,
 }: Game3DSceneProps) {
-  const { camera } = useThree();
-  const [mobileMode, setMobileMode] = useState(false);
-  const camTargetRef = useRef(new THREE.Vector3());
-  const lookAtTargetRef = useRef(new THREE.Vector3());
+  const { camera, scene, renderer } = useThree();
+  const clockRef = useRef(new THREE.Clock());
+  const buildingPoolRef = useRef<THREE.Mesh[]>([]);
+  const windowTexturesRef = useRef<THREE.Texture[]>([]);
+  const lastTabVisibleRef = useRef(true);
 
+  // Initialize textures and settings
   useEffect(() => {
-    const updateMobileMode = () => {
-      const coarsePointer =
-        typeof window !== "undefined" &&
-        window.matchMedia &&
-        window.matchMedia("(pointer: coarse)").matches;
-      const smallScreen = typeof window !== "undefined" && window.innerWidth < 768;
-      setMobileMode(Boolean(coarsePointer || smallScreen));
-    };
+    // Set renderer for performance
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    renderer.shadowMap.enabled = false;
+    renderer.powerPreference = "high-performance";
+    renderer.antialias = false;
 
-    updateMobileMode();
-    window.addEventListener("resize", updateMobileMode);
-    return () => window.removeEventListener("resize", updateMobileMode);
-  }, []);
+    // Create window textures once
+    windowTexturesRef.current = createWindowTextures();
 
-  // Keep a stable chase camera so the runner moves toward screen top.
-  useFrame(() => {
-    if (camera) {
-      const targetCamX = playerLane - 1;
-      const camY = mobileMode ? 4.2 : 4.6;
-      const lookAtZ = catPosition + (mobileMode ? 10 : 12);
+    // Create building pool
+    const buildingGeo = new THREE.BoxGeometry(1, 1, 1);
+    const buildingMat = new THREE.MeshStandardMaterial({
+      color: "#0d0d1f",
+      roughness: 0.7,
+      metalness: 0.3,
+      map: windowTexturesRef.current[0],
+    });
 
-      camTargetRef.current.set(targetCamX, camY, catPosition - 8);
-      camera.position.lerp(camTargetRef.current, 0.1);
-
-      lookAtTargetRef.current.set(playerLane - 1, 1, lookAtZ);
-      camera.lookAt(lookAtTargetRef.current);
+    const pool: THREE.Mesh[] = [];
+    for (let i = 0; i < POOL_SIZE; i++) {
+      const building = new THREE.Mesh(buildingGeo, buildingMat.clone());
+      building.scale.set(
+        8 + Math.random() * 8,
+        20 + Math.random() * 60,
+        8 + Math.random() * 8
+      );
+      building.position.set(
+        Math.random() > 0.5 ? -10 - Math.random() * 5 : 10 + Math.random() * 5,
+        building.scale.y / 2,
+        i * 30
+      );
+      scene.add(building);
+      pool.push(building);
     }
-  });
+    buildingPoolRef.current = pool;
 
-  const catX = playerLane - 1;
-  const catY = 0;
-  const catZ = catPosition;
-  const toWorldZ = (y: number) => catZ + TRACK_CENTER_Z - y * WORLD_SCROLL_SCALE;
-  const cityOffsetZ = Math.floor(catZ / 4) * 4;
-  const routeTheme = CITY_ROUTE_THEMES[Math.abs(cityId | 0) % CITY_ROUTE_THEMES.length];
+    // Visibility change listener
+    const handleVisibilityChange = () => {
+      lastTabVisibleRef.current = !document.hidden;
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [scene, renderer]);
+
+  // Update scene on frame
+  useFrame(() => {
+    if (document.hidden) return;
+
+    const clock = clockRef.current;
+    const delta = Math.min(clock.getDelta(), 0.05); // Cap delta to 50ms
+
+    // Update camera
+    const speedRatio = Math.min(currentSpeed / maxSpeed, 1);
+    camera.position.x = playerLane === 0 ? -1.5 : playerLane === 2 ? 1.5 : 0;
+    camera.position.y = jumping ? 3.5 : 2.5;
+    camera.position.z = catPosition * WORLD_SCROLL_SCALE;
+    camera.fov = 60 + speedRatio * 15;
+    camera.updateProjectionMatrix();
+    camera.lookAt(0, 2, catPosition * WORLD_SCROLL_SCALE + 20);
+
+    // Recycle buildings
+    buildingPoolRef.current.forEach((building) => {
+      if (building.position.z > camera.position.z + 80) {
+        building.position.z -= TOTAL_ROAD_LENGTH;
+        // Reassign random window texture
+        const mat = building.material as THREE.MeshStandardMaterial;
+        mat.map = windowTexturesRef.current[Math.floor(Math.random() * 3)];
+        mat.needsUpdate = true;
+      }
+    });
+  });
 
   return (
     <>
-      <fog attach="fog" args={[routeTheme.fog, 20, 82]} />
+      {/* Minimal lighting */}
+      <ambientLight color="#0a0020" intensity={0.4} />
+      <directionalLight position={[10, 20, 10]} color="#4400ff" intensity={0.6} />
 
-      {/* Lighting */}
-      <ambientLight intensity={0.75} />
-      <directionalLight
-        position={[10, 15, 10]}
-        intensity={0.9}
-        castShadow={!mobileMode}
-        shadow-mapSize-width={mobileMode ? 256 : 512}
-        shadow-mapSize-height={mobileMode ? 256 : 512}
-        shadow-camera-far={60}
-        shadow-camera-near={0.1}
+      {/* Single PointLight - underglow */}
+      <pointLight
+        position={[0, 0.5, catPosition * WORLD_SCROLL_SCALE]}
+        color="#7B2FFF"
+        intensity={1}
+        distance={15}
       />
-      {/* Car tracking point light for clear car visibility */}
-      <pointLight position={[0, 3.5, catZ]} intensity={0.8} color="#ffffff" distance={40} decay={2} />
+
+      {/* Cheap linear fog */}
+      <fog attach="fog" args={["#05000f", 80, 200]} />
 
       {/* Background */}
-      <SkylineLayer catPosition={catPosition} mobileMode={mobileMode} paletteShift={cityId | 0} />
-      <group position={[0, 0, cityOffsetZ]}>
-        <CityBuilder mobileMode={mobileMode} />
-      </group>
+      <color attach="background" args={["#0a0510"]} />
 
-      {/* Player — procedural car */}
-      <Car3D position={[catX, catY, catZ]} jumping={jumping} sliding={sliding} accentTint={characterTint} />
+      {/* Road surfaces */}
+      <mesh position={[0, -1, catPosition * WORLD_SCROLL_SCALE]}>
+        <planeGeometry args={[4, 500]} />
+        <meshStandardMaterial color="#0a0a0f" roughness={0.8} metalness={0.1} />
+      </mesh>
 
-      {/* Coins */}
-      {gameState.coins
-        .filter((coin) => {
-          const coinZ = toWorldZ(coin.y);
-          return !coin.collected && coinZ > catZ - 12 && coinZ < catZ + 30;
-        })
-        .map((coin) => {
-          const coinLaneX = coin.lane - 1;
-          return (
-            <Coin3D
-              key={coin.id}
-              position={[coinLaneX, 0.5, toWorldZ(coin.y)]}
-              collected={coin.collected}
-            />
-          );
-        })}
+      <mesh position={[-7, -1, catPosition * WORLD_SCROLL_SCALE]}>
+        <planeGeometry args={[6, 500]} />
+        <meshStandardMaterial color="#080810" roughness={0.9} metalness={0} />
+      </mesh>
 
-      {/* Other traffic (same hitboxes as former obstacles). */}
-      {gameState.obstacles
-        .filter((obs) => {
-          const obsZ = toWorldZ(obs.y);
-          return obsZ > catZ - 12 && obsZ < catZ + 30;
-        })
-        .map((obs) => {
-          const obsLaneX = obs.lane - 1;
-          return (
-            <TrafficCar3D
-              key={obs.id}
-              position={[obsLaneX, obs.type === "wall" ? 0.72 : 0.12, toWorldZ(obs.y)]}
-              type={obs.type}
-              styleSeed={obs.id}
-            />
-          );
-        })}
+      <mesh position={[7, -1, catPosition * WORLD_SCROLL_SCALE]}>
+        <planeGeometry args={[6, 500]} />
+        <meshStandardMaterial color="#080810" roughness={0.9} metalness={0} />
+      </mesh>
+
+      {/* Lane dividers */}
+      <lineSegments position={[0, -0.5, catPosition * WORLD_SCROLL_SCALE]}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            count={100}
+            array={new Float32Array(
+              Array.from({ length: 100 }, (_, i) => [-1.5, 0, (i - 50) * 2]).flat()
+            )}
+            itemSize={3}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial color="#00E5CC" opacity={0.6} transparent />
+      </lineSegments>
+
+      <lineSegments position={[0, -0.5, catPosition * WORLD_SCROLL_SCALE]}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            count={100}
+            array={new Float32Array(
+              Array.from({ length: 100 }, (_, i) => [1.5, 0, (i - 50) * 2]).flat()
+            )}
+            itemSize={3}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial color="#00E5CC" opacity={0.6} transparent />
+      </lineSegments>
+
+      {/* Street lamps - visual only */}
+      {[...Array(10)].map((_, i) => (
+        <StreetLamp
+          key={`lamp-left-${i}`}
+          position={[-8, 0, (i - 5) * 30]}
+          color={i % 2 === 0 ? "#00E5CC" : "#ff6ec7"}
+        />
+      ))}
+      {[...Array(10)].map((_, i) => (
+        <StreetLamp
+          key={`lamp-right-${i}`}
+          position={[8, 0, (i - 5) * 30]}
+          color={i % 2 === 0 ? "#ff6ec7" : "#00E5CC"}
+        />
+      ))}
+
+      {/* Player car */}
+      <CyberpunkCar position={[playerLane === 0 ? -1.5 : playerLane === 2 ? 1.5 : 0, 1, 0]} />
     </>
   );
 }
 
-interface CanvasWrapperProps extends Game3DSceneProps {}
+export function Game3DScene(props: Game3DSceneProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
 
-function CanvasRenderer(props: CanvasWrapperProps) {
-  const isMobile =
-    typeof window !== "undefined" &&
-    ((window.matchMedia && window.matchMedia("(pointer: coarse)").matches) ||
-      window.innerWidth < 768);
-  try {
-    return (
+  return (
+    <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
       <Canvas
-        shadows={!isMobile}
         camera={{
-          position: [0, 3, 15],
-          fov: 68,
+          position: [0, 2.5, 0],
+          fov: 60,
           near: 0.1,
-          far: 1000,
+          far: 500,
         }}
-        gl={{
-          antialias: !isMobile,
-          alpha: true,
-          powerPreference: "high-performance"
-        }}
-        dpr={isMobile ? [1, 1] : [1, 1.5]}
-        style={{
-          width: "100%",
-          height: "100%",
-          position: "absolute",
-          top: 0,
-          left: 0,
-        }}
-        onError={(error: any) => {
-          console.error("Canvas error:", error);
-        }}
+        style={{ width: "100%", height: "100%" }}
+        dpr={[1, 1.5]}
       >
-        <color
-          attach="background"
-          args={[CITY_ROUTE_THEMES[Math.abs((props.cityId ?? 0) | 0) % CITY_ROUTE_THEMES.length].bg]}
-        />
-        <Scene3D {...props} />
+        <GameScene {...props} />
       </Canvas>
-    );
-  } catch (error) {
-    console.error("Failed to render 3D scene:", error);
-    return null;
-  }
+    </div>
+  );
 }
-
-export const Game3DScene = CanvasRenderer;

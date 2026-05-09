@@ -243,6 +243,8 @@ export function RunnerGame({
             sliding={isSliding}
             cityId={cityId}
             characterTint={characterTint}
+            currentSpeed={speedKmh}
+            maxSpeed={240}
           />
         </ErrorBoundary>
       )}

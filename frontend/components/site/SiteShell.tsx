@@ -22,18 +22,18 @@ function CeloIcon({ className }: { className?: string }) {
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative isolate h-screen bg-slate-950 text-white overflow-hidden">
+    <div className="relative isolate w-screen h-[100dvh] bg-slate-950 text-white overflow-hidden">
       {/* Background image */}
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-0 bg-slate-900 bg-cover bg-center bg-no-repeat"
+        className="pointer-events-none fixed inset-0 z-0 bg-slate-900 bg-cover bg-no-repeat"
         style={{ backgroundImage: "url(/background.jpg)" }}
       />
 
-      <div className="relative z-10 flex h-screen flex-col overflow-hidden">
+      <div className="relative z-10 flex w-screen h-[100dvh] flex-col overflow-hidden">
         {/* Top Navigation Bar - redesigned */}
         <header
-          className="sticky top-0 z-40 w-full flex items-center justify-between px-6 h-16"
+          className="sticky top-0 z-40 w-full flex items-center justify-between px-3 sm:px-6 h-14 sm:h-16"
           style={{
             backgroundColor: "rgba(5, 8, 25, 0.9)",
             backdropFilter: "blur(16px)",
@@ -41,50 +41,47 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           }}
         >
           {/* LEFT - Logo */}
-          <Link href="/" className="group transition-transform hover:scale-105" style={{ paddingLeft: "20px" }}>
+          <Link href="/" className="group transition-transform hover:scale-105 flex-shrink-0">
             <img
               src="/logo.jpg"
               alt="Dash Runner"
-              style={{ height: "36px", width: "auto", objectFit: "contain" }}
+              style={{ height: "28px", width: "auto", objectFit: "contain" }}
             />
           </Link>
 
-          {/* CENTRE - Wallet + Celo */}
-          <div className="flex-1 flex items-center justify-center">
+          {/* CENTRE - Wallet Pill (mobile optimized) */}
+          <div className="flex-1 flex items-center justify-center px-2">
             <div
-              className="flex items-center gap-2"
+              className="flex items-center gap-1.5 min-h-[44px]"
               style={{
                 background: "rgba(255,255,255,0.06)",
                 border: "1px solid rgba(255,255,255,0.12)",
                 borderRadius: "999px",
-                padding: "6px 14px",
-                fontSize: "13px",
+                padding: "5px 12px",
+                fontSize: "12px",
                 color: "white",
               }}
             >
-              <CeloIcon className="w-4 h-4 flex-shrink-0" />
-              <div className="[&_button]:text-xs [&_button]:h-auto [&_button]:px-0 [&_button]:py-0 [&_button]:bg-transparent [&_button]:border-0 [&_button]:text-white [&_button]:font-inter">
-                <ConnectButton
-                  showBalance={false}
-                  accountStatus="address"
-                  chainStatus="none"
-                />
-              </div>
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 flex-shrink-0" />
+              <span className="text-white font-mono font-semibold truncate">
+                0xE8...cbc
+              </span>
             </div>
           </div>
 
           {/* RIGHT - Play Button */}
           <Link
             href="/play?start=1"
-            className="flex items-center gap-2 font-inter font-black uppercase tracking-wider text-slate-950 ml-6 transition-all duration-200 hover:opacity-90 flex-shrink-0"
+            className="flex items-center justify-center font-inter font-black uppercase tracking-wider text-slate-950 ml-2 transition-all duration-200 hover:opacity-90 flex-shrink-0 min-h-[44px]"
             style={{
               background: "#00E5CC",
-              padding: "10px 28px",
-              clipPath: "polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%)",
+              padding: "0 16px",
+              clipPath: "polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%)",
               fontSize: "13px",
+              height: "36px",
             }}
           >
-            <PlayIcon className="w-4 h-4" />
+            <span className="sm:hidden">▶</span>
             <span className="hidden sm:inline">Play</span>
           </Link>
         </header>
