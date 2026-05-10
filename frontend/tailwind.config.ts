@@ -10,6 +10,7 @@ const config: Config = {
       fontFamily: {
         orbitron: ["var(--font-orbitron)", "ui-sans-serif", "system-ui", "sans-serif"],
         rajdhani: ["var(--font-rajdhani)", "ui-sans-serif", "system-ui", "sans-serif"],
+        bebas: ["var(--font-turbo-heading)", "ui-sans-serif", "system-ui", "sans-serif"],
         sans: ["var(--font-rajdhani)", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       colors: {

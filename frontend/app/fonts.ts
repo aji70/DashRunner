@@ -1,4 +1,4 @@
-import { Orbitron, Rajdhani } from "next/font/google";
+import { Orbitron, Rajdhani, Bebas_Neue } from "next/font/google";
 
 export const fontOrbitron = Orbitron({
   subsets: ["latin"],
@@ -12,4 +12,11 @@ export const fontRajdhani = Rajdhani({
   variable: "--font-rajdhani",
   display: "swap",
   weight: ["500", "600", "700"],
+});
+
+export const fontBebas = Bebas_Neue({
+  subsets: ["latin"],
+  variable: "--font-turbo-heading",
+  display: "swap",
+  weight: "400",
 });

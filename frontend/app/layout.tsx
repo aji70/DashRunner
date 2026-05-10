@@ -3,7 +3,7 @@ import "@/styles/globals.css";
 import FarcasterReady from "@/components/FarcasterReady";
 import { Providers } from "./providers";
 import { minikitConfig } from "../minikit.config";
-import { fontOrbitron, fontRajdhani } from "./fonts";
+import { fontOrbitron, fontRajdhani, fontBebas } from "./fonts";
 
 function resolveMetadataBase(): URL {
   const raw = (process.env.NEXT_PUBLIC_URL || process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/$/, "");
@@ -67,7 +67,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${fontOrbitron.variable} ${fontRajdhani.variable} overflow-hidden`}>
+    <html lang="en" className={`${fontOrbitron.variable} ${fontRajdhani.variable} ${fontBebas.variable} overflow-hidden`}>
       <head>
         <script src="/disable-extensions.js" />
       </head>

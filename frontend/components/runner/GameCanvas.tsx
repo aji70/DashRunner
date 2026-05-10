@@ -42,12 +42,9 @@ const LERP_FACTOR = 0.18;
 const BRAKE_DURATION_MS = 820;
 const BRAKE_SCROLL_MUL = 0.36;
 /**
- * Car threat band: player x must be within this fraction of canvas width of the car’s lane
- * center to count as “in lane” (tighter than lane spacing so adjacent-lane traffic doesn’t read as yours).
+ * Vertical inset on player hitbox top/bottom to give a few px of forgiveness.
  */
-const CAR_LANE_HIT_FRAC = 0.24;
-/** Ignore a few px at the feet so a car that has mostly cleared below doesn’t snag on the last row of pixels. */
-const CAR_VERTICAL_INSET = 6;
+const CAR_VERTICAL_INSET = 4;
 const SPAWN_INTERVAL = 950;
 const MAX_SPEED = 0.7;
 const SPEED_SCALE = 0.12;
@@ -315,48 +312,42 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         n.y += scrollSpeed * dt;
       });
 
-      // Hitbox matches the drawn player rect (top = player.y, same as renderGame).
-      const playerRect = {
-        x: currentLaneXRef.current - PLAYER_WIDTH / 2 + 7,
-        y: gameState.player.y,
-        w: PLAYER_WIDTH - 14,
-        h: PLAYER_HEIGHT,
-      };
+      const playerTop = gameState.player.y + CAR_VERTICAL_INSET;
+      const playerBottom = gameState.player.y + PLAYER_HEIGHT - CAR_VERTICAL_INSET;
 
-      // Only cars can end the run; use explicit separation + “passed” so nothing behind you can kill you.
       for (const obstacle of gameState.obstacles) {
-        if (obstacle.type !== "car") continue;
         if (obstacle.passedPlayer) continue;
-
-        const playerCx = currentLaneXRef.current;
-        const obsCx = getLaneX(obstacle.lane, width);
-        const lateral = Math.abs(playerCx - obsCx);
-        if (lateral > width * CAR_LANE_HIT_FRAC) continue;
 
         const obsTop = obstacle.y;
         const obsBottom = obstacle.y + obstacle.height;
-        const playerTop = playerRect.y + CAR_VERTICAL_INSET;
-        const playerBottom = playerRect.y + playerRect.h - CAR_VERTICAL_INSET;
 
-        // Car is entirely below the player’s forgiving hitbox → you’ve passed it; never collide again.
-        if (obsTop >= playerBottom) {
+        // Once the obstacle has fully scrolled past the player, mark it and skip forever
+        if (obsTop > playerBottom) {
           obstacle.passedPlayer = true;
           continue;
         }
 
-        const obsRect = {
-          x: obsCx - obstacle.width / 2,
-          y: obstacle.y,
-          w: obstacle.width,
-          h: obstacle.height,
-        };
+        // Only collide when obstacle is in the same lane as the player's committed lane
+        if (obstacle.lane !== gameState.player.lane) continue;
 
-        const hitX =
-          playerRect.x < obsRect.x + obsRect.w &&
-          playerRect.x + playerRect.w > obsRect.x;
+        // Vertical overlap check
         const hitY = playerTop < obsBottom && obsTop < playerBottom;
+        if (!hitY) continue;
 
-        if (hitX && hitY) {
+        if (obstacle.type === "wall") {
+          // Wall: must jump over — collision only if not airborne
+          if (gameState.player.state !== "jumping") {
+            gameState.phase = "dead";
+            onGameOver();
+            return;
+          }
+        } else if (obstacle.type === "barrier") {
+          // Barrier: low obstacle — always hits (slide mechanic not implemented)
+          gameState.phase = "dead";
+          onGameOver();
+          return;
+        } else {
+          // Car: always fatal on overlap
           gameState.phase = "dead";
           onGameOver();
           return;

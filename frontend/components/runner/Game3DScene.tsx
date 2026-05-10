@@ -14,6 +14,7 @@ interface Game3DSceneProps {
   characterTint?: string;
   currentSpeed?: number;
   maxSpeed?: number;
+  gamePhase?: "idle" | "playing" | "paused" | "dead";
 }
 
 // Step 1: Renderer setup inside GameScene component
@@ -23,6 +24,7 @@ function GameScene({
   jumping,
   currentSpeed = 0,
   maxSpeed = 100,
+  gamePhase = "playing",
 }: Game3DSceneProps) {
   const { camera, scene, gl } = useThree();
   const sceneRef = useRef(false);
@@ -40,6 +42,8 @@ function GameScene({
   const buildingPoolRef = useRef<
     Array<{ mesh: THREE.Mesh; side: number; initialZ: number }>
   >([]);
+  const gameOverInitiatedRef = useRef(false);
+  const cameraStartPosRef = useRef({ y: 4, z: 16 });
 
   // Initialize scene once
   useEffect(() => {
@@ -500,9 +504,45 @@ function GameScene({
     };
   }, [scene, gl, camera]);
 
+  // Handle game over camera animation
+  useEffect(() => {
+    if (gamePhase === "dead" && !gameOverInitiatedRef.current) {
+      gameOverInitiatedRef.current = true;
+      const startTime = Date.now();
+      const duration = 1000; // 1 second
+
+      const animateCamera = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Ease-out cubic for smooth deceleration
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+        // Animate camera position
+        camera.position.y = 4 + (8 - 4) * easeProgress;
+        camera.position.z = cameraStartPosRef.current.z + 6 * easeProgress;
+        camera.updateProjectionMatrix();
+
+        if (progress < 1) {
+          requestAnimationFrame(animateCamera);
+        }
+      };
+
+      animateCamera();
+    }
+  }, [gamePhase, camera]);
+
   // STEP 7 — Animation loop
   useFrame(() => {
     if (document.hidden) return;
+
+    // Pause animation when game over
+    if (gamePhase === "dead") return;
+
+    // Store camera start position for game over animation
+    if (gamePhase === "playing") {
+      cameraStartPosRef.current = { y: camera.position.y, z: camera.position.z };
+    }
 
     // Update camera with car movement
     const speedRatio = Math.min(currentSpeed / maxSpeed, 1);
