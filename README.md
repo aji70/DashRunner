@@ -1,26 +1,66 @@
-# Dash — Endless Runner Game
+# DASH RUNNER 🏁
 
-A minimalist endless runner game built with **Next.js 14**, **Canvas2D**, and **Framer Motion**. Designed for mobile (MiniPay/Celo) with touch controls and smooth 60fps gameplay.
+A minimalist endless runner game built with **Next.js 14**, **Three.js**, and **Celo blockchain**. Designed for mobile (MiniPay/Celo) with touch controls and smooth 60fps gameplay.
+
+## The Story
+
+### "The Celo City Underground"
+
+It's 2047. Celo City is the last free metropolis on Earth — governed not by corporations but by smart contracts. Every transaction, every law, every race result is immutable on-chain. No corruption. No cheating. The score you post is the score that lives forever.
+
+A cartel called **NULLBLOCK** has taken over the city's racing league. They're manipulating leaderboards, front-running transactions, and bribing validators. They want to control which scores get written on-chain — and they'll run anyone off the road who threatens their dominance.
+
+You're **DASH** — an underground racer with a wallet and a grudge. Your brother posted the highest score ever recorded in Celo City. NULLBLOCK wiped it from the chain. You're here to beat it, post it permanently, and expose them.
+
+### 5-Act Story Structure
+
+| Act | District         | Boss              | Unlock                              |
+|-----|-----------------|-------------------|-------------------------------------|
+| 1   | The Sprawl       | NULLBLOCK Enforcer | Basic car skin NFT                 |
+| 2   | Neon Quarter     | Block Phantom      | Turbo boost ability                |
+| 3   | The Chain Bridge | Validator Zero     | New car model                      |
+| 4   | Dead Node        | The Forger         | $DASH token airdrop                |
+| 5   | Genesis Block    | NULLBLOCK CEO      | Legendary car NFT + name on-chain forever |
+
+### Why Blockchain?
+
+Every race result in DASH RUNNER is more than a number — it's a permanent record. Built on **Celo**, optimised for **MiniPay**, DASH RUNNER brings arcade racing to the 3 billion people who access the internet primarily through mobile.
+
+Your score isn't stored on our servers. It isn't controlled by us. It lives on the chain — immutable, uncensorable, yours forever.
+
+**NULLBLOCK can't touch it. Nobody can.**
+
+---
 
 ## Features
 
 🏃 **Player Controls**
 - Swipe left/right to change lanes
 - Swipe up to jump over obstacles
-- Swipe down to slide under barriers
-- On-screen D-pad buttons as fallback
+- Swipe down to brake (temporary slowdown)
+- Keyboard arrows as fallback
 
 💎 **Gameplay**
-- Collect coins for points
-- Dodge obstacles that increase in difficulty
-- Score tracking with localStorage high scores
-- Smooth lane transitions and physics-based movement
+- Race through procedurally-generated Celo City districts
+- Collect coins and nitro pickups
+- Dodge NULLBLOCK traffic agents (AI-controlled cars)
+- Score posted on-chain at end of each run
+- Earn $DASH tokens for distance, near-misses, and evasion
+- Unlock NFT car parts and cosmetics
 
-🎨 **Minimalist Design**
-- Dark cyan aesthetic (`#010F10` background, `#00F0FF` accents)
-- Clean geometric shapes
-- No external assets required
-- Mobile-optimized viewport
+🎮 **3D Rendering**
+- WebGL 3D environment with cyberpunk aesthetic
+- Dynamic camera following player movement
+- Procedural building and street light recycling
+- Parallax background layers
+- Speed-based FOV expansion
+- Mobile-optimized with DPR scaling
+
+⛓️ **Blockchain Integration**
+- Celo-native scoring (immutable race results)
+- MiniPay / WalletConnect support
+- On-chain NFT minting for achievements
+- $DASH token rewards
 
 ## Quick Start
 
@@ -89,8 +129,10 @@ DashRunner/
 
 - **Next.js 14** — App Router, SSR, zero-config
 - **React 18** — Client-side state and effects
-- **Canvas2D** — Hardware-accelerated rendering
-- **Framer Motion 12** — UI animations
+- **Three.js** — WebGL 3D rendering
+- **React Three Fiber** — React renderer for Three.js
+- **Celo** — Blockchain (EVM compatible)
+- **MiniPay** — Mobile wallet integration
 - **Tailwind CSS v4** — Utility styling
 - **TypeScript** — Type safety
 
@@ -143,4 +185,8 @@ MIT
 
 ---
 
-Built with ❤️ for MiniPay
+---
+
+*Your score lives forever. Make it count.*
+
+Built with ❤️ for Celo & MiniPay

@@ -233,6 +233,15 @@ function GameScene({
         const box = new THREE.Box3().setFromObject(tc);
         tc.position.y = -box.min.y;
 
+        // Normalize traffic car size to match player car (2.5 units wide)
+        const trafficBox = new THREE.Box3().setFromObject(tc);
+        const trafficSize = trafficBox.getSize(new THREE.Vector3());
+        const scaleFactor = 2.5 / trafficSize.x;
+        tc.scale.multiplyScalar(scaleFactor);
+        // Re-sit on road after rescaling
+        const resitBox = new THREE.Box3().setFromObject(tc);
+        tc.position.y = -resitBox.min.y;
+
         tc.traverse((child: any) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = false;
@@ -572,6 +581,10 @@ function GameScene({
         p.position.z -= 300;
         const side = p.position.x > 0 ? 10 : -10;
         p.position.x = side + (Math.random() * 3 - 1.5);
+      }
+      // Safety clamp: if somehow landed on road, force back to pavement
+      if (Math.abs(p.position.x) < 7) {
+        p.position.x = p.position.x > 0 ? 9 : -9;
       }
     });
   });

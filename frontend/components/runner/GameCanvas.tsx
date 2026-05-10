@@ -264,12 +264,12 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         BASE_SPEED + Math.log(1 + gameState.distance / 1000) * SPEED_SCALE
       );
 
-      // Update score based on distance traveled (1 point per 10 pixels)
-      const newScore = Math.floor(gameState.distance / 10);
-      if (newScore !== lastScoreSyncRef.current) {
-        lastScoreSyncRef.current = newScore;
-        gameState.score = newScore;
-        onScoreChange(newScore);
+      // Score: 1 point per frame-ms of play time, scaled by speed
+      gameState.score += dt * gameState.speed * 0.1;
+      const displayScore = Math.floor(gameState.score);
+      if (displayScore !== lastScoreSyncRef.current) {
+        lastScoreSyncRef.current = displayScore;
+        onScoreChange(displayScore);
       }
 
       gameState.spawnTimer -= dt;
@@ -473,6 +473,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       dispatchAction: handleSwipe,
       reset: () => {
         const { width, height } = dimRef.current;
+        lastScoreSyncRef.current = 0;
         gameStateRef.current = {
           phase: "idle",
           score: 0,
@@ -497,7 +498,6 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         if (width >= MIN_PLAYABLE_SIZE) {
           currentLaneXRef.current = getLaneX(gameStateRef.current.player.lane, width);
         }
-        lastScoreSyncRef.current = 0;
         nitroSpawnTimerRef.current = 3800;
         setGameLoopEnabled(false);
       },

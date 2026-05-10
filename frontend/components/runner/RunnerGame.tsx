@@ -32,6 +32,7 @@ export function RunnerGame({
   }
 
   const [phase, setPhase] = useState<GamePhase>("idle");
+  const scoreRef = useRef(0);
   const [score, setScore] = useState(0);
   const [coinsCollected, setCoinsCollected] = useState(0);
   const [highScore, setHighScore] = useState(0);
@@ -121,7 +122,7 @@ export function RunnerGame({
   }, [autoStart, handleStart]);
 
   const handleGameOver = useCallback(() => {
-    const currentScore = score;
+    const currentScore = scoreRef.current;
     const beat = currentScore > highScore;
     if (beat) {
       setHighScore(currentScore);
@@ -134,13 +135,14 @@ export function RunnerGame({
     setScore(0);
     setCoinsCollected(0);
     canvasRef.current?.start();
-  }, [score, highScore]);
+  }, [highScore]);
 
   const handleRestart = () => {
     handleStart();
   };
 
   const handleScoreChange = (newScore: number) => {
+    scoreRef.current = newScore;
     setScore(newScore);
   };
 
