@@ -15,6 +15,7 @@ interface Game3DSceneProps {
   currentSpeed?: number;
   maxSpeed?: number;
   gamePhase?: "idle" | "playing" | "paused" | "dead";
+  obstacles?: Array<{ id: number; lane: 0 | 1 | 2; y: number; type: string; width: number; height: number }>;
 }
 
 // Step 1: Renderer setup inside GameScene component
@@ -25,6 +26,7 @@ function GameScene({
   currentSpeed = 0,
   maxSpeed = 100,
   gamePhase = "playing",
+  obstacles = [],
 }: Game3DSceneProps) {
   const { camera, scene, gl } = useThree();
   const sceneRef = useRef(false);
@@ -597,20 +599,32 @@ function GameScene({
       }
     });
 
-    // Recycle traffic cars
-    trafficCarsRef.current.forEach((t) => {
-      t.mesh.position.z += gameSpeed * 0.4;
-      // Clamp x position to lanes if outside safe range
-      if (t.mesh.position.x < -5 || t.mesh.position.x > 5) {
-        const lanes = [-2.5, 0, 2.5];
-        t.mesh.position.x = lanes.reduce((nearest, lane) =>
-          Math.abs(lane - t.mesh.position.x) < Math.abs(nearest - t.mesh.position.x) ? lane : nearest
-        );
-      }
-      if (t.mesh.position.z > camera.position.z + 15) {
-        t.mesh.position.z -= 250;
-        const lanes = [-2.5, 0, 2.5];
-        t.mesh.position.x = lanes[Math.floor(Math.random() * lanes.length)];
+    // Position traffic cars from actual obstacles
+    const laneXMap = { 0: -2.5, 1: 0, 2: 2.5 };
+    const screenHeight = 768; // approximate screen height
+    const playerScreenY = screenHeight * 0.75;
+
+    // Filter obstacles that should be visible
+    const visibleObstacles = (obstacles || []).filter(obs =>
+      obs.y > -200 && obs.y < screenHeight + 100
+    );
+
+    trafficCarsRef.current.forEach((t, index) => {
+      if (index < visibleObstacles.length) {
+        const obs = visibleObstacles[index];
+        // Convert 2D screen position to 3D world position
+        // y=-130 (spawning) → z ahead of camera
+        // y=playerY → z at camera
+        // y=playerY+50 (passed) → z behind camera
+        const yRelativeToPlayer = obs.y - playerScreenY;
+        const zDepth = -yRelativeToPlayer * 0.15; // scale factor to match visual
+        t.mesh.position.z = camera.position.z + zDepth;
+        t.mesh.position.x = laneXMap[obs.lane as 0 | 1 | 2];
+        t.mesh.position.y = 0.5;
+        t.mesh.visible = true;
+      } else {
+        // Hide unused cars
+        t.mesh.visible = false;
       }
     });
 

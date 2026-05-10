@@ -99,6 +99,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
     const nitroSpawnTimerRef = useRef(3800);
     const currentLaneXRef = useRef(0);
     const lastScoreSyncRef = useRef(0);
+    const gameStartTimeRef = useRef(0);
     const [gameLoopEnabled, setGameLoopEnabled] = useState(false);
 
     const getLaneX = (lane: Lane, width: number): number => {
@@ -230,6 +231,10 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         return;
       }
 
+      // GRACE PERIOD: No collision detection in first 3 seconds of gameplay
+      const gameElapsedMs = performance.now() - gameStartTimeRef.current;
+      const inGracePeriod = gameElapsedMs < 3000;
+
       gameState.player.vy += GRAVITY * dt;
       gameState.player.y += gameState.player.vy * dt;
 
@@ -327,31 +332,36 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
           continue;
         }
 
-        // Only collide when obstacle is in the same lane as the player's committed lane
-        if (obstacle.lane !== gameState.player.lane) continue;
-
-        // Vertical overlap check
+        // Vertical overlap check first
         const hitY = playerTop < obsBottom && obsTop < playerBottom;
         if (!hitY) continue;
 
-        if (obstacle.type === "wall") {
-          // Wall: must jump over — collision only if not airborne
-          if (gameState.player.state !== "jumping") {
-            gameState.phase = "dead";
-            onGameOver();
-            return;
-          }
-        } else if (obstacle.type === "barrier") {
-          // Barrier: low obstacle — always hits (slide mechanic not implemented)
-          gameState.phase = "dead";
-          onGameOver();
-          return;
-        } else {
-          // Car: always fatal on overlap
+        // Horizontal overlap: check if obstacle x-range overlaps with player x-range
+        const obsX = getLaneX(obstacle.lane, width);
+        const obsLeft = obsX - obstacle.width / 2;
+        const obsRight = obsX + obstacle.width / 2;
+        const playerLeft = currentLaneXRef.current - PLAYER_WIDTH / 2;
+        const playerRight = currentLaneXRef.current + PLAYER_WIDTH / 2;
+
+        const hitX = playerLeft < obsRight && obsLeft < playerRight;
+        if (!hitX) continue;
+
+        // Skip collision detection during grace period (first 3 seconds)
+        if (inGracePeriod) {
+          console.log("[GRACE_PERIOD] Collision avoided at", gameElapsedMs, "ms");
+          obstacle.passedPlayer = true;
+          continue;
+        }
+
+        if (obstacle.type === "car") {
+          // Only cars are fatal
+          console.log(`[GAME_OVER] CRASHED INTO CAR | Time: ${gameElapsedMs.toFixed(0)}ms | You were in lane ${gameState.player.lane}, car in lane ${obstacle.lane} | Player state: ${gameState.player.state} | Distance: ${(gameState.distance / 140).toFixed(1)}km | Score: ${Math.floor(gameState.score)}`);
           gameState.phase = "dead";
           onGameOver();
           return;
         }
+        // Walls and barriers just pass through
+        obstacle.passedPlayer = true;
       }
 
       for (const coin of gameState.coins) {
@@ -494,6 +504,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       },
       start: () => {
         gameStateRef.current.phase = "playing";
+        gameStartTimeRef.current = performance.now();
         setGameLoopEnabled(true);
         onPhaseChange("playing");
       },

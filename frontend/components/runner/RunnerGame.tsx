@@ -247,6 +247,7 @@ export function RunnerGame({
             currentSpeed={speedKmh}
             maxSpeed={240}
             gamePhase={phase}
+            obstacles={gameState.obstacles}
           />
         </ErrorBoundary>
       )}
