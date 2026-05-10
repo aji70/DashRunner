@@ -599,34 +599,28 @@ function GameScene({
       }
     });
 
-    // Position traffic cars from actual obstacles
+    // Position traffic cars directly from obstacles
     const laneXMap = { 0: -2.5, 1: 0, 2: 2.5 };
-    const screenHeight = 768; // approximate screen height
+    const screenHeight = 768;
     const playerScreenY = screenHeight * 0.75;
 
-    // Filter obstacles that should be visible
-    const visibleObstacles = (obstacles || []).filter(obs =>
-      obs.y > -200 && obs.y < screenHeight + 100
-    );
-
-    trafficCarsRef.current.forEach((t, index) => {
-      if (index < visibleObstacles.length) {
-        const obs = visibleObstacles[index];
-        // Convert 2D screen position to 3D world position
-        // y=-130 (spawning) → z ahead of camera
-        // y=playerY → z at camera
-        // y=playerY+50 (passed) → z behind camera
-        const yRelativeToPlayer = obs.y - playerScreenY;
-        const zDepth = -yRelativeToPlayer * 0.15; // scale factor to match visual
-        t.mesh.position.z = camera.position.z + zDepth;
+    (obstacles || []).slice(0, trafficCarsRef.current.length).forEach((obs, index) => {
+      const t = trafficCarsRef.current[index];
+      if (t) {
+        // Position based on 2D y: convert screen distance to 3D z distance
+        const yOffset = obs.y - playerScreenY;
+        const zOffset = yOffset * 0.2; // scale: pixels to world units
+        t.mesh.position.z = camera.position.z + zOffset;
         t.mesh.position.x = laneXMap[obs.lane as 0 | 1 | 2];
         t.mesh.position.y = 0.5;
         t.mesh.visible = true;
-      } else {
-        // Hide unused cars
-        t.mesh.visible = false;
       }
     });
+
+    // Hide unused traffic cars
+    for (let i = (obstacles || []).length; i < trafficCarsRef.current.length; i++) {
+      trafficCarsRef.current[i].mesh.visible = false;
+    }
 
     // Recycle pedestrians and benches
     pedestriansRef.current.forEach((p) => {
