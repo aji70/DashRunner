@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { GlassPanel } from "@/components/ui/GlassPanel";
-import { Button } from "@/components/ui/Button";
 
 interface GameOverlayProps {
   phase: "idle" | "playing" | "paused" | "dead";
@@ -12,7 +11,6 @@ interface GameOverlayProps {
   distance?: number;
   coins?: number;
   isNewPersonalBest: boolean;
-  onStart: () => void;
   onRestart: () => void;
   onResume?: () => void;
 }
@@ -24,7 +22,6 @@ export function GameOverlay({
   distance = 0,
   coins = 0,
   isNewPersonalBest,
-  onStart,
   onRestart,
   onResume,
 }: GameOverlayProps) {
@@ -32,83 +29,6 @@ export function GameOverlay({
 
   return (
     <AnimatePresence mode="wait">
-      {phase === "idle" && (
-        <motion.div
-          key="start-screen"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="pointer-events-auto absolute inset-0 z-30 flex flex-col items-center justify-center px-4"
-        >
-          <div className="absolute inset-0 bg-void/95" />
-          <div
-            className="absolute inset-0 opacity-[0.4]"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(34,211,238,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.06) 1px, transparent 1px)",
-              backgroundSize: "40px 40px",
-            }}
-          />
-          <motion.div
-            className="absolute inset-0 opacity-25"
-            animate={{ opacity: [0.18, 0.32, 0.18] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            style={{
-              background: "radial-gradient(ellipse 80% 55% at 50% -10%, rgba(244,114,182,0.35), transparent 55%)",
-            }}
-          />
-
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 24 }}
-            className="relative z-10 w-full max-w-sm"
-          >
-            <GlassPanel className="px-6 py-8 text-center shadow-lift sm:px-8 sm:py-10">
-              <h1
-                className="font-orbitron text-3xl font-black uppercase tracking-[0.08em] sm:text-4xl"
-                style={{
-                  backgroundImage: "linear-gradient(90deg, #f0abfc, #67e8f9)",
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                DashRunner
-              </h1>
-
-              <p className="mt-2 font-rajdhani text-xs font-semibold uppercase tracking-[0.3em] text-orange-300/70">
-                Endless Neon Chase
-              </p>
-
-              <motion.div className="mt-8" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-                <Button variant="primary" onClick={onStart} className="w-full rounded-2xl py-4 text-sm font-bold sm:py-5 sm:text-base">
-                  Play
-                </Button>
-              </motion.div>
-
-              <p className="mt-4 font-rajdhani text-[10px] uppercase tracking-widest text-orange-200/50 sm:text-xs">
-                ← Swipe → Switch | ↑ Jump | ↓ Brake
-              </p>
-
-              <button
-                type="button"
-                onClick={() => router.push("/")}
-                className="mt-5 w-full text-center font-rajdhani text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-dim)] transition hover:text-orange-200"
-              >
-                Hub
-              </button>
-
-              {highScore > 0 ? (
-                <p className="mt-6 text-center font-rajdhani text-xs text-[var(--text-dim)] sm:text-sm">
-                  Best <span className="font-orbitron font-bold tabular-nums text-amber-200/90">{highScore.toLocaleString()}</span>
-                </p>
-              ) : null}
-            </GlassPanel>
-          </motion.div>
-        </motion.div>
-      )}
-
       {phase === "paused" && (
         <motion.div
           key="pause-screen"

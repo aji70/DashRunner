@@ -42,7 +42,6 @@ export function RunnerGame({
   const [isJumping, setIsJumping] = useState(false);
   const [cityId, setCityId] = useState(0);
   const [characterTint, setCharacterTint] = useState<string | undefined>(undefined);
-  const [isNewPersonalBest, setIsNewPersonalBest] = useState(false);
   const gameSurfaceRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<GameCanvasHandle>(null);
   const coinSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -88,14 +87,11 @@ export function RunnerGame({
   }, [isMuted, phase]);
 
   const handleStart = useCallback(() => {
-    console.log("[HANDLE_START] Called");
-    setIsNewPersonalBest(false);
     canvasRef.current?.reset();
     setScore(0);
     setCoinsCollected(0);
     canvasRef.current?.start();
     setPhase("playing");
-    console.log("[HANDLE_START] Phase set to playing");
   }, []);
 
   const autostartDoneRef = useRef(false);
@@ -126,23 +122,17 @@ export function RunnerGame({
   const handleGameOver = useCallback(() => {
     const currentScore = scoreRef.current;
     const beat = currentScore > highScore;
-    console.log("[HANDLE_GAME_OVER] Called", {
-      currentScore,
-      highScore,
-      isNewBest: beat,
-      phase: "transitioning to dead",
-    });
     if (beat) {
       setHighScore(currentScore);
-      setIsNewPersonalBest(true);
       if (typeof window !== "undefined") {
         localStorage.setItem("runner_highscore", currentScore.toString());
       }
     }
-    // Freeze the scene and show game over modal
-    canvasRef.current?.pause();
-    setPhase("dead");
-    console.log("[HANDLE_GAME_OVER] Phase set to dead, animation starting");
+    // Auto-restart immediately — no game-over screen
+    canvasRef.current?.reset();
+    setScore(0);
+    setCoinsCollected(0);
+    canvasRef.current?.start();
   }, [highScore]);
 
   const handleRestart = () => {
@@ -277,8 +267,7 @@ export function RunnerGame({
         highScore={highScore}
         distance={gameState?.distance || 0}
         coins={coinsCollected}
-        isNewPersonalBest={isNewPersonalBest}
-        onStart={handleStart}
+        isNewPersonalBest={false}
         onRestart={handleRestart}
         onResume={handlePauseToggle}
       />
