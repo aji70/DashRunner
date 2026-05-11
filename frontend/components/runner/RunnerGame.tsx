@@ -76,7 +76,6 @@ export function RunnerGame({
   const [showCoinCollect, setShowCoinCollect] = useState(false);
   const [showNitroCollect, setShowNitroCollect] = useState(false);
   const boostStateRef = useRef({ isBoosting: false, onCooldown: false });
-  const boostTimeRef = useRef(0);
   const lastTapRef = useRef(0);
   const BOOST_DURATION = 2000;
   const BOOST_COOLDOWN = 8000;
