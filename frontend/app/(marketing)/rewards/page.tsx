@@ -15,7 +15,7 @@ export default function RewardsPage() {
     setStatus(null);
     const p = loadLocalProfile();
     if (!p.walletAddress) {
-      setStatus("Add a wallet in Settings first, then tap “Save & sync” so the player row exists.");
+      setStatus(“Ghost mode active. Connect wallet to claim rewards on-chain.”);
       return;
     }
     try {

@@ -40,7 +40,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
           fontSize: '16px'
         }}>
           <div style={{ textAlign: 'center' }}>
-            <p>3D rendering unavailable</p>
+            <p>NULLBLOCK is jamming the signal. Try again.</p>
             <p style={{ fontSize: '12px', opacity: 0.7 }}>
               Try disabling browser extensions or using a different browser
             </p>

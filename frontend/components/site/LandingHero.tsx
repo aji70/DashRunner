@@ -18,7 +18,7 @@ const gameModes = [
   {
     id: "story-mode",
     label: "Story Mode",
-    subtitle: "Follow the campaign",
+    subtitle: "Take down NULLBLOCK",
     href: "/play?mode=story",
     icon: (props: any) => (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
@@ -29,7 +29,7 @@ const gameModes = [
   {
     id: "leaderboard",
     label: "Leaderboard",
-    subtitle: "Top racers on-chain",
+    subtitle: "Scores written in blood",
     href: "/leaderboard",
     icon: (props: any) => (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
@@ -40,7 +40,7 @@ const gameModes = [
   {
     id: "quick-race",
     label: "Quick Race",
-    subtitle: "Jump in & race now",
+    subtitle: "Enter the underground",
     href: "/play?mode=quick",
     icon: (props: any) => (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
@@ -51,7 +51,7 @@ const gameModes = [
   {
     id: "my-garage",
     label: "My Garage",
-    subtitle: "Your cars & upgrades",
+    subtitle: "Build your weapon",
     href: "/characters",
     icon: (props: any) => (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
@@ -62,7 +62,7 @@ const gameModes = [
   {
     id: "the-city",
     label: "The City",
-    subtitle: "Explore the open world",
+    subtitle: "Know your terrain",
     href: "/city",
     icon: (props: any) => (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
@@ -74,7 +74,7 @@ const gameModes = [
   {
     id: "shop",
     label: "Shop",
-    subtitle: "Gear, NFTs & boosts",
+    subtitle: "Gear up for the fight",
     href: "/shop",
     icon: (props: any) => (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
@@ -422,7 +422,7 @@ export function LandingHero() {
         >
           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
           <span className="font-inter text-[10px] sm:text-xs font-bold uppercase tracking-widest text-cyan-300">
-            Next-Gen Racing
+            Celo City // 2047
           </span>
         </motion.div>
 
@@ -439,7 +439,7 @@ export function LandingHero() {
           {...fadeUp(0.3)}
           className="mt-2 sm:mt-4 max-w-xl font-inter text-sm sm:text-base font-medium text-white/75 leading-relaxed"
         >
-          Race. Dodge. Survive. Score forever on-chain.
+          Your score lives forever. Make it count.
         </motion.p>
 
         {/* CTA Buttons or Connected Address */}
@@ -479,9 +479,17 @@ export function LandingHero() {
               fontSize: "12px",
             }}
           >
-            <span>✓ Racing as</span>
+            <span>✓ RACER://</span>
             <span className="font-mono font-bold">0x...</span>
           </motion.div>
+        )}
+        {!isConnected && (
+          <motion.p
+            {...fadeUp(0.45)}
+            className="mt-4 text-center font-rajdhani text-xs tracking-wider text-white/50"
+          >
+            NULLBLOCK is watching. Stay anonymous.
+          </motion.p>
         )}
 
         {/* Carousel */}

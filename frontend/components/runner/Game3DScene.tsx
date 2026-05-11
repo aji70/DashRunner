@@ -16,6 +16,8 @@ interface Game3DSceneProps {
   maxSpeed?: number;
   gamePhase?: "idle" | "playing" | "paused" | "dead";
   obstacles?: Array<{ id: number; lane: 0 | 1 | 2; y: number; type: string; width: number; height: number }>;
+  onEnforcerDistanceChange?: (distance: number) => void;
+  onEnforcerCaught?: () => void;
 }
 
 // Step 1: Renderer setup inside GameScene component
@@ -27,6 +29,8 @@ function GameScene({
   maxSpeed = 100,
   gamePhase = "playing",
   obstacles = [],
+  onEnforcerDistanceChange,
+  onEnforcerCaught,
 }: Game3DSceneProps) {
   const { camera, scene, gl } = useThree();
   const sceneRef = useRef(false);
@@ -34,6 +38,10 @@ function GameScene({
   const leftStreakRef = useRef<THREE.Mesh | null>(null);
   const rightStreakRef = useRef<THREE.Mesh | null>(null);
   const reflectionRef = useRef<THREE.Mesh | null>(null);
+  const enforcerRef = useRef<THREE.Group | null>(null);
+  const enforcerSpeedRef = useRef(0);
+  const enforcerActiveRef = useRef(false);
+  const enforcerSpawnTimeRef = useRef(0);
   const trafficCarsRef = useRef<
     Array<{ mesh: THREE.Group }>
   >([]);
@@ -263,6 +271,54 @@ function GameScene({
       });
     }
 
+    // STEP 6b — NULLBLOCK ENFORCER car (spawns after 3 seconds)
+    const enforcerLoadTimeout = setTimeout(() => {
+      const enforcerLoader = new GLTFLoader();
+      // Use the SUV model which is aggressive-looking
+      enforcerLoader.load("/kenney_car-kit/Models/GLB format/suv.glb", (gltf: any) => {
+        const enforcer = gltf.scene as THREE.Group;
+        enforcer.scale.set(1.8, 1.8, 1.8);
+        enforcer.rotation.y = Math.PI;
+
+        // Tint it black and red — NULLBLOCK colours
+        enforcer.traverse((child: any) => {
+          if (child instanceof THREE.Mesh) {
+            child.material = child.material.clone();
+            (child.material as any).color.set("#1a0005");
+            (child.material as any).emissive = new THREE.Color("#ff0022");
+            (child.material as any).emissiveIntensity = 0.3;
+            child.castShadow = false;
+            child.receiveShadow = false;
+          }
+        });
+
+        // Sit on road
+        const resit = new THREE.Box3().setFromObject(enforcer);
+        enforcer.position.y = -resit.min.y;
+
+        // Start behind player
+        enforcer.position.x = 0;
+        enforcer.position.z = 30; // behind camera = positive z
+        scene.add(enforcer);
+        enforcerRef.current = enforcer;
+        enforcerActiveRef.current = true;
+        enforcerSpeedRef.current = 0;
+        enforcerSpawnTimeRef.current = performance.now();
+
+        // Add red headlights
+        const leftLight = new THREE.PointLight("#ff0022", 2, 15);
+        leftLight.position.set(-0.5, 0.8, -1.5);
+        enforcer.add(leftLight);
+        const rightLight = new THREE.PointLight("#ff0022", 2, 15);
+        rightLight.position.set(0.5, 0.8, -1.5);
+        enforcer.add(rightLight);
+
+        // Add NULLBLOCK label
+        const label = createNullblockLabel();
+        enforcer.add(label);
+      });
+    }, 3000);
+
     // STEP 7 — Pedestrians and benches
     function createPedestrian() {
       const group = new THREE.Group();
@@ -340,6 +396,38 @@ function GameScene({
       return tex;
     }
 
+    // Create NULLBLOCK billboards
+    function makeNullblockBillboard(text: string) {
+      const canvas = document.createElement('canvas')
+      canvas.width = 256
+      canvas.height = 128
+      const ctx = canvas.getContext('2d')!
+      ctx.fillStyle = '#0d0010'
+      ctx.fillRect(0, 0, 256, 128)
+      // Red border
+      ctx.strokeStyle = '#ff2244'
+      ctx.lineWidth = 4
+      ctx.strokeRect(4, 4, 248, 120)
+      // Text
+      ctx.fillStyle = '#ff2244'
+      ctx.font = 'bold 22px monospace'
+      ctx.textAlign = 'center'
+      ctx.fillText('NULLBLOCK', 128, 45)
+      ctx.fillStyle = 'rgba(255,255,255,0.6)'
+      ctx.font = '14px monospace'
+      ctx.fillText(text, 128, 75)
+      ctx.fillStyle = '#00E5CC'
+      ctx.font = '11px monospace'
+      ctx.fillText('WE OWN THIS CITY', 128, 105)
+      return new THREE.CanvasTexture(canvas)
+    }
+
+    const billboardTexts = [
+      'YOUR SCORE MEANS NOTHING',
+      'THE CHAIN OBEYS US',
+      'RESISTANCE IS INVALID',
+    ]
+
     const texPool = [
       makeWindowTexture(),
       makeWindowTexture(),
@@ -371,6 +459,28 @@ function GameScene({
       buildingPool.push({ mesh, side, initialZ: mesh.position.z });
     }
     buildingPoolRef.current = buildingPool;
+
+    // Apply NULLBLOCK billboards to 3 random buildings
+    const billboardBuildingIndices = [4, 12, 22]; // Pick 3 specific buildings for visibility
+    billboardBuildingIndices.forEach((idx, billboardIdx) => {
+      if (idx < buildingPool.length) {
+        const building = buildingPool[idx];
+        const billboardTex = makeNullblockBillboard(billboardTexts[billboardIdx]);
+        const materials = Array(6).fill(null).map((_, faceIdx) => {
+          // Front face (facing road) gets billboard, others get default
+          if (faceIdx === 0) {
+            return new THREE.MeshStandardMaterial({
+              map: billboardTex,
+              color: "#ffffff",
+              emissive: "#ff2244",
+              emissiveIntensity: 0.3,
+            });
+          }
+          return building.mesh.material;
+        });
+        building.mesh.material = materials;
+      }
+    });
 
     // Create 10 shorter background buildings for depth
     for (let i = 0; i < 10; i++) {
@@ -620,6 +730,46 @@ function GameScene({
     // Hide unused traffic cars
     for (let i = (obstacles || []).length; i < trafficCarsRef.current.length; i++) {
       trafficCarsRef.current[i].mesh.visible = false;
+    }
+
+    // Update NULLBLOCK ENFORCER
+    if (enforcerActiveRef.current && enforcerRef.current) {
+      const now = performance.now();
+      const timeElapsed = (now - enforcerSpawnTimeRef.current) / 1000; // seconds since spawn
+
+      // Gradually accelerate toward player speed over time
+      const maxEnforcerSpeed = gameSpeed * 1.05; // Never more than 5% faster
+      const baseEnforcerSpeed = gameSpeed * 0.7; // Starts at 70% of player speed
+      enforcerSpeedRef.current = Math.min(
+        baseEnforcerSpeed + timeElapsed * 0.002, // gets slightly faster each second
+        maxEnforcerSpeed
+      );
+
+      // Move enforcer toward player z position
+      enforcerRef.current.position.z += enforcerSpeedRef.current;
+
+      // Slowly drift toward player x (lane tracking)
+      const xDiff = carModelRef.current ? carModelRef.current.position.x - enforcerRef.current.position.x : 0;
+      enforcerRef.current.position.x += xDiff * 0.02;
+
+      // Slight left/right weave for alive feel
+      enforcerRef.current.position.x += Math.sin(now * 0.0012) * 0.03;
+
+      // Calculate distance
+      const enforcerDistance = Math.abs(enforcerRef.current.position.z - camera.position.z);
+
+      // Notify React component of enforcer distance
+      if (onEnforcerDistanceChange) {
+        onEnforcerDistanceChange(enforcerDistance);
+      }
+
+      // If enforcer gets within 5 units of camera (caught)
+      if (enforcerRef.current.position.z > camera.position.z - 3) {
+        if (onEnforcerCaught) {
+          onEnforcerCaught();
+        }
+        enforcerActiveRef.current = false;
+      }
     }
 
     // Recycle pedestrians and benches

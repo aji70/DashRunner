@@ -43,10 +43,26 @@ export function RunnerGame({
   const [cityId, setCityId] = useState(0);
   const [characterTint, setCharacterTint] = useState<string | undefined>(undefined);
   const [isNewPersonalBest, setIsNewPersonalBest] = useState(false);
+  const [nearMiss, setNearMiss] = useState(false);
+  const [showActTitle, setShowActTitle] = useState(true);
+  const [enforcerDistance, setEnforcerDistance] = useState(999);
+  const [vignetteIntensity, setVignetteIntensity] = useState(0);
+  const [showCatchWarning, setShowCatchWarning] = useState(false);
+  const [caughtByEnforcer, setCaughtByEnforcer] = useState(false);
+  const [isBoostActive, setIsBoostActive] = useState(false);
+  const [boostOnCooldown, setBoostOnCooldown] = useState(false);
+  const [showGhostActivated, setShowGhostActivated] = useState(false);
+  const boostStateRef = useRef({ isBoosting: false, onCooldown: false });
+  const lastTapRef = useRef(0);
+  const BOOST_DURATION = 2000;
+  const BOOST_COOLDOWN = 8000;
+  const BOOST_MULTIPLIER = 1.8;
   const gameSurfaceRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<GameCanvasHandle>(null);
   const coinSoundRef = useRef<HTMLAudioElement | null>(null);
   const themeSoundRef = useRef<HTMLAudioElement | null>(null);
+  const nearMissTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const actTitleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -86,6 +102,143 @@ export function RunnerGame({
       }
     }
   }, [isMuted, phase]);
+
+  // Detect near misses from obstacles
+  useEffect(() => {
+    if (!gameState || phase !== "playing") {
+      return;
+    }
+
+    if (gameState.obstacles && gameState.obstacles.length > 0) {
+      const playerZ = gameState.distance / 140;
+      const hasNearMiss = gameState.obstacles.some((obs) => {
+        const obsZ = -obs.y / 140;
+        const distance = Math.abs(playerZ - obsZ);
+        return distance < 1.5 && distance > 0.1;
+      });
+
+      if (hasNearMiss && !nearMiss) {
+        setNearMiss(true);
+        if (nearMissTimeoutRef.current) {
+          clearTimeout(nearMissTimeoutRef.current);
+        }
+        nearMissTimeoutRef.current = setTimeout(() => {
+          setNearMiss(false);
+        }, 300);
+      }
+    }
+  }, [gameState, phase, nearMiss]);
+
+  // Hide ACT title after 3 seconds
+  useEffect(() => {
+    if (phase === "playing" && showActTitle) {
+      if (actTitleTimeoutRef.current) {
+        clearTimeout(actTitleTimeoutRef.current);
+      }
+      actTitleTimeoutRef.current = setTimeout(() => {
+        setShowActTitle(false);
+      }, 3000);
+    }
+    return () => {
+      if (actTitleTimeoutRef.current) {
+        clearTimeout(actTitleTimeoutRef.current);
+      }
+    };
+  }, [phase, showActTitle]);
+
+  // Reset ACT title on game start
+  useEffect(() => {
+    if (phase === "playing") {
+      setShowActTitle(true);
+      setVignetteIntensity(0);
+      setShowCatchWarning(false);
+      setEnforcerDistance(999);
+      setCaughtByEnforcer(false);
+    }
+  }, [phase]);
+
+  // Update vignette and warning based on enforcer distance
+  useEffect(() => {
+    if (enforcerDistance < 20) {
+      const intensity = (20 - enforcerDistance) / 20;
+      setVignetteIntensity(intensity);
+    } else {
+      setVignetteIntensity(0);
+    }
+
+    if (enforcerDistance < 5) {
+      setShowCatchWarning(true);
+    } else {
+      setShowCatchWarning(false);
+    }
+  }, [enforcerDistance]);
+
+  const handleEnforcerCaught = useCallback(() => {
+    canvasRef.current?.pause();
+    setCaughtByEnforcer(true);
+    setPhase("dead");
+  }, []);
+
+  const handleEnforcerDistanceChange = useCallback((distance: number) => {
+    setEnforcerDistance(distance);
+  }, []);
+
+  const activateBoost = useCallback(() => {
+    if (boostStateRef.current.isBoosting || boostStateRef.current.onCooldown) {
+      return;
+    }
+
+    boostStateRef.current.isBoosting = true;
+    setIsBoostActive(true);
+    setShowGhostActivated(true);
+
+    // Hide activation message after 0.5s
+    setTimeout(() => {
+      setShowGhostActivated(false);
+    }, 500);
+
+    // End boost after duration
+    setTimeout(() => {
+      boostStateRef.current.isBoosting = false;
+      setIsBoostActive(false);
+      boostStateRef.current.onCooldown = true;
+      setBoostOnCooldown(true);
+
+      // End cooldown
+      setTimeout(() => {
+        boostStateRef.current.onCooldown = false;
+        setBoostOnCooldown(false);
+      }, BOOST_COOLDOWN);
+    }, BOOST_DURATION);
+  }, []);
+
+  // Setup keyboard and touch listeners
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" && phase === "playing") {
+        e.preventDefault();
+        activateBoost();
+      }
+    };
+
+    const handleTouchEnd = () => {
+      const now = Date.now();
+      if (now - lastTapRef.current < 300 && phase === "playing") {
+        activateBoost();
+      }
+      lastTapRef.current = now;
+    };
+
+    if (phase === "playing") {
+      window.addEventListener("keydown", handleKeyDown);
+      window.addEventListener("touchend", handleTouchEnd);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [phase, activateBoost]);
 
   const handleStart = useCallback(() => {
     canvasRef.current?.reset();
@@ -248,6 +401,8 @@ export function RunnerGame({
             maxSpeed={240}
             gamePhase={phase}
             obstacles={gameState.obstacles}
+            onEnforcerDistanceChange={handleEnforcerDistanceChange}
+            onEnforcerCaught={handleEnforcerCaught}
           />
         </ErrorBoundary>
       )}
@@ -270,10 +425,152 @@ export function RunnerGame({
         distance={gameState?.distance || 0}
         coins={coinsCollected}
         isNewPersonalBest={isNewPersonalBest}
+        caughtByEnforcer={caughtByEnforcer}
         onStart={handleStart}
         onRestart={handleRestart}
         onResume={handlePauseToggle}
       />
+
+      {/* ACT Title Overlay */}
+      {showActTitle && phase === "playing" && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          top: '20%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          textAlign: 'center',
+          animation: 'actFadeInOut 3s ease forwards',
+          pointerEvents: 'none',
+          zIndex: 20,
+        }}>
+          <style>{`
+            @keyframes actFadeInOut {
+              0%   { opacity: 0; transform: translateX(-50%) translateY(10px) }
+              15%  { opacity: 1; transform: translateX(-50%) translateY(0) }
+              75%  { opacity: 1 }
+              100% { opacity: 0 }
+            }
+          `}</style>
+          <div style={{
+            color: 'rgba(255,34,68,0.7)',
+            fontSize: '12px',
+            letterSpacing: '6px',
+            fontFamily: 'Bebas Neue',
+            fontWeight: 'bold',
+          }}>ACT 1</div>
+          <div style={{
+            color: '#ffffff',
+            fontSize: '36px',
+            letterSpacing: '4px',
+            fontFamily: 'Bebas Neue',
+            fontWeight: 'black',
+          }}>THE SPRAWL</div>
+          <div style={{
+            color: 'rgba(255,255,255,0.4)',
+            fontSize: '13px',
+            letterSpacing: '2px',
+            fontFamily: 'monospace',
+          }}>Celo City Underground // 2047</div>
+        </div>
+      )}
+
+      {/* Near Miss Red Flash */}
+      {nearMiss && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          border: '4px solid #ff2244',
+          boxShadow: 'inset 0 0 40px rgba(255,34,68,0.4)',
+          pointerEvents: 'none',
+          animation: 'flashRed 0.3s ease forwards',
+          zIndex: 25,
+        }}>
+          <style>{`
+            @keyframes flashRed {
+              0%   { opacity: 1 }
+              100% { opacity: 0 }
+            }
+          `}</style>
+        </div>
+      )}
+
+      {/* Enforcer Threat Meter */}
+      {phase === "playing" && enforcerDistance < 999 && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '4px',
+          zIndex: 30,
+        }}>
+          <div style={{
+            color: '#ff2244',
+            fontSize: '10px',
+            letterSpacing: '3px',
+            fontFamily: 'Bebas Neue',
+            fontWeight: 'bold',
+          }}>⚠ NULLBLOCK ENFORCER</div>
+          <div style={{
+            width: '200px',
+            height: '4px',
+            background: 'rgba(255,34,68,0.2)',
+            borderRadius: '2px',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${Math.max(0, Math.min(100, (1 - enforcerDistance / 60) * 100))}%`,
+              background: enforcerDistance < 15 ? '#ff0022' : '#ff6644',
+              transition: 'width 0.1s, background 0.3s',
+            }} />
+          </div>
+        </div>
+      )}
+
+      {/* Red Vignette Overlay */}
+      {vignetteIntensity > 0 && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: `radial-gradient(ellipse at center, transparent 40%, rgba(255,0,34,${vignetteIntensity * 0.6}) 100%)`,
+          pointerEvents: 'none',
+          transition: 'background 0.3s',
+          zIndex: 25,
+        }} />
+      )}
+
+      {/* Enforcer Closing In Warning */}
+      {showCatchWarning && (
+        <div style={{
+          position: 'fixed',
+          top: '35%',
+          width: '100%',
+          textAlign: 'center',
+          color: '#ff2244',
+          fontSize: '24px',
+          fontFamily: 'Bebas Neue',
+          letterSpacing: '6px',
+          animation: 'glitch 0.3s infinite',
+          zIndex: 30,
+        }}>
+          <style>{`
+            @keyframes glitch {
+              0%   { transform: translateX(0) }
+              20%  { transform: translateX(-3px) }
+              40%  { transform: translateX(3px) }
+              60%  { transform: translateX(-2px) }
+              80%  { transform: translateX(2px) }
+              100% { transform: translateX(0) }
+            }
+          `}</style>
+          NULLBLOCK IS CLOSING IN
+        </div>
+      )}
     </div>
   );
 }

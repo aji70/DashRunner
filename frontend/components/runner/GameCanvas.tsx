@@ -155,7 +155,35 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       });
     }, []);
 
-    const spawnObstacle = useCallback((lane: Lane) => {
+    // Get a safe lane that doesn't block all traffic
+    const getSafeLane = useCallback(() => {
+      const gameState = gameStateRef.current;
+      const lanes: Lane[] = [0, 1, 2];
+
+      // Find lanes occupied in the danger zone (next 40 units)
+      const occupiedLanes = gameState.obstacles
+        .filter(t => t.y > -160 && t.y < -80) // danger zone
+        .map(t => t.lane);
+
+      // Find free lanes
+      const freeLanes = lanes.filter(l => !occupiedLanes.includes(l));
+
+      // Pick from free lanes, or random if all occupied (shouldn't happen)
+      if (freeLanes.length > 0) {
+        return freeLanes[Math.floor(Math.random() * freeLanes.length)];
+      }
+      return lanes[Math.floor(Math.random() * lanes.length)];
+    }, []);
+
+    // Check if a new obstacle is too close to an existing one in same lane
+    const isTooClose = useCallback((newY: number, newLane: Lane) => {
+      const gameState = gameStateRef.current;
+      return gameState.obstacles.some(t =>
+        t.lane === newLane && Math.abs(t.y - newY) < 30
+      );
+    }, []);
+
+    const spawnObstacle = useCallback((lane?: Lane) => {
       const gameState = gameStateRef.current;
       const roll = Math.random();
       let type: ObstacleType;
@@ -172,15 +200,26 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         height = 20;
       }
 
+      // Use provided lane or get a safe one
+      let finalLane = lane !== undefined ? lane : getSafeLane();
+      let newY = -130;
+      let attempts = 0;
+
+      // Adjust Y if too close to another obstacle
+      while (isTooClose(newY, finalLane) && attempts < 10) {
+        newY -= 15;
+        attempts++;
+      }
+
       gameState.obstacles.push({
         id: gameState.frameId++,
-        lane,
-        y: -130,
+        lane: finalLane,
+        y: newY,
         type,
         width: 40,
         height,
       });
-    }, []);
+    }, [getSafeLane, isTooClose]);
 
     useEffect(() => {
       const canvas = canvasRef.current;
@@ -276,21 +315,22 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
 
       gameState.spawnTimer -= dt;
       if (gameState.spawnTimer <= 0) {
-        const randomLane = Math.floor(Math.random() * 3) as Lane;
         const isCoin = Math.random() < COIN_RUSH_CHANCE;
 
         if (isCoin) {
+          const randomLane = Math.floor(Math.random() * 3) as Lane;
           spawnCoinBurst(randomLane);
         } else {
-          spawnObstacle(randomLane);
+          // Use safe lane for primary obstacle
+          spawnObstacle();
           if (Math.random() < OBSTACLE_CHANCE) {
-            const otherLane = ((randomLane + 1 + Math.floor(Math.random() * 2)) % 3) as Lane;
-            spawnObstacle(otherLane);
+            // Let secondary obstacle pick its own safe lane
+            spawnObstacle();
             gameState.obstacles[gameState.obstacles.length - 1].y = -185;
           }
           if (Math.random() < EXTRA_TRAFFIC_CHANCE) {
-            const extraLane = ((randomLane + 2) % 3) as Lane;
-            spawnObstacle(extraLane);
+            // Let tertiary obstacle pick its own safe lane
+            spawnObstacle();
             gameState.obstacles[gameState.obstacles.length - 1].y = -265;
           }
         }

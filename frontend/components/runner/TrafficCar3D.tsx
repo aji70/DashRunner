@@ -51,6 +51,25 @@ function Wheel({
   );
 }
 
+function createNullblockLabel() {
+  const canvas = document.createElement('canvas')
+  canvas.width = 256
+  canvas.height = 64
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = 'transparent'
+  ctx.clearRect(0, 0, 256, 64)
+  ctx.fillStyle = '#ff2244'
+  ctx.font = 'bold 28px monospace'
+  ctx.textAlign = 'center'
+  ctx.fillText('◆ NULLBLOCK', 128, 40)
+  const tex = new THREE.CanvasTexture(canvas)
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true })
+  const sprite = new THREE.Sprite(mat)
+  sprite.scale.set(3, 0.8, 1)
+  sprite.position.y = 3.5
+  return sprite
+}
+
 /** Other traffic in the lane — tall van (`wall` = jump) or low sedan (`barrier` = slide under). */
 export function TrafficCar3D({ position, type, styleSeed }: TrafficCar3DProps) {
   const rootRef = useRef<THREE.Group>(null);
@@ -144,6 +163,8 @@ export function TrafficCar3D({ position, type, styleSeed }: TrafficCar3DProps) {
         <circleGeometry args={[0.44, 28]} />
         <meshBasicMaterial color="#000000" transparent opacity={0.22} />
       </mesh>
+
+      <primitive object={createNullblockLabel()} />
     </group>
   );
 }

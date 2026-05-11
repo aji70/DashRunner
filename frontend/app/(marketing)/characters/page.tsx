@@ -27,7 +27,7 @@ export default function CharactersPage() {
   const select = async (id: number) => {
     const p = loadLocalProfile();
     if (!p.ownedCharacterIds.includes(id)) {
-      setMsg("Unlock this runner first.");
+      setMsg("Complete Act I to unlock.");
       return;
     }
     const next = { ...p, selectedCharacterId: id };
@@ -52,14 +52,14 @@ export default function CharactersPage() {
     }
     if (!p.walletAddress) {
       if (p.softCurrency < price) {
-        setMsg("Not enough coins locally. Set a wallet and sync for server balance.");
+        setMsg("NULLBLOCK seized most of your balance. Set a wallet to sync.");
         return;
       }
       const nextOwned = [...p.ownedCharacterIds, onChainId].sort((a, b) => a - b);
       const next = { ...p, ownedCharacterIds: nextOwned, softCurrency: p.softCurrency - price };
       saveLocalProfile(next);
       setProfile(next);
-      setMsg("Unlocked locally (demo). Use a synced wallet for server purchases.");
+      setMsg("Unlocked offline. Connect wallet to finalize on-chain.");
       return;
     }
     try {
@@ -77,10 +77,8 @@ export default function CharactersPage() {
 
   return (
     <div className="space-y-10">
-      <PageHeader eyebrow="Loadout" title="Runners">
-        Cosmetic accents tint the in-game GLB. On-chain purchases use USDC: <Kbd>buyCharacter</Kbd> after{" "}
-        <Kbd>approve</Kbd> on USDC, with prices set via <Kbd>setCharacterPriceUsdc</Kbd> (smallest units, 6 decimals on
-        Celo USDC).
+      <PageHeader eyebrow="Loadout" title="My Garage">
+        Every car is a weapon. Choose wisely.
       </PageHeader>
 
       <div className="space-y-4">

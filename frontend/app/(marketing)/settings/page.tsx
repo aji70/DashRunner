@@ -41,19 +41,19 @@ export default function SettingsPage() {
       const next = { ...loadLocalProfile(), walletAddress: null };
       saveLocalProfile(next);
       setProfile(next);
-      setMsg("Cleared wallet. Progress stays on-device only.");
+      setMsg("Ghost mode active. Your progress is hidden from NULLBLOCK.");
       return;
     }
     try {
       const pulled = await pullProfileFromServer(w);
       if (pulled) {
         setProfile(pulled);
-        setMsg("Wallet saved and synced from the backend.");
+        setMsg("Wallet synced. Your record is now on the chain.");
       } else {
         const next = { ...loadLocalProfile(), walletAddress: w };
         saveLocalProfile(next);
         setProfile(next);
-        setMsg("Wallet saved locally. Start the backend to sync.");
+        setMsg("Wallet saved. Waiting for chain confirmation...");
       }
     } catch (e) {
       setMsg(String((e as Error)?.message || e));
@@ -62,7 +62,7 @@ export default function SettingsPage() {
 
   const pushPrefs = async () => {
     if (!profile?.walletAddress) {
-      setMsg("Set a wallet first to push loadout.");
+      setMsg("Ghost mode active. Connect wallet to finalize loadout.");
       return;
     }
     setMsg(null);
@@ -74,7 +74,7 @@ export default function SettingsPage() {
           selectedCityId: profile.selectedCityId,
         }),
       });
-      setMsg("Loadout pushed to backend.");
+      setMsg("Loadout recorded on the chain.");
     } catch (e) {
       setMsg(String((e as Error)?.message || e));
     }

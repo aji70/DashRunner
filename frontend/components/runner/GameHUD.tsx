@@ -68,7 +68,7 @@ export function GameHUD({
           {/* Score */}
           <div className="flex items-center gap-3" style={{ borderLeft: "3px solid #00E5CC", paddingLeft: "12px" }}>
             <span className="font-inter text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", letterSpacing: "3px" }}>
-              Score
+              Chain Score
             </span>
             <AnimatePresence mode="wait">
               <motion.p
@@ -93,7 +93,7 @@ export function GameHUD({
           {/* Coins */}
           <div className="flex items-center gap-3">
             <span className="font-inter font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", letterSpacing: "3px" }}>
-              Celo
+              $DASH
             </span>
             <div className="flex items-center gap-1.5">
               <span style={{ color: "#F5C518" }}>$</span>

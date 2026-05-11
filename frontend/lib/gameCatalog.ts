@@ -41,10 +41,10 @@ export const CITY_ROUTES: CityRoute[] = [
 ];
 
 export const RUNNER_CHARACTERS: RunnerCharacter[] = [
-  { id: 0, name: "Dash Prime", role: "Starter frame", accentHex: "#22d3ee", priceCoins: 0, onChainId: 0 },
-  { id: 1, name: "Volt Lynx", role: "Agile striker", accentHex: "#c084fc", priceCoins: 400, onChainId: 1 },
-  { id: 2, name: "Solar Fox", role: "Speed focus", accentHex: "#fbbf24", priceCoins: 650, onChainId: 2 },
-  { id: 3, name: "Cinder Runner", role: "Endurance build", accentHex: "#fb7185", priceCoins: 900, onChainId: 3 },
+  { id: 0, name: "The Ghost", role: "Fast enough to disappear", accentHex: "#22d3ee", priceCoins: 0, onChainId: 0 },
+  { id: 1, name: "Block Breaker", role: "Built to outlast validators", accentHex: "#c084fc", priceCoins: 400, onChainId: 1 },
+  { id: 2, name: "Null Void", role: "Stolen from a NULLBLOCK agent", accentHex: "#fbbf24", priceCoins: 650, onChainId: 2 },
+  { id: 3, name: "Void's Edge", role: "The last weapon standing", accentHex: "#fb7185", priceCoins: 900, onChainId: 3 },
 ];
 
 export const SHOP_ITEMS: ShopItem[] = [

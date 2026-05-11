@@ -5,6 +5,15 @@ import { useRouter } from "next/navigation";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 
+const deathLines = [
+  "NULLBLOCK erased your run. Again.",
+  "They're not going to let you post that score.",
+  "Your brother's record still stands. Get back up.",
+  "The chain remembers nothing. Yet.",
+  "NULLBLOCK validator rejected your block.",
+  "You were close. They knew it too.",
+];
+
 interface GameOverlayProps {
   phase: "idle" | "playing" | "paused" | "dead";
   score: number;
@@ -12,6 +21,7 @@ interface GameOverlayProps {
   distance?: number;
   coins?: number;
   isNewPersonalBest: boolean;
+  caughtByEnforcer?: boolean;
   onStart: () => void;
   onRestart: () => void;
   onResume?: () => void;
@@ -24,6 +34,7 @@ export function GameOverlay({
   distance = 0,
   coins = 0,
   isNewPersonalBest,
+  caughtByEnforcer = false,
   onStart,
   onRestart,
   onResume,
@@ -60,7 +71,7 @@ export function GameOverlay({
                 </Button>
               </motion.div>
               <p className="mt-4 font-rajdhani text-[10px] uppercase tracking-widest text-orange-200/50 sm:text-xs">
-                ← Swipe → Switch | ↑ Jump | ↓ Brake
+                ← Dodge → Switch | ↑ Jump | ↓ Slide
               </p>
               {highScore > 0 ? (
                 <p className="mt-6 text-center font-rajdhani text-xs text-[var(--text-dim)] sm:text-sm">
@@ -165,6 +176,19 @@ export function GameOverlay({
                 GAME OVER
               </motion.h2>
 
+              {/* Death Line */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.25 }}
+                className="text-center font-rajdhani text-sm italic"
+                style={{ color: "rgba(255,255,255,0.5)" }}
+              >
+                {caughtByEnforcer
+                  ? "The Enforcer closed the gap. Your brother's record still stands."
+                  : deathLines[Math.floor(Math.random() * deathLines.length)]}
+              </motion.p>
+
               {/* Score Box */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -178,7 +202,7 @@ export function GameOverlay({
                 }}
               >
                 <p className="text-center font-rajdhani text-xs font-semibold uppercase tracking-widest text-gray-300">
-                  Your Score
+                  Chain Score
                 </p>
                 <p
                   className="text-center font-orbitron text-5xl font-black tabular-nums sm:text-6xl"
@@ -189,10 +213,10 @@ export function GameOverlay({
 
                 <div className="space-y-1 border-t border-cyan-500/20 pt-3">
                   <p className="font-rajdhani text-xs text-gray-400">
-                    Distance: <span className="text-white">{(distance / 140).toFixed(1)}km</span>
+                    Blocks Survived: <span className="text-white">{(distance / 140).toFixed(1)}km</span>
                   </p>
                   <p className="font-rajdhani text-xs text-gray-400">
-                    Coins: <span className="text-amber-300">${coins} DASH</span>
+                    $DASH Earned: <span className="text-amber-300">${coins} DASH</span>
                   </p>
                 </div>
               </motion.div>
@@ -225,7 +249,7 @@ export function GameOverlay({
                     clipPath: "polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%)",
                   }}
                 >
-                  Try Again
+                  Run It Again
                 </button>
                 <button
                   onClick={() => router.push("/")}
@@ -237,7 +261,7 @@ export function GameOverlay({
                     clipPath: "polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%)",
                   }}
                 >
-                  Main Menu
+                  Back to Celo City
                 </button>
               </motion.div>
 
@@ -248,7 +272,7 @@ export function GameOverlay({
                 transition={{ delay: 0.4 }}
                 className="text-center font-rajdhani text-xs font-semibold uppercase tracking-widest text-gray-400"
               >
-                🏆 Your Best:{" "}
+                🏆 Your Record On-Chain:{" "}
                 <span className="text-amber-200">{highScore.toLocaleString()}</span>
               </motion.p>
             </div>

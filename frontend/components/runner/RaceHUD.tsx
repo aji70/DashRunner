@@ -75,7 +75,7 @@ export function RaceHUD({ snap, coinsCollected, phase, isMuted, onPauseToggle, o
               </p>
             </div>
             <div className="px-2 py-2 sm:px-3 sm:py-2.5">
-              <p className="font-rajdhani text-[9px] font-semibold uppercase tracking-[0.18em] text-amber-200/55">Coins</p>
+              <p className="font-rajdhani text-[9px] font-semibold uppercase tracking-[0.18em] text-amber-200/55">$DASH</p>
               <div className="flex items-center gap-1">
                 <span className="text-amber-200">◆</span>
                 <span className="font-orbitron text-lg font-bold tabular-nums text-amber-200 sm:text-xl">{coinsCollected}</span>
@@ -95,29 +95,40 @@ export function RaceHUD({ snap, coinsCollected, phase, isMuted, onPauseToggle, o
         </GlassPanel>
       </div>
 
-      <div className="absolute right-3 top-3 z-20 flex items-center gap-2 sm:right-4 sm:top-4 sm:gap-2.5">
+      <div className="absolute right-3 top-3 z-20 flex flex-col items-end gap-2 sm:right-4 sm:top-4 sm:gap-2.5">
         {phase === "playing" && (
-          <>
-            <motion.button
-              type="button"
-              onClick={onPauseToggle}
-              whileTap={{ scale: 0.92 }}
-              className={cn(iconBtn, "shadow-neon-cyan")}
-              title="Pause"
-            >
-              <IconPause className="h-4 w-4" />
-            </motion.button>
-            <motion.button
-              type="button"
-              onClick={onMuteToggle}
-              whileTap={{ scale: 0.92 }}
-              className={cn(iconBtn, "shadow-neon-cyan")}
-              title={isMuted ? "Unmute" : "Mute"}
-            >
-              {isMuted ? <IconVolumeOff className="h-5 w-5" /> : <IconVolumeOn className="h-5 w-5" />}
-            </motion.button>
-          </>
+          <motion.div
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="text-xs font-rajdhani font-bold uppercase tracking-widest text-red-500"
+          >
+            ⚠ NULLBLOCK ZONE
+          </motion.div>
         )}
+        <div className="flex items-center gap-2">
+          {phase === "playing" && (
+            <>
+              <motion.button
+                type="button"
+                onClick={onPauseToggle}
+                whileTap={{ scale: 0.92 }}
+                className={cn(iconBtn, "shadow-neon-cyan")}
+                title="Pause"
+              >
+                <IconPause className="h-4 w-4" />
+              </motion.button>
+              <motion.button
+                type="button"
+                onClick={onMuteToggle}
+                whileTap={{ scale: 0.92 }}
+                className={cn(iconBtn, "shadow-neon-cyan")}
+                title={isMuted ? "Unmute" : "Mute"}
+              >
+                {isMuted ? <IconVolumeOff className="h-5 w-5" /> : <IconVolumeOn className="h-5 w-5" />}
+              </motion.button>
+            </>
+          )}
+        </div>
       </div>
 
       {(phase === "playing" || phase === "paused") && (
@@ -133,7 +144,7 @@ export function RaceHUD({ snap, coinsCollected, phase, isMuted, onPauseToggle, o
           transition={{ delay: 4, duration: 1 }}
           className="pointer-events-none absolute bottom-3 left-0 right-0 z-10 text-center text-xs font-rajdhani font-semibold uppercase tracking-widest text-orange-300/60"
         >
-          ← swipe → lane | ↑ jump | ↓ brake
+          ← dodge → switch | ↑ jump | ↓ slide
         </motion.div>
       )}
     </div>
