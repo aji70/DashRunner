@@ -20,11 +20,11 @@ const Game3DScene = dynamic(
 export type RunnerGameMode = "endless" | "racing";
 
 const ACT_TARGETS = {
-  1: 500,
-  2: 1500,
-  3: 3000,
-  4: 6000,
-  5: 10000,
+  1: 2000,
+  2: 5000,
+  3: 10000,
+  4: 18000,
+  5: 30000,
 };
 
 const ACT_NAMES = {
@@ -72,7 +72,11 @@ export function RunnerGame({
   const [showActComplete, setShowActComplete] = useState(false);
   const [completedAct, setCompletedAct] = useState(0);
   const [enforcerBlocked, setEnforcerBlocked] = useState(false);
+  const [nitroCount, setNitroCount] = useState(0);
+  const [showCoinCollect, setShowCoinCollect] = useState(false);
+  const [showNitroCollect, setShowNitroCollect] = useState(false);
   const boostStateRef = useRef({ isBoosting: false, onCooldown: false });
+  const boostTimeRef = useRef(0);
   const lastTapRef = useRef(0);
   const BOOST_DURATION = 2000;
   const BOOST_COOLDOWN = 8000;
@@ -231,6 +235,64 @@ export function RunnerGame({
     }, BOOST_DURATION);
   }, []);
 
+  const handleCoinCollected = useCallback(() => {
+    setCoinsCollected((prev) => prev + 1);
+    handleCoinCollect();
+    setShowCoinCollect(true);
+    setTimeout(() => {
+      setShowCoinCollect(false);
+    }, 400);
+  }, []);
+
+  const handleNitroCollected = useCallback(() => {
+    setNitroCount((prev) => prev + 1);
+
+    // Activate boost immediately if not already boosting
+    if (!boostStateRef.current.isBoosting && !boostStateRef.current.onCooldown) {
+      activateBoost();
+    }
+
+    setShowNitroCollect(true);
+    setTimeout(() => {
+      setShowNitroCollect(false);
+    }, 1500);
+  }, [activateBoost]);
+
+  // Expose pickup functions to window for 3D scene access
+  useEffect(() => {
+    (window as any).__addCoin = () => {
+      setCoinsCollected((prev) => prev + 1);
+      if (coinSoundRef.current) {
+        coinSoundRef.current.currentTime = 0;
+        coinSoundRef.current.play().catch(() => {});
+      }
+      setShowCoinCollect(true);
+      setTimeout(() => {
+        setShowCoinCollect(false);
+      }, 400);
+    };
+
+    (window as any).__addNitro = () => {
+      setNitroCount((prev) => prev + 1);
+      setShowNitroCollect(true);
+      setTimeout(() => {
+        setShowNitroCollect(false);
+      }, 1500);
+    };
+
+    (window as any).__activateBoost = () => {
+      if (!boostStateRef.current.isBoosting && !boostStateRef.current.onCooldown) {
+        activateBoost();
+      }
+    };
+
+    return () => {
+      delete (window as any).__addCoin;
+      delete (window as any).__addNitro;
+      delete (window as any).__activateBoost;
+    };
+  }, [activateBoost]);
+
   // Setup keyboard and touch listeners
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -263,6 +325,7 @@ export function RunnerGame({
     canvasRef.current?.reset();
     setScore(0);
     setCoinsCollected(0);
+    setNitroCount(0);
     canvasRef.current?.start();
     setPhase("playing");
   }, []);
@@ -459,6 +522,8 @@ export function RunnerGame({
                 setTimeout(() => setEnforcerBlocked(false), 1000);
               }
             }}
+            onCoinCollect={handleCoinCollected}
+            onNitroCollect={handleNitroCollected}
           />
         </ErrorBoundary>
       )}
@@ -785,6 +850,95 @@ export function RunnerGame({
             }
           `}</style>
           ⚡ ENFORCER BLOCKED BY TRAFFIC
+        </div>
+      )}
+
+      {/* Nitro Count */}
+      {phase === "playing" && (
+        <div style={{
+          position: 'absolute',
+          top: '48px',
+          right: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          color: '#00E5CC',
+          fontFamily: 'Bebas Neue',
+          fontSize: '14px',
+          letterSpacing: '2px',
+        }}>
+          👻 {nitroCount} NITRO
+        </div>
+      )}
+
+      {/* Coin Collect Flash */}
+      {showCoinCollect && (
+        <div style={{
+          position: 'absolute',
+          top: '20%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          color: '#F5C518',
+          fontSize: '28px',
+          fontFamily: 'Bebas Neue',
+          letterSpacing: '4px',
+          animation: 'floatUp 0.4s ease forwards',
+          pointerEvents: 'none',
+          zIndex: 50,
+        }}>
+          <style>{`
+            @keyframes floatUp {
+              0%   { opacity: 1; transform: translateX(-50%) translateY(0) }
+              100% { opacity: 0; transform: translateX(-50%) translateY(-30px) }
+            }
+          `}</style>
+          +1 $DASH
+        </div>
+      )}
+
+      {/* Nitro Collect Flash */}
+      {showNitroCollect && (
+        <div style={{
+          position: 'fixed',
+          top: '30%',
+          width: '100%',
+          textAlign: 'center',
+          pointerEvents: 'none',
+          zIndex: 50,
+        }}>
+          <style>{`
+            @keyframes glitch {
+              0%   { transform: translateX(0) }
+              20%  { transform: translateX(-3px) }
+              40%  { transform: translateX(3px) }
+              60%  { transform: translateX(-2px) }
+              80%  { transform: translateX(2px) }
+              100% { transform: translateX(0) }
+            }
+            @keyframes nitroFadeOut {
+              0% { opacity: 1 }
+              100% { opacity: 0 }
+            }
+          `}</style>
+          <div style={{
+            color: '#00E5CC',
+            fontSize: '36px',
+            fontFamily: 'Bebas Neue',
+            letterSpacing: '6px',
+            textShadow: '0 0 20px rgba(0,229,204,0.8)',
+            animation: 'glitch 0.3s ease, nitroFadeOut 1.2s ease forwards',
+          }}>
+            👻 GHOST MODE ACTIVATED
+          </div>
+          <div style={{
+            color: 'rgba(0,229,204,0.6)',
+            fontSize: '14px',
+            letterSpacing: '4px',
+            marginTop: '8px',
+            animation: 'nitroFadeOut 1.2s ease forwards',
+          }}>
+            NULLBLOCK CANNOT SEE YOU
+          </div>
         </div>
       )}
     </div>

@@ -6,6 +6,14 @@ import * as THREE from "three";
 // @ts-ignore
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
+declare global {
+  interface Window {
+    __addCoin?: () => void;
+    __addNitro?: () => void;
+    __activateBoost?: () => void;
+  }
+}
+
 interface Game3DSceneProps {
   catPosition: number;
   playerLane: 0 | 1 | 2;
@@ -20,6 +28,8 @@ interface Game3DSceneProps {
   onEnforcerDistanceChange?: (distance: number) => void;
   onEnforcerCaught?: () => void;
   onEnforcerBlocked?: (blocked: boolean) => void;
+  onCoinCollect?: () => void;
+  onNitroCollect?: () => void;
 }
 
 // Step 1: Renderer setup inside GameScene component
@@ -77,6 +87,8 @@ function GameScene({
   const buildingPoolRef = useRef<
     Array<{ mesh: THREE.Mesh; side: number; initialZ: number }>
   >([]);
+  const coinPoolRef = useRef<Array<{ mesh: THREE.Group; collected: boolean }>>([]);
+  const nitroPoolRef = useRef<Array<{ mesh: THREE.Group; collected: boolean }>>([]);
   const gameOverInitiatedRef = useRef(false);
   const cameraStartPosRef = useRef({ y: 4, z: 16 });
 
@@ -334,7 +346,7 @@ function GameScene({
 
         // Start behind player
         enforcer.position.x = 0;
-        enforcer.position.z = 30; // behind camera = positive z
+        enforcer.position.z = 80; // gives more head start
         scene.add(enforcer);
         enforcerRef.current = enforcer;
         enforcerActiveRef.current = true;
@@ -587,6 +599,122 @@ function GameScene({
     }
     lampPoolRef.current = lampPool;
 
+    // COIN POOL
+    const coinLanes = [-4, 0, 4];
+    const COIN_COUNT = 15;
+
+    function createCoin() {
+      const group = new THREE.Group();
+
+      const coinGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.08, 16);
+      const coinMat = new THREE.MeshStandardMaterial({
+        color: "#F5C518",
+        emissive: "#F5A000",
+        emissiveIntensity: 0.8,
+        metalness: 0.9,
+        roughness: 0.1,
+      });
+      const coin = new THREE.Mesh(coinGeo, coinMat);
+      coin.rotation.x = Math.PI / 2;
+
+      const ringGeo = new THREE.TorusGeometry(0.5, 0.06, 8, 24);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: "#FFD700",
+        transparent: true,
+        opacity: 0.6,
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 128;
+      canvas.height = 64;
+      const ctx = canvas.getContext("2d")!;
+      ctx.clearRect(0, 0, 128, 64);
+      ctx.fillStyle = "#F5C518";
+      ctx.font = "bold 22px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("$DASH", 64, 40);
+      const labelTex = new THREE.CanvasTexture(canvas);
+      const labelMat = new THREE.SpriteMaterial({
+        map: labelTex,
+        transparent: true,
+      });
+      const label = new THREE.Sprite(labelMat);
+      label.scale.set(1.2, 0.6, 1);
+      label.position.y = 0.8;
+
+      group.add(coin, ring, label);
+      group.position.y = 0.6;
+      return group;
+    }
+
+    for (let i = 0; i < COIN_COUNT; i++) {
+      const coin = createCoin();
+      coin.position.set(
+        coinLanes[Math.floor(Math.random() * coinLanes.length)],
+        0.6,
+        -(15 + i * 20)
+      );
+      scene.add(coin);
+      coinPoolRef.current.push({ mesh: coin, collected: false });
+    }
+
+    // NITRO POOL
+    const NITRO_COUNT = 4;
+
+    function createNitro() {
+      const group = new THREE.Group();
+
+      const bodyGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.9, 12);
+      const bodyMat = new THREE.MeshStandardMaterial({
+        color: "#00E5CC",
+        emissive: "#00E5CC",
+        emissiveIntensity: 1.2,
+        metalness: 0.8,
+        roughness: 0.1,
+      });
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.position.y = 0.45;
+
+      const capGeo = new THREE.CylinderGeometry(0.15, 0.3, 0.2, 12);
+      const cap = new THREE.Mesh(capGeo, bodyMat);
+      cap.position.y = 1.0;
+
+      const glow = new THREE.PointLight("#00E5CC", 2, 6);
+      glow.position.y = 0.5;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 160;
+      canvas.height = 64;
+      const ctx = canvas.getContext("2d")!;
+      ctx.clearRect(0, 0, 160, 64);
+      ctx.fillStyle = "#00E5CC";
+      ctx.font = "bold 20px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("👻 NITRO", 80, 40);
+      const labelTex = new THREE.CanvasTexture(canvas);
+      const label = new THREE.Sprite(
+        new THREE.SpriteMaterial({ map: labelTex, transparent: true })
+      );
+      label.scale.set(1.5, 0.6, 1);
+      label.position.y = 1.6;
+
+      group.add(body, cap, glow, label);
+      return group;
+    }
+
+    for (let i = 0; i < NITRO_COUNT; i++) {
+      const nitro = createNitro();
+      nitro.position.set(
+        coinLanes[Math.floor(Math.random() * coinLanes.length)],
+        0,
+        -(60 + i * 80)
+      );
+      scene.add(nitro);
+      nitroPoolRef.current.push({ mesh: nitro, collected: false });
+    }
+
     // Purple road glow strip
     const glowStrip = new THREE.Mesh(
       new THREE.PlaneGeometry(0.4, 1000),
@@ -796,6 +924,78 @@ function GameScene({
       trafficCarsRef.current[i].mesh.visible = false;
     }
 
+    // Update COINS
+    const coinLanes = [-4, 0, 4];
+    coinPoolRef.current.forEach((c) => {
+      if (c.collected) return;
+
+      c.mesh.position.z += gameSpeed;
+      c.mesh.children[0].rotation.z += 0.04;
+      c.mesh.children[1].rotation.z += 0.04;
+
+      if (c.mesh.position.z > camera.position.z + 5) {
+        c.mesh.position.z -= 300;
+        c.mesh.position.x =
+          coinLanes[Math.floor(Math.random() * coinLanes.length)];
+        c.mesh.position.y = 0.6;
+        c.mesh.visible = true;
+        c.collected = false;
+      }
+
+      if (carModelRef.current) {
+        const carWorldPos = new THREE.Vector3();
+        carModelRef.current.getWorldPosition(carWorldPos);
+        const coinWorldPos = new THREE.Vector3();
+        c.mesh.getWorldPosition(coinWorldPos);
+
+        const dist = carWorldPos.distanceTo(coinWorldPos);
+        if (dist < 1.8) {
+          c.collected = true;
+          c.mesh.visible = false;
+          if (window.__addCoin) {
+            window.__addCoin();
+          }
+        }
+      }
+    });
+
+    // Update NITROS
+    nitroPoolRef.current.forEach((n) => {
+      if (n.collected) return;
+
+      n.mesh.position.z += gameSpeed;
+      n.mesh.position.y = Math.sin(Date.now() * 0.003 + n.mesh.position.z) * 0.2 + 0.3;
+      n.mesh.rotation.y += 0.02;
+
+      if (n.mesh.position.z > camera.position.z + 5) {
+        n.mesh.position.z -= 320;
+        n.mesh.position.x =
+          coinLanes[Math.floor(Math.random() * coinLanes.length)];
+        n.mesh.position.y = 0.3;
+        n.mesh.visible = true;
+        n.collected = false;
+      }
+
+      if (carModelRef.current) {
+        const carWorldPos = new THREE.Vector3();
+        carModelRef.current.getWorldPosition(carWorldPos);
+        const nitroWorldPos = new THREE.Vector3();
+        n.mesh.getWorldPosition(nitroWorldPos);
+
+        const dist = carWorldPos.distanceTo(nitroWorldPos);
+        if (dist < 1.8) {
+          n.collected = true;
+          n.mesh.visible = false;
+          if (window.__addNitro) {
+            window.__addNitro();
+          }
+          if (window.__activateBoost) {
+            window.__activateBoost();
+          }
+        }
+      }
+    });
+
     // Update NULLBLOCK ENFORCER
     if (enforcerActiveRef.current && enforcerRef.current) {
       const now = performance.now();
@@ -813,12 +1013,11 @@ function GameScene({
         onEnforcerBlocked(true);
       }
 
-      // Gradually accelerate toward player speed over time
+      // Gradually accelerate toward player speed over time — slower ramp over longer acts
       const maxEnforcerSpeed = gameSpeed * 0.95; // Hard cap at 95% of game speed
-      const baseEnforcerSpeed = gameSpeed * 0.7; // Starts at 70% of player speed
       let enforcerSpeed = Math.min(
-        baseEnforcerSpeed + timeElapsed * 0.002, // gets slightly faster each second
-        maxEnforcerSpeed
+        gameSpeed * 0.6 + (timeElapsed * 0.0005), // slower ramp for tension buildup
+        gameSpeed * 0.95
       );
 
       // Traffic slows down enforcer
@@ -826,17 +1025,22 @@ function GameScene({
         enforcerSpeed *= 0.6;
       }
 
+      // GHOST MODE: enforcer loses the signal
+      if (isBoostActive) {
+        enforcerSpeed *= 0.92;
+        enforcerRef.current.position.x += (Math.random() - 0.5) * 0.15;
+      } else {
+        // Normal tracking resumes
+        const xDiff = carModelRef.current ? carModelRef.current.position.x - enforcerRef.current.position.x : 0;
+        enforcerRef.current.position.x += xDiff * 0.02;
+        // Slight left/right weave for alive feel
+        enforcerRef.current.position.x += Math.sin(now * 0.0012) * 0.03;
+      }
+
       enforcerSpeedRef.current = enforcerSpeed;
 
       // Move enforcer toward player z position
       enforcerRef.current.position.z += enforcerSpeedRef.current;
-
-      // Slowly drift toward player x (lane tracking)
-      const xDiff = carModelRef.current ? carModelRef.current.position.x - enforcerRef.current.position.x : 0;
-      enforcerRef.current.position.x += xDiff * 0.02;
-
-      // Slight left/right weave for alive feel
-      enforcerRef.current.position.x += Math.sin(now * 0.0012) * 0.03;
 
       // Calculate distance
       const enforcerDistance = Math.abs(enforcerRef.current.position.z - camera.position.z);
