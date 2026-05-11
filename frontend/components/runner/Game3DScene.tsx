@@ -16,11 +16,32 @@ interface Game3DSceneProps {
   maxSpeed?: number;
   gamePhase?: "idle" | "playing" | "paused" | "dead";
   obstacles?: Array<{ id: number; lane: 0 | 1 | 2; y: number; type: string; width: number; height: number }>;
+  isBoostActive?: boolean;
   onEnforcerDistanceChange?: (distance: number) => void;
   onEnforcerCaught?: () => void;
+  onEnforcerBlocked?: (blocked: boolean) => void;
 }
 
 // Step 1: Renderer setup inside GameScene component
+function createNullblockLabel() {
+  const canvas = document.createElement('canvas')
+  canvas.width = 256
+  canvas.height = 64
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = 'transparent'
+  ctx.clearRect(0, 0, 256, 64)
+  ctx.fillStyle = '#ff2244'
+  ctx.font = 'bold 28px monospace'
+  ctx.textAlign = 'center'
+  ctx.fillText('◆ NULLBLOCK', 128, 40)
+  const tex = new THREE.CanvasTexture(canvas)
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true })
+  const sprite = new THREE.Sprite(mat)
+  sprite.scale.set(3, 0.8, 1)
+  sprite.position.y = 3.5
+  return sprite
+}
+
 function GameScene({
   catPosition,
   playerLane,
@@ -29,8 +50,10 @@ function GameScene({
   maxSpeed = 100,
   gamePhase = "playing",
   obstacles = [],
+  isBoostActive = false,
   onEnforcerDistanceChange,
   onEnforcerCaught,
+  onEnforcerBlocked,
 }: Game3DSceneProps) {
   const { camera, scene, gl } = useThree();
   const sceneRef = useRef(false);
@@ -42,6 +65,8 @@ function GameScene({
   const enforcerSpeedRef = useRef(0);
   const enforcerActiveRef = useRef(false);
   const enforcerSpawnTimeRef = useRef(0);
+  const underglowLeftRef = useRef<THREE.Light | null>(null);
+  const underglowRightRef = useRef<THREE.Light | null>(null);
   const trafficCarsRef = useRef<
     Array<{ mesh: THREE.Group }>
   >([]);
@@ -218,6 +243,17 @@ function GameScene({
         carModel.position.z = 0;
         scene.add(carModel);
         carModelRef.current = carModel;
+
+        // Add underglow lights
+        const leftUnderglow = new THREE.PointLight("#00E5CC", 0.5, 20);
+        leftUnderglow.position.set(-1.5, -0.3, 0);
+        carModel.add(leftUnderglow);
+        underglowLeftRef.current = leftUnderglow;
+
+        const rightUnderglow = new THREE.PointLight("#00E5CC", 0.5, 20);
+        rightUnderglow.position.set(1.5, -0.3, 0);
+        carModel.add(rightUnderglow);
+        underglowRightRef.current = rightUnderglow;
       }
     );
 
@@ -272,7 +308,7 @@ function GameScene({
     }
 
     // STEP 6b — NULLBLOCK ENFORCER car (spawns after 3 seconds)
-    const enforcerLoadTimeout = setTimeout(() => {
+    setTimeout(() => {
       const enforcerLoader = new GLTFLoader();
       // Use the SUV model which is aggressive-looking
       enforcerLoader.load("/kenney_car-kit/Models/GLB format/suv.glb", (gltf: any) => {
@@ -466,7 +502,12 @@ function GameScene({
       if (idx < buildingPool.length) {
         const building = buildingPool[idx];
         const billboardTex = makeNullblockBillboard(billboardTexts[billboardIdx]);
-        const materials = Array(6).fill(null).map((_, faceIdx) => {
+        const defaultMat = new THREE.MeshStandardMaterial({
+          color: "#ffffff",
+          emissive: "#0d0d2b",
+          emissiveIntensity: 0.5,
+        });
+        const materials: THREE.Material[] = Array(6).fill(null).map((_, faceIdx) => {
           // Front face (facing road) gets billboard, others get default
           if (faceIdx === 0) {
             return new THREE.MeshStandardMaterial({
@@ -476,7 +517,7 @@ function GameScene({
               emissiveIntensity: 0.3,
             });
           }
-          return building.mesh.material;
+          return defaultMat;
         });
         building.mesh.material = materials;
       }
@@ -667,9 +708,19 @@ function GameScene({
     // Look ahead
     camera.lookAt(0, 2, catPosition * 0.05 - 20);
 
-    // Adjust FOV based on speed
-    (camera as THREE.PerspectiveCamera).fov = 70 + speedRatio * 20;
+    // Adjust FOV based on speed, enhanced by boost
+    let baseFov = 70 + speedRatio * 20;
+    if (isBoostActive) {
+      baseFov = THREE.MathUtils.lerp(baseFov, 85, 0.3);
+    }
+    (camera as THREE.PerspectiveCamera).fov = baseFov;
     camera.updateProjectionMatrix();
+
+    // Boost camera shake
+    if (isBoostActive) {
+      camera.position.x += (Math.random() - 0.5) * 0.08;
+      camera.position.y += (Math.random() - 0.5) * 0.08;
+    }
 
     // Update loaded car model
     if (carModelRef.current) {
@@ -685,11 +736,22 @@ function GameScene({
 
     // Update speed streaks
     if (leftStreakRef.current && rightStreakRef.current) {
-      const streakOpacity = speedRatio > 0.6 ? (speedRatio - 0.6) * 2 : 0;
+      let streakOpacity = speedRatio > 0.6 ? (speedRatio - 0.6) * 2 : 0;
+      if (isBoostActive) {
+        streakOpacity = THREE.MathUtils.lerp(streakOpacity, 0.8, 0.2);
+      }
       (leftStreakRef.current.material as THREE.MeshBasicMaterial).opacity =
         streakOpacity;
       (rightStreakRef.current.material as THREE.MeshBasicMaterial).opacity =
         streakOpacity;
+    }
+
+    // Update underglow intensity during boost
+    if (underglowLeftRef.current && underglowRightRef.current) {
+      const baseIntensity = 0.5;
+      const boostIntensity = isBoostActive ? 3 : baseIntensity;
+      underglowLeftRef.current.intensity = THREE.MathUtils.lerp(underglowLeftRef.current.intensity, boostIntensity, 0.1);
+      underglowRightRef.current.intensity = THREE.MathUtils.lerp(underglowRightRef.current.intensity, boostIntensity, 0.1);
     }
 
     // Recycle buildings that pass the camera
@@ -722,6 +784,8 @@ function GameScene({
         const zOffset = yOffset * 0.2; // scale: pixels to world units
         t.mesh.position.z = camera.position.z + zOffset;
         t.mesh.position.x = laneXMap[obs.lane as 0 | 1 | 2];
+        // Hard clamp to road edges to prevent clipping
+        t.mesh.position.x = THREE.MathUtils.clamp(t.mesh.position.x, -4, 4);
         t.mesh.position.y = 0.5;
         t.mesh.visible = true;
       }
@@ -737,13 +801,32 @@ function GameScene({
       const now = performance.now();
       const timeElapsed = (now - enforcerSpawnTimeRef.current) / 1000; // seconds since spawn
 
+      // Check if traffic is blocking enforcer
+      const enforcerBlocked = trafficCarsRef.current.some(t => {
+        const sameLane = Math.abs(t.mesh.position.x - enforcerRef.current!.position.x) < 1.5;
+        const ahead = t.mesh.position.z < enforcerRef.current!.position.z;
+        const close = Math.abs(t.mesh.position.z - enforcerRef.current!.position.z) < 8;
+        return sameLane && ahead && close;
+      });
+
+      if (enforcerBlocked && onEnforcerBlocked) {
+        onEnforcerBlocked(true);
+      }
+
       // Gradually accelerate toward player speed over time
-      const maxEnforcerSpeed = gameSpeed * 1.05; // Never more than 5% faster
+      const maxEnforcerSpeed = gameSpeed * 0.95; // Hard cap at 95% of game speed
       const baseEnforcerSpeed = gameSpeed * 0.7; // Starts at 70% of player speed
-      enforcerSpeedRef.current = Math.min(
+      let enforcerSpeed = Math.min(
         baseEnforcerSpeed + timeElapsed * 0.002, // gets slightly faster each second
         maxEnforcerSpeed
       );
+
+      // Traffic slows down enforcer
+      if (enforcerBlocked) {
+        enforcerSpeed *= 0.6;
+      }
+
+      enforcerSpeedRef.current = enforcerSpeed;
 
       // Move enforcer toward player z position
       enforcerRef.current.position.z += enforcerSpeedRef.current;

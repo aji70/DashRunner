@@ -23,6 +23,7 @@ interface GameCanvasProps {
   onPlayerLaneChange?: (lane: 0 | 1 | 2) => void;
   onJumpChange?: (jumping: boolean) => void;
   onSlideChange?: (sliding: boolean) => void;
+  isBoostActive?: boolean;
 }
 
 export interface GameCanvasHandle {
@@ -60,6 +61,7 @@ const COIN_RUSH_STREAK_LENGTH = 2;
 const NITRO_SCROLL_MUL = 1.38;
 const NITRO_BOOST_MS = 2400;
 const NITRO_HIT_R = 22;
+const BOOST_SCROLL_MUL = 1.8;
 /** Ignore ticks until the canvas has real dimensions (avoids lane math at width 0 → false collisions). */
 const MIN_PLAYABLE_SIZE = 48;
 
@@ -72,7 +74,7 @@ const COLOR_OBSTACLE_STROKE = "rgba(0,240,255,0.4)";
 const COLOR_PLAYER = "#FFFFFF";
 
 const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
-  ({ onScoreChange, onCoinsChange, onCoinCollect, onGameOver, onPhaseChange, onGameStateUpdate, onPlayerLaneChange, onJumpChange, onSlideChange }, ref) => {
+  ({ onScoreChange, onCoinsChange, onCoinCollect, onGameOver, onPhaseChange, onGameStateUpdate, onPlayerLaneChange, onJumpChange, onSlideChange, isBoostActive = false }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gameStateRef = useRef<GameState>({
       phase: "idle",
@@ -297,7 +299,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       const nitroBoost =
         typeof gameState.nitroBoostUntil === "number" && now < gameState.nitroBoostUntil;
       const nitroMul = nitroBoost ? NITRO_SCROLL_MUL : 1;
-      const scrollSpeed = gameState.speed * scrollMul * nitroMul;
+      const boostMul = isBoostActive ? BOOST_SCROLL_MUL : 1;
+      const scrollSpeed = gameState.speed * scrollMul * nitroMul * boostMul;
 
       gameState.distance += scrollSpeed * dt;
       gameState.speed = Math.min(
@@ -470,6 +473,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
       spawnCoinBurst,
       spawnObstacle,
       spawnNitro,
+      isBoostActive,
     ]);
 
     useGameLoop(handleTick, gameLoopEnabled);

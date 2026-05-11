@@ -39,6 +39,8 @@ interface GameHUDProps {
   speedKmh: number;
   gear: number;
   isMuted: boolean;
+  isBoostActive?: boolean;
+  isBoostOnCooldown?: boolean;
   onPauseToggle: () => void;
   onMuteToggle: () => void;
 }
@@ -50,6 +52,8 @@ export function GameHUD({
   speedKmh,
   gear,
   isMuted,
+  isBoostActive = false,
+  isBoostOnCooldown = false,
   onPauseToggle,
   onMuteToggle,
 }: GameHUDProps) {
@@ -159,7 +163,49 @@ export function GameHUD({
       {/* Speedometer in bottom right */}
       {(phase === "playing" || phase === "paused") && (
         <div className="pointer-events-none absolute bottom-3 right-3 z-20 sm:bottom-4 sm:right-4">
-          <ArcadeSpeedCluster speedKmh={speedKmh} gear={gear} />
+          <ArcadeSpeedCluster speedKmh={speedKmh} gear={gear} isBoosting={isBoostActive} />
+        </div>
+      )}
+
+      {/* Boost Status Indicator */}
+      {phase === "playing" && (
+        <div className="pointer-events-none absolute top-[4.5rem] right-4 z-20 sm:right-6">
+          <AnimatePresence mode="wait">
+            {isBoostActive ? (
+              <motion.div
+                key="boost-active"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="font-rajdhani text-sm font-bold uppercase tracking-wider"
+                style={{ color: "#00E5CC" }}
+              >
+                👻 GHOST MODE
+              </motion.div>
+            ) : isBoostOnCooldown ? (
+              <motion.div
+                key="boost-cooldown"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="font-rajdhani text-sm font-bold uppercase tracking-wider"
+                style={{ color: "#ff6644" }}
+              >
+                SIGNAL LOST
+              </motion.div>
+            ) : (
+              <motion.div
+                key="boost-ready"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="font-rajdhani text-sm font-bold uppercase tracking-wider"
+                style={{ color: "#00E5CC" }}
+              >
+                👻 GHOST READY
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 

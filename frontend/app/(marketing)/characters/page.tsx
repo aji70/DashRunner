@@ -10,7 +10,7 @@ import {
   pushLoadoutToServer,
 } from "@/lib/playerProfile";
 import { apiSend } from "@/lib/api";
-import { PageHeader, Kbd } from "@/components/ui/PageHeader";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { InlineNotice } from "@/components/ui/InlineNotice";

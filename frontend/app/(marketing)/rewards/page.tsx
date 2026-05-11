@@ -15,7 +15,7 @@ export default function RewardsPage() {
     setStatus(null);
     const p = loadLocalProfile();
     if (!p.walletAddress) {
-      setStatus(“Ghost mode active. Connect wallet to claim rewards on-chain.”);
+      setStatus("Ghost mode active. Connect wallet to claim rewards on-chain.");
       return;
     }
     try {

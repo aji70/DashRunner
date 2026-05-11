@@ -19,6 +19,22 @@ const Game3DScene = dynamic(
 
 export type RunnerGameMode = "endless" | "racing";
 
+const ACT_TARGETS = {
+  1: 500,
+  2: 1500,
+  3: 3000,
+  4: 6000,
+  5: 10000,
+};
+
+const ACT_NAMES = {
+  1: "THE SPRAWL",
+  2: "NEON QUARTER",
+  3: "THE CHAIN BRIDGE",
+  4: "DEAD NODE",
+  5: "GENESIS BLOCK",
+};
+
 export function RunnerGame({
   gameMode = "endless",
   autoStart = false,
@@ -52,11 +68,14 @@ export function RunnerGame({
   const [isBoostActive, setIsBoostActive] = useState(false);
   const [boostOnCooldown, setBoostOnCooldown] = useState(false);
   const [showGhostActivated, setShowGhostActivated] = useState(false);
+  const [currentAct, setCurrentAct] = useState(1);
+  const [showActComplete, setShowActComplete] = useState(false);
+  const [completedAct, setCompletedAct] = useState(0);
+  const [enforcerBlocked, setEnforcerBlocked] = useState(false);
   const boostStateRef = useRef({ isBoosting: false, onCooldown: false });
   const lastTapRef = useRef(0);
   const BOOST_DURATION = 2000;
   const BOOST_COOLDOWN = 8000;
-  const BOOST_MULTIPLIER = 1.8;
   const gameSurfaceRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<GameCanvasHandle>(null);
   const coinSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -296,6 +315,35 @@ export function RunnerGame({
   const handleScoreChange = (newScore: number) => {
     scoreRef.current = newScore;
     setScore(newScore);
+
+    // Check for act completion
+    const target = ACT_TARGETS[currentAct as keyof typeof ACT_TARGETS];
+    if (target && newScore >= target && !showActComplete) {
+      triggerActComplete(currentAct);
+    }
+  };
+
+  const triggerActComplete = (act: number) => {
+    canvasRef.current?.pause();
+    setShowActComplete(true);
+    setCompletedAct(act);
+
+    // If act 5, game is won
+    if (act === 5) {
+      // Trigger full game win (for now, just show complete)
+      return;
+    }
+
+    // Auto-advance to next act after 4 seconds
+    setTimeout(() => {
+      setCurrentAct(act + 1);
+      canvasRef.current?.resume();
+      setShowActComplete(false);
+      setShowActTitle(true);
+      setTimeout(() => {
+        setShowActTitle(false);
+      }, 3000);
+    }, 4000);
   };
 
   const handleCoinsChange = (newCoins: number) => {
@@ -385,6 +433,7 @@ export function RunnerGame({
           onPlayerLaneChange={setPlayerLane}
           onJumpChange={setIsJumping}
           onSlideChange={() => {}}
+          isBoostActive={isBoostActive}
         />
       </div>
 
@@ -401,8 +450,15 @@ export function RunnerGame({
             maxSpeed={240}
             gamePhase={phase}
             obstacles={gameState.obstacles}
+            isBoostActive={isBoostActive}
             onEnforcerDistanceChange={handleEnforcerDistanceChange}
             onEnforcerCaught={handleEnforcerCaught}
+            onEnforcerBlocked={(blocked) => {
+              if (blocked) {
+                setEnforcerBlocked(true);
+                setTimeout(() => setEnforcerBlocked(false), 1000);
+              }
+            }}
           />
         </ErrorBoundary>
       )}
@@ -414,6 +470,8 @@ export function RunnerGame({
         speedKmh={speedKmh}
         gear={gear}
         isMuted={isMuted}
+        isBoostActive={isBoostActive}
+        isBoostOnCooldown={boostOnCooldown}
         onPauseToggle={handlePauseToggle}
         onMuteToggle={handleMuteToggle}
       />
@@ -458,14 +516,14 @@ export function RunnerGame({
             letterSpacing: '6px',
             fontFamily: 'Bebas Neue',
             fontWeight: 'bold',
-          }}>ACT 1</div>
+          }}>ACT {currentAct}</div>
           <div style={{
             color: '#ffffff',
             fontSize: '36px',
             letterSpacing: '4px',
             fontFamily: 'Bebas Neue',
             fontWeight: 'black',
-          }}>THE SPRAWL</div>
+          }}>{ACT_NAMES[currentAct as keyof typeof ACT_NAMES]}</div>
           <div style={{
             color: 'rgba(255,255,255,0.4)',
             fontSize: '13px',
@@ -569,6 +627,164 @@ export function RunnerGame({
             }
           `}</style>
           NULLBLOCK IS CLOSING IN
+        </div>
+      )}
+
+      {/* Ghost Mode Activation Flash */}
+      {showGhostActivated && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          color: '#00E5CC',
+          fontSize: '32px',
+          fontFamily: 'Bebas Neue',
+          letterSpacing: '4px',
+          fontWeight: 'bold',
+          animation: 'ghostActivate 0.5s ease forwards',
+          zIndex: 35,
+          pointerEvents: 'none',
+        }}>
+          <style>{`
+            @keyframes ghostActivate {
+              0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.8) }
+              50%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1) }
+              100% { opacity: 0; transform: translate(-50%, -50%) scale(1) }
+            }
+          `}</style>
+          👻 GHOST MODE ACTIVATED
+        </div>
+      )}
+
+      {/* Act Progress Bar */}
+      {phase === "playing" && (
+        <div style={{
+          position: 'absolute',
+          top: '48px',
+          left: 0,
+          right: 0,
+          height: '2px',
+          background: 'rgba(255,255,255,0.08)',
+          zIndex: 20,
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${Math.min(100, (score / ACT_TARGETS[currentAct as keyof typeof ACT_TARGETS]) * 100)}%`,
+            background: 'linear-gradient(90deg, #00E5CC, #7B2FFF)',
+            transition: 'width 0.3s',
+          }} />
+        </div>
+      )}
+
+      {/* Act Complete Overlay */}
+      {showActComplete && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(5,0,20,0.92)',
+          backdropFilter: 'blur(12px)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '16px',
+          animation: 'fadeIn 0.5s ease forwards',
+          zIndex: 100,
+        }}>
+          <style>{`
+            @keyframes fadeIn {
+              0%   { opacity: 0 }
+              100% { opacity: 1 }
+            }
+          `}</style>
+
+          <div style={{
+            color: '#00E5CC',
+            fontSize: '13px',
+            letterSpacing: '6px',
+            fontFamily: 'Bebas Neue',
+            fontWeight: 'bold',
+          }}>SCORE POSTED TO CHAIN</div>
+
+          <div style={{
+            color: '#ffffff',
+            fontSize: '64px',
+            fontFamily: 'Bebas Neue',
+            fontWeight: 'black',
+            textShadow: '0 0 30px rgba(0,229,204,0.6)',
+          }}>ACT {completedAct} COMPLETE</div>
+
+          <div style={{
+            color: 'rgba(255,255,255,0.6)',
+            fontSize: '22px',
+            fontFamily: 'Bebas Neue',
+            letterSpacing: '3px',
+          }}>{ACT_NAMES[completedAct as keyof typeof ACT_NAMES]}</div>
+
+          <div style={{
+            background: 'rgba(0,229,204,0.08)',
+            border: '1px solid rgba(0,229,204,0.3)',
+            borderRadius: '8px',
+            padding: '20px 40px',
+            textAlign: 'center',
+            marginTop: '8px',
+          }}>
+            <div style={{
+              color: 'rgba(255,255,255,0.5)',
+              fontSize: '11px',
+              letterSpacing: '3px',
+              fontFamily: 'Bebas Neue',
+            }}>NULLBLOCK TRIED TO STOP YOU</div>
+            <div style={{
+              color: '#00E5CC',
+              fontSize: '48px',
+              fontFamily: 'Bebas Neue',
+              fontWeight: 'black',
+            }}>{score}</div>
+            <div style={{
+              color: '#F5C518',
+              fontSize: '16px',
+              fontFamily: 'Bebas Neue',
+              letterSpacing: '1px',
+            }}>+{ACT_TARGETS[completedAct as keyof typeof ACT_TARGETS]} $DASH EARNED</div>
+          </div>
+
+          <div style={{
+            color: 'rgba(255,255,255,0.35)',
+            fontSize: '12px',
+            letterSpacing: '2px',
+            fontFamily: 'monospace',
+            marginTop: '8px',
+          }}>
+            {completedAct < 5
+              ? `ENTERING ${ACT_NAMES[(completedAct + 1) as keyof typeof ACT_NAMES]} IN 4 SECONDS...`
+              : 'FINAL ACT COMPLETE — YOU WIN'}
+          </div>
+        </div>
+      )}
+
+      {/* Enforcer Blocked Flash */}
+      {enforcerBlocked && (
+        <div style={{
+          position: 'fixed',
+          top: '15%',
+          width: '100%',
+          textAlign: 'center',
+          color: '#00E5CC',
+          fontSize: '20px',
+          fontFamily: 'Bebas Neue',
+          letterSpacing: '4px',
+          animation: 'fadeOut 1s ease forwards',
+          zIndex: 30,
+        }}>
+          <style>{`
+            @keyframes fadeOut {
+              0%   { opacity: 1 }
+              100% { opacity: 0 }
+            }
+          `}</style>
+          ⚡ ENFORCER BLOCKED BY TRAFFIC
         </div>
       )}
     </div>
