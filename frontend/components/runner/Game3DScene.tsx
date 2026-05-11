@@ -1019,7 +1019,6 @@ function GameScene({
       }
 
       // Gradually accelerate toward player speed over time — slower ramp over longer acts
-      const maxEnforcerSpeed = gameSpeed * 0.95; // Hard cap at 95% of game speed
       let enforcerSpeed = Math.min(
         gameSpeed * 0.6 + (timeElapsed * 0.0005), // slower ramp for tension buildup
         gameSpeed * 0.95
