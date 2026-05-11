@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 
@@ -40,6 +41,27 @@ export function GameOverlay({
   onResume,
 }: GameOverlayProps) {
   const router = useRouter();
+  const [countdown, setCountdown] = useState(3);
+  const [startCountdown, setStartCountdown] = useState(false);
+
+  useEffect(() => {
+    if (phase === "idle" && !startCountdown) {
+      setStartCountdown(true);
+      let count = 3;
+      setCountdown(count);
+
+      const interval = setInterval(() => {
+        count -= 1;
+        setCountdown(count);
+        if (count === 0) {
+          clearInterval(interval);
+          onStart();
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [phase, onStart, startCountdown]);
 
   return (
     <AnimatePresence mode="wait">
@@ -47,39 +69,115 @@ export function GameOverlay({
         <motion.div
           key="start-screen"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: countdown > 0 ? 1 : 0 }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
           className="pointer-events-auto absolute inset-0 z-30 flex flex-col items-center justify-center px-4"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(5,0,20,0.92)",
+            backdropFilter: "blur(12px)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "12px",
+            zIndex: 100,
+          }}
         >
-          <div className="absolute inset-0 bg-void/95" />
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 24 }}
-            className="relative z-10 w-full max-w-sm"
+          {/* Story intro text */}
+          <div
+            style={{
+              color: "rgba(255,34,68,0.8)",
+              fontSize: "11px",
+              letterSpacing: "6px",
+              fontFamily: "Bebas Neue",
+            }}
           >
-            <GlassPanel className="px-6 py-8 text-center shadow-lift sm:px-8 sm:py-10">
-              <h1 className="font-orbitron text-3xl font-black uppercase tracking-[0.08em] sm:text-4xl" style={{ backgroundImage: "linear-gradient(90deg, #f0abfc, #67e8f9)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                DashRunner
-              </h1>
-              <p className="mt-2 font-rajdhani text-xs font-semibold uppercase tracking-[0.3em] text-orange-300/70">
-                Endless Neon Chase
-              </p>
-              <motion.div className="mt-8" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-                <Button variant="primary" onClick={onStart} className="w-full rounded-2xl py-4 text-sm font-bold sm:py-5 sm:text-base">
-                  Play
-                </Button>
-              </motion.div>
-              <p className="mt-4 font-rajdhani text-[10px] uppercase tracking-widest text-orange-200/50 sm:text-xs">
-                ← Dodge → Switch | ↑ Jump | ↓ Slide
-              </p>
-              {highScore > 0 ? (
-                <p className="mt-6 text-center font-rajdhani text-xs text-[var(--text-dim)] sm:text-sm">
-                  Best <span className="font-orbitron font-bold tabular-nums text-amber-200/90">{highScore.toLocaleString()}</span>
-                </p>
-              ) : null}
-            </GlassPanel>
+            CELO CITY // 2047
+          </div>
+
+          <div
+            style={{
+              color: "#ffffff",
+              fontSize: "64px",
+              fontFamily: "Bebas Neue",
+              textShadow: "0 0 40px rgba(0,229,204,0.5)",
+              letterSpacing: "4px",
+            }}
+          >
+            DASH RUNNER
+          </div>
+
+          <div
+            style={{
+              color: "rgba(255,255,255,0.5)",
+              fontSize: "14px",
+              letterSpacing: "3px",
+              fontFamily: "Bebas Neue",
+            }}
+          >
+            NULLBLOCK ERASED YOUR BROTHER&apos;S SCORE
+          </div>
+
+          <div
+            style={{
+              color: "rgba(255,255,255,0.3)",
+              fontSize: "13px",
+              letterSpacing: "2px",
+              marginBottom: "8px",
+            }}
+          >
+            GET IT BACK
+          </div>
+
+          {/* Countdown */}
+          <motion.div
+            key={`countdown-${countdown}`}
+            initial={{ scale: 1.2, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              color: "#00E5CC",
+              fontSize: "80px",
+              fontFamily: "Bebas Neue",
+              textShadow: "0 0 30px rgba(0,229,204,0.8)",
+              lineHeight: 1,
+              minHeight: "90px",
+            }}
+          >
+            {countdown > 0 ? countdown : ""}
           </motion.div>
+
+          {/* Best score */}
+          {highScore > 0 && (
+            <div
+              style={{
+                color: "rgba(245,197,24,0.7)",
+                fontSize: "13px",
+                letterSpacing: "2px",
+                fontFamily: "Bebas Neue",
+              }}
+            >
+              YOUR RECORD: {highScore}
+            </div>
+          )}
+
+          {/* Tap to skip */}
+          <div
+            onClick={onStart}
+            style={{
+              color: "rgba(255,255,255,0.25)",
+              fontSize: "11px",
+              letterSpacing: "3px",
+              marginTop: "16px",
+              cursor: "pointer",
+            }}
+          >
+            TAP TO START NOW
+          </div>
         </motion.div>
       )}
 

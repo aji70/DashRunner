@@ -948,8 +948,13 @@ function GameScene({
         const coinWorldPos = new THREE.Vector3();
         c.mesh.getWorldPosition(coinWorldPos);
 
-        const dist = carWorldPos.distanceTo(coinWorldPos);
-        if (dist < 1.8) {
+        // Only check x and z distance — ignore y height difference
+        const xzDist = Math.sqrt(
+          Math.pow(carWorldPos.x - coinWorldPos.x, 2) +
+          Math.pow(carWorldPos.z - coinWorldPos.z, 2)
+        );
+
+        if (xzDist < 1.5) {
           c.collected = true;
           c.mesh.visible = false;
           if (window.__addCoin) {

@@ -421,8 +421,6 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
 
         if (dist < coin.radius + 32) {
           coin.collected = true;
-          gameState.coinsCollected++;
-          onCoinsChange(gameState.coinsCollected);
           onCoinCollect();
         }
       }
